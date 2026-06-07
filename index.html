@@ -451,7 +451,7 @@ const useAuth = () => useContext(AuthCtx);
 const PERMISSIONS = {
   Admin:   { modules:'all', manageUsers:true,  edit:true },
   Manager: { modules:'all', manageUsers:false, edit:true },
-  Pekerja: { modules:['dashboard','water','feed','growth','health'], manageUsers:false, edit:'daily' },
+  Pekerja: { modules:['dashboard','water','feed','growth','health','settings'], manageUsers:false, edit:'daily' },
 };
 function canSee(role, moduleId){
   const p = PERMISSIONS[role]; if(!p) return false;
@@ -490,6 +490,123 @@ function AuthProvider({ children }){
   const logout = () => { setUser(null); localStorage.removeItem('upro_session'); sessionStorage.removeItem('upro_session'); };
 
   return <AuthCtx.Provider value={{ user, users, setUsers, login, register, logout }}>{children}</AuthCtx.Provider>;
+}
+
+/* ============================================================
+   LANGUAGE CONTEXT — Malay / English
+   ============================================================ */
+const TR = {
+  ms: {
+    appName: 'UdangPro',
+    appTag: 'Sistem Pengurusan Ladang Udang',
+    appDesc: 'Aplikasi pengurusan ladang udang moden — rekod kolam, kualiti air, makanan, kesihatan, tuaian & kewangan.',
+    /* Nav */
+    nav_dashboard: 'Dashboard',
+    nav_ponds: 'Pengurusan Kolam',
+    nav_water: 'Kualiti Air',
+    nav_seed: 'Pengurusan Benih',
+    nav_feed: 'Pengurusan Makanan',
+    nav_growth: 'Pertumbuhan',
+    nav_health: 'Kesihatan & Rawatan',
+    nav_harvest: 'Pengurusan Tuaian',
+    nav_finance: 'Kewangan',
+    nav_users: 'Pengurusan Pengguna',
+    nav_reports: 'Laporan & Analitik',
+    nav_settings: 'Tetapan',
+    /* Settings */
+    lang_label: 'Bahasa',
+    lang_ms: 'Bahasa Melayu',
+    lang_en: 'English',
+    lang_current: 'Bahasa semasa',
+    about_title: 'Mengenai UdangPro',
+    version: 'Versi',
+    version_latest: '1.1',
+    view_on_github: 'Lihat di GitHub',
+    copyright: '© 2026 Ladang Udang Mersing',
+    /* General */
+    search: 'Cari...',
+    no_records: 'Tiada rekod',
+    save: 'Simpan',
+    cancel: 'Batal',
+    add: 'Tambah',
+    edit: 'Edit',
+    delete: 'Padam',
+    close: 'Tutup',
+    loading: 'Sedang muat...',
+    login: 'Log Masuk',
+    register: 'Daftar',
+    logout: 'Log Keluar',
+    email: 'Email',
+    password: 'Kata Laluan',
+    name: 'Nama',
+    remember: 'Ingat saya',
+    or: 'atau',
+    quick_login: 'Log Masuk Pantas',
+    system_active: 'Sistem Aktif',
+    synced: 'Tersimpan di cloud',
+    offline: 'Offline — simpan lokal',
+    syncing: 'Menyimpan...',
+    connecting: 'Menyambung...',
+    lang_saved: 'Bahasa telah disimpan.',
+  },
+  en: {
+    appName: 'UdangPro',
+    appTag: 'Shrimp Farm Management System',
+    appDesc: 'Modern shrimp farm management — pond records, water quality, feed, health, harvest & finance.',
+    nav_dashboard: 'Dashboard',
+    nav_ponds: 'Pond Management',
+    nav_water: 'Water Quality',
+    nav_seed: 'Seed Management',
+    nav_feed: 'Feed Management',
+    nav_growth: 'Growth',
+    nav_health: 'Health & Treatment',
+    nav_harvest: 'Harvest Management',
+    nav_finance: 'Finance',
+    nav_users: 'User Management',
+    nav_reports: 'Reports & Analytics',
+    nav_settings: 'Settings',
+    lang_label: 'Language',
+    lang_ms: 'Bahasa Melayu',
+    lang_en: 'English',
+    lang_current: 'Current language',
+    about_title: 'About UdangPro',
+    version: 'Version',
+    version_latest: '1.1',
+    view_on_github: 'View on GitHub',
+    copyright: '© 2026 Mersing Shrimp Farm',
+    search: 'Search...',
+    no_records: 'No records',
+    save: 'Save',
+    cancel: 'Cancel',
+    add: 'Add',
+    edit: 'Edit',
+    delete: 'Delete',
+    close: 'Close',
+    loading: 'Loading...',
+    login: 'Sign In',
+    register: 'Sign Up',
+    logout: 'Log Out',
+    email: 'Email',
+    password: 'Password',
+    name: 'Name',
+    remember: 'Remember me',
+    or: 'or',
+    quick_login: 'Quick Login',
+    system_active: 'System Active',
+    synced: 'Saved to cloud',
+    offline: 'Offline — saving locally',
+    syncing: 'Saving...',
+    connecting: 'Connecting...',
+    lang_saved: 'Language saved.',
+  }
+};
+const LangCtx = createContext(null);
+const useLang = () => useContext(LangCtx);
+function LangProvider({ children }){
+  const [lang, setLang] = useState(()=> localStorage.getItem('upro_lang') || 'ms');
+  const t = (key) => TR[lang][key] || key;
+  const toggle = (l) => { setLang(l); localStorage.setItem('upro_lang', l); };
+  return <LangCtx.Provider value={{ lang, t, toggle }}>{children}</LangCtx.Provider>;
 }
 
 /* ============================================================
@@ -603,17 +720,18 @@ function AuthPage(){
    APP SHELL — Sidebar + Topbar + Routing
    ============================================================ */
 const NAV = [
-  { id:'dashboard', label:'Dashboard',        icon:'LayoutDashboard' },
-  { id:'ponds',     label:'Pengurusan Kolam', icon:'Waves' },
-  { id:'water',     label:'Kualiti Air',      icon:'Droplets' },
-  { id:'seed',      label:'Pengurusan Benih', icon:'Sprout' },
-  { id:'feed',      label:'Pengurusan Makanan',icon:'Wheat' },
-  { id:'growth',    label:'Pertumbuhan',      icon:'TrendingUp' },
-  { id:'health',    label:'Kesihatan & Rawatan',icon:'HeartPulse' },
-  { id:'harvest',   label:'Pengurusan Tuaian',icon:'Package' },
-  { id:'finance',   label:'Kewangan',         icon:'Wallet' },
-  { id:'users',     label:'Pengurusan Pengguna',icon:'Users' },
-  { id:'reports',   label:'Laporan & Analitik',icon:'FileBarChart' },
+  { id:'dashboard', labelKey:'nav_dashboard', icon:'LayoutDashboard' },
+  { id:'ponds',     labelKey:'nav_ponds',     icon:'Waves' },
+  { id:'water',     labelKey:'nav_water',     icon:'Droplets' },
+  { id:'seed',      labelKey:'nav_seed',      icon:'Sprout' },
+  { id:'feed',      labelKey:'nav_feed',      icon:'Wheat' },
+  { id:'growth',    labelKey:'nav_growth',    icon:'TrendingUp' },
+  { id:'health',    labelKey:'nav_health',    icon:'HeartPulse' },
+  { id:'harvest',   labelKey:'nav_harvest',   icon:'Package' },
+  { id:'finance',   labelKey:'nav_finance',   icon:'Wallet' },
+  { id:'users',     labelKey:'nav_users',     icon:'Users' },
+  { id:'reports',   labelKey:'nav_reports',   icon:'FileBarChart' },
+  { id:'settings',  labelKey:'nav_settings',  icon:'Settings' },
 ];
 
 function Avatar({ name, size=38 }){
@@ -624,6 +742,7 @@ function Avatar({ name, size=38 }){
 
 function Sidebar({ active, setActive, open, setOpen }){
   const { user, logout } = useAuth();
+  const { t } = useLang();
   const items = NAV.filter(n=>canSee(user.role, n.id));
   return (
     <>
@@ -633,14 +752,14 @@ function Sidebar({ active, setActive, open, setOpen }){
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-xl shadow-glow">🦐</div>
           <div>
             <div className="font-extrabold text-white leading-tight">UdangPro</div>
-            <div className="text-[10px] text-cyan-300/70">Ladang Udang Mersing</div>
+            <div className="text-[10px] text-cyan-300/70">{t('appTag')}</div>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {items.map(n=>(
             <button key={n.id} onClick={()=>{setActive(n.id);setOpen(false);}}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active===n.id?'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30':'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
-              <Icon name={n.icon} size={18}/>{n.label}
+              <Icon name={n.icon} size={18}/>{t(n.labelKey)}
             </button>
           ))}
         </nav>
@@ -653,7 +772,7 @@ function Sidebar({ active, setActive, open, setOpen }){
             </div>
           </div>
           <button onClick={logout} className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-semibold hover:bg-rose-500/20 transition">
-            <Icon name="LogOut" size={16}/>Log Keluar
+            <Icon name="LogOut" size={16}/>{t('logout')}
           </button>
         </div>
       </aside>
@@ -675,7 +794,7 @@ function Topbar({ title, onMenu }){
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-panel2/60 border border-edge">
           <span className="w-2 h-2 rounded-full bg-emerald-400 pulseRing"></span>
-          <span className="text-xs text-slate-300">Sistem Aktif</span>
+          <span className="text-xs text-slate-300">{t('system_active')}</span>
         </div>
         <Avatar name={user.name} size={36}/>
       </div>
@@ -1554,16 +1673,68 @@ function ReportsModule(){
 }
 
 /* ============================================================
+   SETTINGS PAGE — Language + About
+   ============================================================ */
+function SettingsPage(){
+  const { t, lang, toggle } = useLang();
+  const [saved, setSaved] = useState(false);
+  const handleLang = (l) => { toggle(l); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  return (
+    <div className="max-w-2xl mx-auto space-y-5">
+      <Card>
+        <SectionHeader icon="Languages" title={t('lang_label')} />
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={()=>handleLang('ms')}
+            className={`p-4 rounded-xl border text-left transition ${lang==='ms'?'bg-cyan-500/15 border-cyan-500/40 text-cyan-300':'bg-panel2 border-edge text-slate-300 hover:border-cyan-400/40'}`}>
+            <div className="text-lg mb-1">🇲🇾</div>
+            <div className="font-semibold">{t('lang_ms')}</div>
+            {lang==='ms'&&<div className="text-[10px] text-cyan-400 mt-1">{t('lang_current')}</div>}
+          </button>
+          <button onClick={()=>handleLang('en')}
+            className={`p-4 rounded-xl border text-left transition ${lang==='en'?'bg-cyan-500/15 border-cyan-500/40 text-cyan-300':'bg-panel2 border-edge text-slate-300 hover:border-cyan-400/40'}`}>
+            <div className="text-lg mb-1">🇬🇧</div>
+            <div className="font-semibold">{t('lang_en')}</div>
+            {lang==='en'&&<div className="text-[10px] text-cyan-400 mt-1">{t('lang_current')}</div>}
+          </button>
+        </div>
+        {saved&&<div className="mt-3 text-sm text-emerald-400 flex items-center gap-2"><Icon name="CheckCircle2" size={16}/>{t('lang_saved')}</div>}
+      </Card>
+      <Card>
+        <SectionHeader icon="Info" title={t('about_title')} />
+        <div className="text-center py-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-400 to-teal-500 text-5xl shadow-glow mb-4">🦐</div>
+          <h3 className="text-2xl font-extrabold text-white">{t('appName')}</h3>
+          <p className="text-sm text-slate-400 mt-1">{t('appTag')}</p>
+          <p className="text-xs text-slate-500 mt-3 max-w-sm mx-auto leading-relaxed">{t('appDesc')}</p>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <span className="text-xs text-slate-400">{t('version')}:</span>
+            <span className="text-sm font-bold text-cyan-300 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/30">{t('version_latest')}</span>
+          </div>
+          <div className="mt-6 flex items-center justify-center gap-3 text-xs text-slate-500">
+            <a href="https://github.com/nephicrosis-boop/UdangPro" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 transition">
+              <Icon name="Github" size={14}/>{t('view_on_github')}
+            </a>
+          </div>
+          <div className="mt-4 text-[10px] text-slate-600">{t('copyright')}</div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
    MAIN APP SHELL + ROUTING
    ============================================================ */
 function MainApp(){
   const { user } = useAuth();
+  const { t } = useLang();
   const { status, msg } = useSync();
   const [active,setActive]=useState('dashboard');
   const [open,setOpen]=useState(false);
   useEffect(()=>{ if(!canSee(user.role,active)) setActive('dashboard'); },[active,user.role]);
 
-  const titles={dashboard:'Dashboard',ponds:'Pengurusan Kolam',water:'Kualiti Air',seed:'Pengurusan Benih',feed:'Pengurusan Makanan',growth:'Pertumbuhan Udang',health:'Kesihatan & Rawatan',harvest:'Pengurusan Tuaian',finance:'Kewangan',users:'Pengurusan Pengguna',reports:'Laporan & Analitik'};
+  const navTitle = (id) => { const n=NAV.find(x=>x.id===id); return n?t(n.labelKey):'UdangPro'; };
   const render=()=>{
     switch(active){
       case 'dashboard': return <Dashboard go={setActive}/>;
@@ -1577,6 +1748,7 @@ function MainApp(){
       case 'finance': return <FinanceModule/>;
       case 'users': return canSee(user.role,'users')?<UsersModule/>:<Dashboard go={setActive}/>;
       case 'reports': return <ReportsModule/>;
+      case 'settings': return <SettingsPage/>;
       default: return <Dashboard go={setActive}/>;
     }
   };
@@ -1584,7 +1756,7 @@ function MainApp(){
     <div className="flex h-screen overflow-hidden bg-ink">
       <Sidebar active={active} setActive={setActive} open={open} setOpen={setOpen}/>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar title={titles[active]} onMenu={()=>setOpen(true)}/>
+        <Topbar title={navTitle(active)} onMenu={()=>setOpen(true)}/>
         {status!=='local'&&<div className={`px-4 py-1 text-[11px] font-medium flex items-center gap-2 border-b ${
           status==='synced'?'text-emerald-400 border-emerald-500/20 bg-emerald-500/5':
           status==='offline'?'text-amber-400 border-amber-500/20 bg-amber-500/5':
@@ -1612,7 +1784,8 @@ const useData = () => useContext(DataCtx);
 function withIds(arr){ return (arr||[]).map((r,i)=>({ _id: r._id ?? ('s'+i+'-'+Math.random().toString(36).slice(2,8)), ...r })); }
 
 function DataProvider({ children }){
-  const [syncSt, setSyncSt] = useState({ status:'syncing', msg:'Menyambung...' });
+  const { t } = useLang();
+  const [syncSt, setSyncSt] = useState({ status:'syncing', msg:t('connecting') });
 
   const mk = (key, seed) => {
     const [v, setV] = useState(withIds(seed));
@@ -1627,10 +1800,10 @@ function DataProvider({ children }){
       SB.get('farm_data',{select:'data',eq:['id',key],single:true})
         .then(d=>{ if(d?.data?.length){ setV(withIds(d.data)); localStorage.setItem('upro_'+key,JSON.stringify(d.data)); }
           else if(!localStorage.getItem('upro_'+key)) localStorage.setItem('upro_'+key,JSON.stringify(withIds(seed)));
-          setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }); })
-        .catch(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:'Offline — simpan lokal'}:s));
+          setSyncSt({ status:'synced', msg:t('synced') }); })
+        .catch(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:t('offline')}:s));
       // Kalau sbOnline dah false, tunjuk offline cepat
-      setTimeout(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:'Offline'}:s), 3000);
+      setTimeout(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:t('offline')}:s), 3000);
     }, []);
 
     useEffect(() => {
@@ -1638,10 +1811,10 @@ function DataProvider({ children }){
       localStorage.setItem('upro_'+key, JSON.stringify(v));
       if(!sbOnline) return;
       const timer = setTimeout(() => {
-        setSyncSt({ status:'syncing', msg:'Menyimpan...' });
+        setSyncSt({ status:'syncing', msg:t('syncing') });
         SB.upsert('farm_data',{id:key, data:v})
-          .then(()=>setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }))
-          .catch(()=>setSyncSt({ status:'offline', msg:'Offline' }));
+          .then(()=>setSyncSt({ status:'synced', msg:t('synced') }))
+          .catch(()=>setSyncSt({ status:'offline', msg:t('offline') }));
       }, 800);
       return () => clearTimeout(timer);
     }, [v]);
@@ -1718,7 +1891,7 @@ function CrudPanel({ title, icon, columns, fields, rows, setRows, canEdit=true, 
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <AuthProvider><DataProvider><Root/></DataProvider></AuthProvider>
+  <AuthProvider><LangProvider><DataProvider><Root/></DataProvider></LangProvider></AuthProvider>
 );
 /* Hide splash */
 (function(){ try{ const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>s.remove(),300); } }catch(e){} })();
