@@ -13,7 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase REST client — no CDN dependency -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
@@ -68,12 +68,44 @@ const {
   CartesianGrid, Tooltip, Legend
 } = RC;
 
-/* ---------- Supabase (gagal = offline mode) ---------- */
+/* ---------- Supabase REST client (fetch-based, no CDN) ---------- */
 const SUPABASE_URL = 'https://nfxehlmkohmemsjldsbc.supabase.co';
 const SUPABASE_ANON = 'eyJ...6g';
-let supabase = null;
-try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } }); }
-catch(e){ console.warn('Supabase init failed:', e); }
+const SB = {
+  headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer '+SUPABASE_ANON, 'Content-Type':'application/json' },
+  get: async function(table, opts={}){
+    const params = new URLSearchParams();
+    if(opts.select) params.set('select', opts.select);
+    if(opts.eq) params.set(opts.eq[0], 'eq.'+opts.eq[1]);
+    if(opts.single) params.set('limit','1');
+    if(opts.order) params.set('order', opts.order);
+    const url = SUPABASE_URL+'/rest/v1/'+table+(params.toString()?'?'+params.toString():'');
+    try {
+      const r = await fetch(url, { headers: this.headers });
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d = await r.json();
+      if(opts.single) return d[0]||null;
+      return d;
+    } catch(e){ throw e; }
+  },
+  upsert: async function(table, rows){
+    const r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
+      method: 'POST', headers: { ...this.headers, Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(Array.isArray(rows)?rows:[rows])
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  },
+  del: async function(table, eqCol, eqVal){
+    const r = await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+eqCol+'=eq.'+eqVal, {
+      method: 'DELETE', headers: this.headers
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+  }
+};
+let sbOnline = false;
+// test sambungan — tak blocking, set status je
+(async()=>{ try{ await SB.get('farm_data',{select:'id',single:true}); sbOnline=true; console.log('Supabase OK'); }catch(e){ console.warn('Supabase offline:', e.message); } })();
 
 /* Sync context */
 const SyncCtx = React.createContext({ status: 'local', msg: '' });
@@ -1588,22 +1620,23 @@ function DataProvider({ children }){
       initRef.current = true;
       // Load dari localStorage dulu
       try { const s=localStorage.getItem('upro_'+key); if(s) setV(withIds(JSON.parse(s))); } catch(e){}
-      // Sync dari Supabase
-      if(supabase) supabase.from('farm_data').select('data').eq('id',key).single()
-        .then(({data})=>{ if(data?.data?.length){ setV(withIds(data.data)); localStorage.setItem('upro_'+key,JSON.stringify(data.data)); }
+      // Sync dari Supabase via REST
+      SB.get('farm_data',{select:'data',eq:['id',key],single:true})
+        .then(d=>{ if(d?.data?.length){ setV(withIds(d.data)); localStorage.setItem('upro_'+key,JSON.stringify(d.data)); }
           else if(!localStorage.getItem('upro_'+key)) localStorage.setItem('upro_'+key,JSON.stringify(withIds(seed)));
           setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }); })
         .catch(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:'Offline — simpan lokal'}:s));
-      else setSyncSt({ status:'offline', msg:'Offline' });
+      // Kalau sbOnline dah false, tunjuk offline cepat
+      setTimeout(()=>setSyncSt(s=>s.status==='syncing'?{status:'offline',msg:'Offline'}:s), 3000);
     }, []);
 
     useEffect(() => {
       if(!initRef.current) return;
       localStorage.setItem('upro_'+key, JSON.stringify(v));
-      if(!supabase) return;
+      if(!sbOnline) return;
       const timer = setTimeout(() => {
         setSyncSt({ status:'syncing', msg:'Menyimpan...' });
-        supabase.from('farm_data').upsert({ id:key, data:v }, { onConflict:'id' })
+        SB.upsert('farm_data',{id:key, data:v})
           .then(()=>setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }))
           .catch(()=>setSyncSt({ status:'offline', msg:'Offline' }));
       }, 800);
@@ -1625,7 +1658,7 @@ function DataProvider({ children }){
 
   const reset = () => {
     ['ponds','water','seed','feed','feedstock','growth','health','medstock','harvest']
-      .forEach(k=>{ localStorage.removeItem('upro_'+k); if(supabase) supabase.from('farm_data').delete().eq('id',k).then(); });
+      .forEach(k=>{ localStorage.removeItem('upro_'+k); if(sbOnline) SB.del('farm_data','id',k).catch(()=>{}); });
     location.reload();
   };
 
