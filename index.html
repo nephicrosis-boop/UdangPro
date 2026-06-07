@@ -6,8 +6,6 @@
 <title>UdangPro — Sistem Pengurusan Ladang Udang</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#070b16">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
@@ -56,14 +54,6 @@
 </head>
 <body>
 <div id="root"></div>
-<div id="splash" style="position:fixed;inset:0;background:#070b16;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:sans-serif;transition:opacity .5s">
-  <div style="font-size:48px;margin-bottom:16px">🦐</div>
-  <div style="color:#22d3ee;font-size:18px;font-weight:700">UdangPro</div>
-  <div style="color:#64748b;font-size:13px;margin-top:8px">Memuatkan...</div>
-  <div style="margin-top:20px;width:120px;height:3px;background:#1c2740;border-radius:4px;overflow:hidden">
-    <div id="splash-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#22d3ee,#2dd4bf);border-radius:4px;transition:width 2s ease"></div>
-  </div>
-</div>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, createContext, useContext, useRef } = React;
 const RC = window.Recharts || {};
@@ -72,17 +62,6 @@ const {
   PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend
 } = RC;
-
-/* ---------- Supabase (gagal = offline mode) ---------- */
-const SUPABASE_URL = 'https://nfxehlmkohmemsjldsbc.supabase.co';
-const SUPABASE_ANON = 'eyJ...6g';
-let supabase = null;
-try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } }); }
-catch(e){ console.warn('Supabase init failed:', e); }
-
-/* Sync context */
-const SyncCtx = React.createContext({ status: 'local', msg: '' });
-const useSync = () => React.useContext(SyncCtx);
 
 /* ---------- Lucide icon wrapper ---------- */
 function Icon({ name, size = 18, className = '', strokeWidth = 2, color = 'currentColor' }) {
@@ -260,9 +239,9 @@ const btnGhost = "inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-panel2 
 /* ============================================================
    SAMPLE DATA — lengkap untuk semua modul
    ============================================================ */
-const todayISO = new Date().toISOString().slice(0,10);
-function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
-function daysAhead(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+const todayISO = '2026-06-07';
+function daysAgo(n){const d=new Date('2026-06-07');d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+function daysAhead(n){const d=new Date('2026-06-07');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 
 const SEED_USERS = [
   { id:1, name:'Encik Nepho', email:'admin@udang.com', password:'admin123', role:'Admin', active:true, lastLogin:daysAgo(0) },
@@ -1528,9 +1507,9 @@ function ReportsModule(){
    ============================================================ */
 function MainApp(){
   const { user } = useAuth();
-  const { status, msg } = useSync();
   const [active,setActive]=useState('dashboard');
   const [open,setOpen]=useState(false);
+  // guard: kalau role tak boleh akses module, balik dashboard
   useEffect(()=>{ if(!canSee(user.role,active)) setActive('dashboard'); },[active,user.role]);
 
   const titles={dashboard:'Dashboard',ponds:'Pengurusan Kolam',water:'Kualiti Air',seed:'Pengurusan Benih',feed:'Pengurusan Makanan',growth:'Pertumbuhan Udang',health:'Kesihatan & Rawatan',harvest:'Pengurusan Tuaian',finance:'Kewangan',users:'Pengurusan Pengguna',reports:'Laporan & Analitik'};
@@ -1555,19 +1534,6 @@ function MainApp(){
       <Sidebar active={active} setActive={setActive} open={open} setOpen={setOpen}/>
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar title={titles[active]} onMenu={()=>setOpen(true)}/>
-        {/* Sync status bar */}
-        <div className={`px-4 py-1 text-[11px] font-medium flex items-center gap-2 border-b transition-all ${
-          status==='synced'?'text-emerald-400 border-emerald-500/20 bg-emerald-500/5':
-          status==='offline'?'text-amber-400 border-amber-500/20 bg-amber-500/5':
-          'text-cyan-400 border-cyan-500/20 bg-cyan-500/5'
-        }`}>
-          <span className={`w-2 h-2 rounded-full ${
-            status==='synced'?'bg-emerald-400':
-            status==='offline'?'bg-amber-400':
-            'bg-cyan-400 animate-pulse'
-          }`}/>
-          {msg}
-        </div>
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">{render()}</main>
       </div>
     </div>
@@ -1580,86 +1546,29 @@ function Root(){
 }
 
 /* ============================================================
-   DATA STORE — Supabase + localStorage (offline fallback)
+   DATA STORE — semua dataset jadi state + persist localStorage
    ============================================================ */
 const DataCtx = createContext(null);
 const useData = () => useContext(DataCtx);
 function withIds(arr){ return (arr||[]).map((r,i)=>({ _id: r._id ?? ('s'+i+'-'+Math.random().toString(36).slice(2,8)), ...r })); }
 
 function DataProvider({ children }){
-  const [syncSt, setSyncSt] = useState({ status:'syncing', msg:'Menyambung...' });
-  const [loaded, setLoaded] = useState(false);
-
   const mk = (key, seed) => {
-    const [v, setV] = useState(withIds(seed));
-    const initRef = useRef(false);
-
-    useEffect(() => {
-      if(initRef.current) return;
-      initRef.current = true;
-
-      // Load dari localStorage dulu (cepat)
-      try {
-        const local = localStorage.getItem('upro_'+key);
-        if(local) { const d=JSON.parse(local); if(d.length) setV(withIds(d)); }
-      } catch(e){}
-
-      // Sync dari Supabase
-      if(supabase) {
-        supabase.from('farm_data').select('data').eq('id', key).single()
-          .then(({ data, error }) => {
-            if(data && data.data && data.data.length) {
-              setV(withIds(data.data));
-              localStorage.setItem('upro_'+key, JSON.stringify(data.data));
-            } else if(!localStorage.getItem('upro_'+key)) {
-              localStorage.setItem('upro_'+key, JSON.stringify(withIds(seed)));
-            }
-            setSyncSt({ status:'synced', msg:'Tersimpan di cloud' });
-          })
-          .catch(() => setSyncSt(s => s.status==='syncing' ? { status:'offline', msg:'Offline — simpan lokal' } : s));
-      } else {
-        setSyncSt({ status:'offline', msg:'Supabase CDN tak ready' });
-      }
-    }, []);
-
-    // Auto-save ke localStorage + Supabase (debounced)
-    useEffect(() => {
-      if(!initRef.current) return;
-      localStorage.setItem('upro_'+key, JSON.stringify(v));
-      if(!supabase) return;
-      const timer = setTimeout(() => {
-        setSyncSt({ status:'syncing', msg:'Menyimpan...' });
-        supabase.from('farm_data').upsert({ id: key, data: v }, { onConflict: 'id' })
-          .then(() => setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }))
-          .catch(() => setSyncSt({ status:'offline', msg:'Offline — simpan lokal' }));
-      }, 800);
-      return () => clearTimeout(timer);
-    }, [v]);
-
-    return [v, setV];
+    const [v,setV] = useState(()=>{ try{ const s=localStorage.getItem(key); return s?JSON.parse(s):withIds(seed); }catch(e){ return withIds(seed); } });
+    useEffect(()=>{ try{ localStorage.setItem(key, JSON.stringify(v)); }catch(e){} },[v]);
+    return [v,setV];
   };
-
-  const [ponds,setPonds]       = mk('ponds', PONDS);
-  const [water,setWater]       = mk('water', WATER_QUALITY);
-  const [seed,setSeed]         = mk('seed', SEED_RECORDS);
-  const [feed,setFeed]         = mk('feed', FEED_RECORDS);
-  const [feedStock,setFeedStock]=mk('feedstock', FEED_STOCK);
-  const [growth,setGrowth]     = mk('growth', GROWTH);
-  const [health,setHealth]     = mk('health', HEALTH_RECORDS);
-  const [medStock,setMedStock] = mk('medstock', MED_STOCK);
-  const [harvest,setHarvest]   = mk('harvest', HARVESTS);
-
-  const reset = () => {
-    ['ponds','water','seed','feed','feedstock','growth','health','medstock','harvest']
-      .forEach(k=>{ localStorage.removeItem('upro_'+k); supabase.from('farm_data').delete().eq('id',k).then() });
-    location.reload();
-  };
-
-  return <SyncCtx.Provider value={syncSt}>
-    <DataCtx.Provider value={{ ponds,setPonds, water,setWater, seed,setSeed, feed,setFeed, feedStock,setFeedStock, growth,setGrowth, health,setHealth, medStock,setMedStock, harvest,setHarvest, reset }}>
-      {children}
-    </DataCtx.Provider>
-  </SyncCtx.Provider>;
+  const [ponds,setPonds]       = mk('upro_ponds', PONDS);
+  const [water,setWater]       = mk('upro_water', WATER_QUALITY);
+  const [seed,setSeed]         = mk('upro_seed', SEED_RECORDS);
+  const [feed,setFeed]         = mk('upro_feed', FEED_RECORDS);
+  const [feedStock,setFeedStock]=mk('upro_feedstock', FEED_STOCK);
+  const [growth,setGrowth]     = mk('upro_growth', GROWTH);
+  const [health,setHealth]     = mk('upro_health', HEALTH_RECORDS);
+  const [medStock,setMedStock] = mk('upro_medstock', MED_STOCK);
+  const [harvest,setHarvest]   = mk('upro_harvest', HARVESTS);
+  const reset = () => { ['upro_ponds','upro_water','upro_seed','upro_feed','upro_feedstock','upro_growth','upro_health','upro_medstock','upro_harvest'].forEach(k=>localStorage.removeItem(k)); location.reload(); };
+  return <DataCtx.Provider value={{ ponds,setPonds, water,setWater, seed,setSeed, feed,setFeed, feedStock,setFeedStock, growth,setGrowth, health,setHealth, medStock,setMedStock, harvest,setHarvest, reset }}>{children}</DataCtx.Provider>;
 }
 
 /* ============================================================
@@ -1710,25 +1619,7 @@ function CrudPanel({ title, icon, columns, fields, rows, setRows, canEdit=true, 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <AuthProvider><DataProvider><Root/></DataProvider></AuthProvider>
 );
-/* Hide splash screen */
-setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>s.remove(),500); } }, 100);
 
-</script>
-<script>
-/* Manual Babel transform (in case auto-detect fails) */
-(function(){
-  try {
-    var s = document.querySelector('script[type="text/babel"]');
-    if(s && !window.__babelDone) {
-      window.__babelDone = true;
-      var code = s.textContent;
-      var result = Babel.transform(code, { presets: s.getAttribute('data-presets') ? [s.getAttribute('data-presets')] : [] });
-      var newScript = document.createElement('script');
-      newScript.textContent = result.code;
-      document.body.appendChild(newScript);
-    }
-  } catch(e) { console.error('Babel manual transform error:', e); }
-})();
 </script>
 </body>
 </html>
