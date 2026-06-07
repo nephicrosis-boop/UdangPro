@@ -1247,7 +1247,7 @@ function AuthPage() {
     d: "M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,53.3C672,53,768,75,864,80C960,85,1056,75,1152,64C1248,53,1344,43,1392,37.3L1440,32L1440,140L0,140Z"
   })), /*#__PURE__*/React.createElement("div", {
     className: "absolute top-10 left-10 text-6xl opacity-10 floaty"
-  }, "\uD83E\uDD90"), /*#__PURE__*/React.createElement("div", {
+  }, React.createElement(ShrimpIcon, { size: 48 })), /*#__PURE__*/React.createElement("div", {
     className: "absolute bottom-24 right-16 text-5xl opacity-10 floaty",
     style: {
       animationDelay: '1.5s'
@@ -1258,7 +1258,7 @@ function AuthPage() {
     className: "text-center mb-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 text-3xl shadow-glow floaty"
-  }, "\uD83E\uDD90"), /*#__PURE__*/React.createElement("h1", {
+  }, React.createElement(ShrimpIcon, { size: 36 })), /*#__PURE__*/React.createElement("h1", {
     className: "mt-4 text-2xl font-extrabold text-white tracking-tight"
   }, "UdangPro"), /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-400"
@@ -1404,6 +1404,8 @@ const NAV = [{
   labelKey: 'nav_settings',
   icon: 'Settings'
 }];
+const SHRIMP_SVG = "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20d%3D%22M42%2030Q55%2010%2075%2012%22%20stroke%3D%22%2300BCD4%22%20stroke-width%3D%222.5%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M45%2032Q60%2018%2080%2025%22%20stroke%3D%22%2300BCD4%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%3Cpath%20d%3D%22M48%2028Q40%2026%2035%2030Q30%2035%2032%2040Q35%2042%2040%2040L48%2038Z%22%20fill%3D%22%230D1B2A%22%2F%3E%3Cellipse%20cx%3D%2240%22%20cy%3D%2234%22%20rx%3D%223%22%20ry%3D%222%22%20fill%3D%22%2300BCD4%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M32%2038Q38%2037%2045%2036%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20fill%3D%22none%22%2F%3E%3Cpath%20d%3D%22M40%2040L38%2045Q36%2052%2040%2055Q48%2055%2052%2050Q55%2045%2052%2040Z%22%20fill%3D%22%2300BCD4%22%2F%3E%3Cpath%20d%3D%22M40%2055Q38%2058%2040%2062Q48%2062%2052%2058Q50%2055%2048%2055Z%22%20fill%3D%22%230D1B2A%22%2F%3E%3Cpath%20d%3D%22M40%2062Q38%2065%2042%2068Q48%2068%2050%2065Q50%2062%2048%2062Z%22%20fill%3D%22%2300BCD4%22%2F%3E%3Cpath%20d%3D%22M42%2068Q40%2071%2044%2073Q48%2073%2050%2071Q48%2068%2046%2068Z%22%20fill%3D%22%230D1B2A%22%2F%3E%3Cpath%20d%3D%22M44%2073Q48%2076%2050%2080Q48%2082%2044%2080Q40%2078%2040%2075Z%22%20fill%3D%22%2300BCD4%22%2F%3E%3Cpath%20d%3D%22M44%2073Q38%2072%2032%2075Q34%2078%2040%2076Z%22%20fill%3D%22%230D1B2A%22%2F%3E%3Cpath%20d%3D%22M44%2080Q38%2082%2034%2085Q38%2086%2042%2082Z%22%20fill%3D%22%2300BCD4%22%2F%3E%3Cline%20x1%3D%2244%22%20y1%3D%2250%22%20x2%3D%2238%22%20y2%3D%2252%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3Cline%20x1%3D%2246%22%20y1%3D%2257%22%20x2%3D%2240%22%20y2%3D%2260%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E";
+function ShrimpIcon({ size }) { return React.createElement("img", { src: SHRIMP_SVG, className: "shrimp-icon", style: { width: size + "px", height: size + "px", display: "block" }, alt: "" }); }
 function Avatar({
   name,
   size = 38
@@ -1441,7 +1443,7 @@ function Sidebar({
     className: "p-5 flex items-center gap-3 border-b border-edge"
   }, /*#__PURE__*/React.createElement("div", {
     className: "w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-xl shadow-glow"
-  }, "\uD83E\uDD90"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+  }, React.createElement(ShrimpIcon, { size: 24 })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     className: "font-extrabold text-white leading-tight"
   }, "UdangPro"), /*#__PURE__*/React.createElement("div", {
     className: "text-[10px] text-cyan-300/70"
@@ -4021,7 +4023,7 @@ function SettingsPage() {
     className: "text-center py-6"
   }, /*#__PURE__*/React.createElement("div", {
     className: "inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-400 to-teal-500 text-5xl shadow-glow mb-4"
-  }, "\uD83E\uDD90"), /*#__PURE__*/React.createElement("h3", {
+  }, React.createElement(ShrimpIcon, { size: 48 })), /*#__PURE__*/React.createElement("h3", {
     className: "text-2xl font-extrabold text-white"
   }, t('appName')), /*#__PURE__*/React.createElement("p", {
     className: "text-sm text-slate-400 mt-1"
