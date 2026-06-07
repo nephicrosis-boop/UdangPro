@@ -287,9 +287,12 @@ const btnGhost = "inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-panel2 
 /* ============================================================
    SAMPLE DATA — lengkap untuk semua modul
    ============================================================ */
-const todayISO = '2026-06-07';
-function daysAgo(n){const d=new Date('2026-06-07');d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
-function daysAhead(n){const d=new Date('2026-06-07');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+/* ---------- Tarikh GMT+8 (Malaysia) ---------- */
+const now = new Date();
+const msMY = now.toLocaleString('sv-SE', { timeZone: 'Asia/Kuala_Lumpur' }).slice(0,10);
+const todayISO = msMY || now.toISOString().slice(0,10);
+function daysAgo(n){const d=new Date(todayISO+'T00:00:00+08:00');d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+function daysAhead(n){const d=new Date(todayISO+'T00:00:00+08:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
 
 const SEED_USERS = [
   { id:1, name:'Encik Nepho', email:'admin@udang.com', password:'admin123', role:'Admin', active:true, lastLogin:daysAgo(0) },
@@ -666,7 +669,7 @@ function Topbar({ title, onMenu }){
         <button onClick={onMenu} className="lg:hidden p-2 rounded-lg hover:bg-white/10"><Icon name="Menu" size={20}/></button>
         <div>
           <h1 className="font-extrabold text-white text-lg leading-tight">{title}</h1>
-          <div className="text-[11px] text-slate-400 flex items-center gap-1.5"><Icon name="Calendar" size={11}/>{new Date('2026-06-07').toLocaleDateString('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+          <div className="text-[11px] text-slate-400 flex items-center gap-1.5"><Icon name="Calendar" size={11}/>{new Date(todayISO+'T12:00:00+08:00').toLocaleDateString('ms-MY',{timeZone:'Asia/Kuala_Lumpur',weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
         </div>
       </div>
       <div className="flex items-center gap-3">
