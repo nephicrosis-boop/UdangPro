@@ -13,19 +13,6 @@
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script>/* Bootloader: transform + eval babel script in global scope */
-(function(){
-  var tid = setInterval(function(){
-    var s = document.querySelector('script[type="text/babel"]');
-    if(!s || !window.Babel || typeof Babel.transform!=='function') return;
-    clearInterval(tid);
-    try {
-      var code = Babel.transform(s.innerHTML, {presets:['react']}).code;
-      (0,eval)(code); // global eval
-    } catch(e){ console.error('Boot error:', e); document.getElementById('root').innerHTML='<div style=\"color:red;padding:20px\">Error: '+e.message+'</div>'; }
-  }, 100);
-})();
-</script>
 <!-- Supabase REST client — no CDN dependency -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -72,7 +59,7 @@
   <div style="color:#22d3ee;font-size:16px;font-weight:700">UdangPro</div>
   <div style="color:#475569;font-size:12px;margin-top:6px">Sedang muat...</div>
 </div>
-<script type="text/babel" data-presets="react">
+<script id="app-src" type="text/plain">
 const { useState, useEffect, useMemo, createContext, useContext, useRef } = React;
 const RC = window.Recharts || {};
 const {
@@ -1909,6 +1896,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 /* Hide splash */
 (function(){ try{ const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>s.remove(),300); } }catch(e){} })();
 
+</script>
+<script>/* Bootloader */
+(function(){
+  var src = document.getElementById('app-src').innerHTML;
+  var tid = setInterval(function(){
+    if(!window.Babel || typeof Babel.transform!=='function') return;
+    clearInterval(tid);
+    try{ var code = Babel.transform(src, {presets:['react']}).code; (0,eval)(code); }
+    catch(e){ console.error(e); document.getElementById('root').innerHTML='<div style="color:#fbbf24;padding:20px;font-family:sans-serif;background:#070b16;min-height:100vh">⚠️ Ralat: '+e.message+'</div>'; }
+  }, 50);
+})();
 </script>
 </body>
 </html>
