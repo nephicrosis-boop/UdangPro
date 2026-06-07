@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>UdangPro — Sistem Pengurusan Ladang Udang</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#070b16">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter','sans-serif'] },
+        colors: {
+          ink: '#070b16', panel: '#0d1424', panel2: '#111a2e',
+          edge: '#1c2740', accent: '#22d3ee', accent2: '#2dd4bf',
+        },
+        boxShadow: { glow: '0 0 24px rgba(34,211,238,.25)' }
+      }
+    }
+  }
+</script>
+<style>
+  html,body,#root{height:100%}
+  body{background:#070b16;font-family:'Inter',sans-serif;color:#e2e8f0}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-track{background:#0d1424}
+  ::-webkit-scrollbar-thumb{background:#1c2740;border-radius:8px}
+  ::-webkit-scrollbar-thumb:hover{background:#22d3ee}
+  .glass{background:rgba(13,20,36,.72);backdrop-filter:blur(14px);border:1px solid rgba(34,211,238,.12)}
+  .ocean-bg{background:
+     radial-gradient(900px 500px at 15% 10%, rgba(34,211,238,.18), transparent 60%),
+     radial-gradient(900px 600px at 85% 90%, rgba(45,212,191,.16), transparent 55%),
+     linear-gradient(160deg,#04070f 0%,#071226 45%,#04101c 100%)}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .floaty{animation:floaty 6s ease-in-out infinite}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .fadeUp{animation:fadeUp .45s ease both}
+  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(34,211,238,.5)}70%{box-shadow:0 0 0 12px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
+  .pulseRing{animation:pulseRing 2s infinite}
+  .wave{position:absolute;left:0;right:0;bottom:0;height:140px;opacity:.35}
+  input,select,textarea{color-scheme:dark}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, createContext, useContext, useRef } = React;
+const RC = window.Recharts || {};
+const {
+  ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar,
+  PieChart, Pie, Cell, RadialBarChart, RadialBar, XAxis, YAxis,
+  CartesianGrid, Tooltip, Legend
+} = RC;
+
+/* ---------- Supabase ---------- */
+const SUPABASE_URL = 'https://nfxehlmkohmemsjldsbc.supabase.co';
+const SUPABASE_ANON = 'eyJ...6g';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: { persistSession: false }
+});
+
+/* Sync context */
+const SyncCtx = React.createContext({ status: 'local', msg: '' });
+const useSync = () => React.useContext(SyncCtx);
+
+/* ---------- Lucide icon wrapper ---------- */
+function Icon({ name, size = 18, className = '', strokeWidth = 2, color = 'currentColor' }) {
+  const lib = (window.lucide && window.lucide.icons) || {};
+  const node = lib[name] || lib['Circle'] || [];
+  return React.createElement('svg', {
+    xmlns: 'http://www.w3.org/2000/svg', width: size, height: size,
+    viewBox: '0 0 24 24', fill: 'none', stroke: color, strokeWidth,
+    strokeLinecap: 'round', strokeLinejoin: 'round', className
+  }, (node || []).map((c, i) => React.createElement(c[0], { ...c[1], key: i })));
+}
+
+/* ---------- Generic UI ---------- */
+function Card({ children, className = '' }) {
+  return <div className={`glass rounded-2xl p-5 fadeUp ${className}`}>{children}</div>;
+}
+
+function KpiCard({ icon, label, value, sub, tone = 'accent' }) {
+  const tones = {
+    accent: 'from-cyan-500/20 to-teal-500/5 text-cyan-300 border-cyan-500/20',
+    green: 'from-emerald-500/20 to-emerald-500/5 text-emerald-300 border-emerald-500/20',
+    amber: 'from-amber-500/20 to-amber-500/5 text-amber-300 border-amber-500/20',
+    rose: 'from-rose-500/20 to-rose-500/5 text-rose-300 border-rose-500/20',
+    violet: 'from-violet-500/20 to-violet-500/5 text-violet-300 border-violet-500/20',
+  };
+  return (
+    <div className={`rounded-2xl p-4 border bg-gradient-to-br ${tones[tone]} fadeUp`}>
+      <div className="flex items-center justify-between">
+        <div className="p-2 rounded-xl bg-black/30"><Icon name={icon} size={22} /></div>
+      </div>
+      <div className="mt-3 text-2xl font-extrabold text-white tracking-tight">{value}</div>
+      <div className="text-xs text-slate-400 mt-0.5">{label}</div>
+      {sub && <div className="text-[11px] mt-1 opacity-80">{sub}</div>}
+    </div>
+  );
+}
+
+const STATUS_TONE = {
+  'Aktif': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  'Persediaan': 'bg-sky-500/15 text-sky-300 border-sky-500/30',
+  'Tuaian': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  'Kosong': 'bg-slate-500/15 text-slate-300 border-slate-500/30',
+  'Penyelenggaraan': 'bg-violet-500/15 text-violet-300 border-violet-500/30',
+  'Normal': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  'Warning': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+  'Kritikal': 'bg-rose-500/15 text-rose-300 border-rose-500/30',
+};
+function StatusBadge({ status }) {
+  const tone = STATUS_TONE[status] || 'bg-slate-500/15 text-slate-300 border-slate-500/30';
+  return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${tone}`}>{status}</span>;
+}
+
+function Modal({ open, onClose, title, children, wide }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className={`glass rounded-2xl w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} max-h-[88vh] overflow-y-auto fadeUp`} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-edge sticky top-0 bg-panel/90 backdrop-blur">
+          <h3 className="font-bold text-white flex items-center gap-2"><Icon name="Pencil" size={16} className="text-cyan-300" />{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10"><Icon name="X" size={18} /></button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="block">
+      <span className="text-xs text-slate-400 font-medium">{label}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+const inputCls = "w-full bg-panel2 border border-edge rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition";
+
+function DataTable({ columns, rows, searchable = true, pageSize = 8 }) {
+  const [q, setQ] = useState('');
+  const [sort, setSort] = useState({ key: null, dir: 1 });
+  const [page, setPage] = useState(0);
+  const filtered = useMemo(() => {
+    let r = rows;
+    if (q) r = r.filter(row => columns.some(c => String(row[c.key] ?? '').toLowerCase().includes(q.toLowerCase())));
+    if (sort.key) r = [...r].sort((a, b) => {
+      const x = a[sort.key], y = b[sort.key];
+      if (typeof x === 'number' && typeof y === 'number') return (x - y) * sort.dir;
+      return String(x).localeCompare(String(y)) * sort.dir;
+    });
+    return r;
+  }, [rows, q, sort, columns]);
+  const pages = Math.ceil(filtered.length / pageSize) || 1;
+  const view = filtered.slice(page * pageSize, page * pageSize + pageSize);
+  useEffect(() => { setPage(0); }, [q, rows]);
+  return (
+    <div>
+      {searchable && (
+        <div className="relative mb-3 max-w-xs">
+          <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari..." className={inputCls + ' pl-9'} />
+        </div>
+      )}
+      <div className="overflow-x-auto rounded-xl border border-edge">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-panel2 text-slate-400 text-left">
+              {columns.map(c => (
+                <th key={c.key} onClick={() => c.sortable !== false && setSort(s => ({ key: c.key, dir: s.key === c.key ? -s.dir : 1 }))}
+                    className="px-3 py-2.5 font-semibold whitespace-nowrap cursor-pointer select-none hover:text-cyan-300">
+                  <span className="inline-flex items-center gap-1">{c.label}{sort.key === c.key && <Icon name={sort.dir === 1 ? 'ChevronUp' : 'ChevronDown'} size={12} />}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {view.map((row, i) => (
+              <tr key={i} className="border-t border-edge/60 hover:bg-white/[.03] transition">
+                {columns.map(c => <td key={c.key} className="px-3 py-2.5 whitespace-nowrap">{c.render ? c.render(row) : row[c.key]}</td>)}
+              </tr>
+            ))}
+            {view.length === 0 && <tr><td colSpan={columns.length} className="px-3 py-8 text-center text-slate-500">Tiada rekod</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      {pages > 1 && (
+        <div className="flex items-center justify-between mt-3 text-xs text-slate-400">
+          <span>{filtered.length} rekod</span>
+          <div className="flex items-center gap-1">
+            <button disabled={page === 0} onClick={() => setPage(p => p - 1)} className="px-2.5 py-1.5 rounded-lg bg-panel2 disabled:opacity-40 hover:bg-edge"><Icon name="ChevronLeft" size={14} /></button>
+            <span className="px-2">{page + 1}/{pages}</span>
+            <button disabled={page >= pages - 1} onClick={() => setPage(p => p + 1)} className="px-2.5 py-1.5 rounded-lg bg-panel2 disabled:opacity-40 hover:bg-edge"><Icon name="ChevronRight" size={14} /></button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Gauge({ value, min, max, low, high, unit, label }) {
+  const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  const ok = value >= low && value <= high;
+  const warn = !ok && (value >= low - (high - low) * 0.15 && value <= high + (high - low) * 0.15);
+  const col = ok ? '#34d399' : warn ? '#fbbf24' : '#fb7185';
+  return (
+    <div className="rounded-xl border border-edge bg-panel2/60 p-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs text-slate-400">{label}</span>
+        <span className="text-sm font-bold" style={{ color: col }}>{value}<span className="text-[10px] text-slate-500 ml-0.5">{unit}</span></span>
+      </div>
+      <div className="h-2 rounded-full bg-edge overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: col }} />
+      </div>
+      <div className="flex justify-between text-[10px] text-slate-500 mt-1"><span>{min}</span><span className="text-slate-400">selamat {low}–{high}</span><span>{max}</span></div>
+    </div>
+  );
+}
+
+function SectionHeader({ icon, title, desc, action }) {
+  return (
+    <div className="flex items-start justify-between mb-5 flex-wrap gap-3">
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 rounded-xl bg-cyan-500/15 text-cyan-300 border border-cyan-500/20"><Icon name={icon} size={20} /></div>
+        <div>
+          <h2 className="text-xl font-extrabold text-white tracking-tight">{title}</h2>
+          {desc && <p className="text-xs text-slate-400">{desc}</p>}
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+const btnPrimary = "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-900 font-bold text-sm hover:shadow-glow transition";
+const btnGhost = "inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-panel2 border border-edge text-slate-300 text-sm hover:border-cyan-400/40 transition";
+
+/* ============================================================
+   SAMPLE DATA — lengkap untuk semua modul
+   ============================================================ */
+const todayISO = new Date().toISOString().slice(0,10);
+function daysAgo(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+function daysAhead(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+
+const SEED_USERS = [
+  { id:1, name:'Encik Nepho', email:'admin@udang.com', password:'admin123', role:'Admin', active:true, lastLogin:daysAgo(0) },
+  { id:2, name:'Manager Azlan', email:'manager@udang.com', password:'manager123', role:'Manager', active:true, lastLogin:daysAgo(1) },
+  { id:3, name:'Pekerja Bulat', email:'pekerja@udang.com', password:'pekerja123', role:'Pekerja', active:true, lastLogin:daysAgo(0) },
+];
+
+const SPECIES = ['Udang Vannamei (L. vannamei)','Udang Harimau (P. monodon)','Udang Putih'];
+
+const PONDS = [
+  { id:'KOLAM C', name:'Kolam C', sizeM2:5000, sizeHa:0.50, type:'Tanah',  loc:'Blok Utara',  gps:'2.4312, 103.8390', status:'Aktif',         stockDate:daysAgo(62), density:100, species:'Udang Vannamei (L. vannamei)', seeded:500000, survival:88, harvestEst:daysAhead(28) },
+  { id:'KOLAM B', name:'Kolam B', sizeM2:4000, sizeHa:0.40, type:'Plastik',loc:'Blok Utara',  gps:'2.4318, 103.8395', status:'Aktif',         stockDate:daysAgo(45), density:100, species:'Udang Vannamei (L. vannamei)', seeded:400000, survival:91, harvestEst:daysAhead(45) },
+  { id:'KOLAM 4', name:'Kolam 4', sizeM2:6000, sizeHa:0.60, type:'Tanah',  loc:'Blok Selatan',gps:'2.4290, 103.8402', status:'Tuaian',        stockDate:daysAgo(98), density:90,  species:'Udang Vannamei (L. vannamei)', seeded:540000, survival:82, harvestEst:daysAhead(3)  },
+  { id:'KOLAM 2', name:'Kolam 2', sizeM2:3000, sizeHa:0.30, type:'Beton',  loc:'Blok Selatan',gps:'2.4285, 103.8410', status:'Persediaan',    stockDate:daysAhead(7), density:30,  species:'Udang Harimau (P. monodon)',  seeded:90000,  survival:0,  harvestEst:daysAhead(120) },
+  { id:'KOLAM A', name:'Kolam A', sizeM2:4500, sizeHa:0.45, type:'Tanah',  loc:'Blok Timur',  gps:'2.4301, 103.8380', status:'Kosong',        stockDate:null,        density:0,   species:'-',                           seeded:0,      survival:0,  harvestEst:null },
+  { id:'KOLAM D', name:'Kolam D', sizeM2:5500, sizeHa:0.55, type:'Plastik',loc:'Blok Timur',  gps:'2.4307, 103.8375', status:'Penyelenggaraan',stockDate:null,       density:0,   species:'-',                           seeded:0,      survival:0,  harvestEst:null },
+];
+
+/* Water quality: 30 hari untuk kolam aktif */
+function genWQ(pondId, baseTemp){
+  const arr=[];
+  for(let i=29;i>=0;i--){
+    const wobble=Math.sin(i/3)*0.4;
+    arr.push({
+      date:daysAgo(i), pond:pondId, time: i%2===0?'Pagi':'Petang',
+      ph:+(8.0+wobble*0.3+(Math.random()-0.5)*0.2).toFixed(2),
+      do:+(5.2+wobble*0.6+(Math.random()-0.5)*0.5).toFixed(2),
+      temp:+(baseTemp+wobble+(Math.random()-0.5)*0.6).toFixed(1),
+      salinity:+(18+wobble*1.5+(Math.random()-0.5)).toFixed(1),
+      transparency:+(35+wobble*4+(Math.random()-0.5)*5).toFixed(0),
+      ammonia:+Math.max(0,(0.05+(Math.random()-0.4)*0.06)).toFixed(3),
+      nitrite:+Math.max(0,(0.04+(Math.random()-0.4)*0.05)).toFixed(3),
+      alkalinity:+(120+wobble*8+(Math.random()-0.5)*10).toFixed(0),
+    });
+  }
+  return arr;
+}
+let WATER_QUALITY = [...genWQ('KOLAM C',29.5), ...genWQ('KOLAM B',30.1), ...genWQ('KOLAM 4',31.2)];
+// satu bacaan kritikal sebagai contoh alert
+WATER_QUALITY.push({date:todayISO,pond:'KOLAM 4',time:'Petang',ph:9.1,do:3.4,temp:33.4,salinity:26.5,transparency:18,ammonia:0.18,nitrite:0.12,alkalinity:95});
+
+const SAFE_RANGE = {
+  ph:[7.5,8.5], do:[4,99], temp:[26,32], salinity:[10,25], ammonia:[0,0.1],
+};
+
+/* Benih / PL */
+const SEED_RECORDS = [
+  { id:1, date:daysAgo(62), pond:'KOLAM C', species:'Udang Vannamei (L. vannamei)', plSize:'PL12', qty:500000, supplier:'Hatchery Sri Mersing', price:0.045, pcr:'Negatif (Clean)', surv7:96 },
+  { id:2, date:daysAgo(45), pond:'KOLAM B', species:'Udang Vannamei (L. vannamei)', plSize:'PL10', qty:400000, supplier:'CP Hatchery JB',      price:0.048, pcr:'Negatif (Clean)', surv7:94 },
+  { id:3, date:daysAgo(98), pond:'KOLAM 4', species:'Udang Vannamei (L. vannamei)', plSize:'PL12', qty:540000, supplier:'Hatchery Sri Mersing', price:0.043, pcr:'Negatif (Clean)', surv7:90 },
+  { id:4, date:daysAhead(7),pond:'KOLAM 2', species:'Udang Harimau (P. monodon)',  plSize:'PL15', qty:90000,  supplier:'Blue Archipelago',     price:0.080, pcr:'Pending',         surv7:0  },
+];
+
+/* Feed records — 14 hari, kolam aktif */
+const FEED_TYPES = [
+  { name:'Starter (0.5mm)', stage:'PL–15g', pricePerKg:5.20 },
+  { name:'Grower (1.5mm)',  stage:'15–25g', pricePerKg:4.80 },
+  { name:'Finisher (2.5mm)',stage:'>25g',   pricePerKg:4.50 },
+];
+function genFeed(pondId, base){
+  const arr=[];
+  for(let i=13;i>=0;i--){
+    arr.push({ id:`${pondId}-${i}`, date:daysAgo(i), pond:pondId,
+      feedType: base>200?'Finisher (2.5mm)':base>120?'Grower (1.5mm)':'Starter (0.5mm)',
+      kg:+(base+(Math.random()-0.3)*12).toFixed(1),
+      times:'Pagi/Tengahari/Petang/Malam' });
+  }
+  return arr;
+}
+const FEED_RECORDS = [...genFeed('KOLAM C',180),...genFeed('KOLAM B',95),...genFeed('KOLAM 4',240)];
+
+const FEED_STOCK = [
+  { id:1, item:'Feed 5001 (Starter)', bags:18, kgPerBag:25, reorder:10, pricePerKg:5.20 },
+  { id:2, item:'Feed 5002 (Starter)', bags:12, kgPerBag:25, reorder:10, pricePerKg:5.10 },
+  { id:3, item:'Feed 5003 (Grower)',  bags:8,  kgPerBag:25, reorder:10, pricePerKg:4.80 },
+  { id:4, item:'Feed 7704 (Grower)',  bags:22, kgPerBag:25, reorder:10, pricePerKg:4.75 },
+  { id:5, item:'Feed 7705 (Finisher)',bags:5,  kgPerBag:25, reorder:10, pricePerKg:4.55 },
+  { id:6, item:'Feed 7706 (Finisher)',bags:30, kgPerBag:25, reorder:10, pricePerKg:4.50 },
+];
+
+/* Growth sampling — 8 minggu */
+function genGrowth(pondId, startW, adg){
+  const arr=[]; let w=startW;
+  for(let wk=1;wk<=8;wk++){ w=+(w+adg*7*(0.9+Math.random()*0.2)).toFixed(2);
+    arr.push({ id:`${pondId}-w${wk}`, week:wk, date:daysAgo((8-wk)*7), pond:pondId,
+      abw:w, length:+(Math.pow(w,0.32)*5.2).toFixed(1), target:+(startW+adg*7*wk).toFixed(2),
+      adg:+adg.toFixed(3) }); }
+  return arr;
+}
+const GROWTH = [...genGrowth('KOLAM C',1.2,0.28),...genGrowth('KOLAM B',1.0,0.25),...genGrowth('KOLAM 4',1.5,0.30)];
+
+/* Health / disease */
+const DISEASES = ['EMS/AHPNS','WSD (White Spot)','WSSV','EHP','Running Mortality Syndrome'];
+const HEALTH_RECORDS = [
+  { id:1, date:daysAgo(12), pond:'KOLAM 4', issue:'EHP',  mortality:3200, treatment:'Probiotik + mineral, kurang feeding', dose:'Probiotik 5L/ha', vet:'Dr. Lim (Vet Aqua)', status:'Terkawal' },
+  { id:2, date:daysAgo(5),  pond:'KOLAM C', issue:'Running Mortality Syndrome', mortality:1800, treatment:'Tukar air 20%, Vitamin C', dose:'Vit C 3g/kg feed', vet:'-', status:'Pemantauan' },
+  { id:3, date:daysAgo(2),  pond:'KOLAM B', issue:'-', mortality:450, treatment:'Normal mortality', dose:'-', vet:'-', status:'Normal' },
+];
+const MED_STOCK = [
+  { id:1, item:'Probiotik (Super MS)', unit:'Liter', qty:45, reorder:20 },
+  { id:2, item:'Vitamin C', unit:'kg', qty:8, reorder:5 },
+  { id:3, item:'Mineral Mix', unit:'kg', qty:30, reorder:15 },
+  { id:4, item:'Hydrated Lime', unit:'kg', qty:120, reorder:50 },
+  { id:5, item:'Chlorine', unit:'kg', qty:3, reorder:10 },
+];
+
+/* Daily mortality (14 hari) untuk graf */
+function genMort(pondId, base){const a=[];for(let i=13;i>=0;i--)a.push({date:daysAgo(i),pond:pondId,dead:Math.round(base+(Math.random()-0.4)*base)});return a;}
+const MORTALITY = [...genMort('KOLAM C',400),...genMort('KOLAM B',300),...genMort('KOLAM 4',900)];
+
+/* Harvest */
+const HARVESTS = [
+  { id:1, date:daysAgo(20), pond:'KOLAM 4', type:'Partial', kg:1850, count:55, grade:'A', buyer:'Kilang Mersing Seafood', pricePerKg:24.5, transport:'Lori Sejuk Beku' },
+  { id:2, date:daysAgo(75), pond:'KOLAM B', type:'Full',    kg:4200, count:48, grade:'A', buyer:'Pasar Borong JB',       pricePerKg:26.0, transport:'Lori Sendiri' },
+];
+
+/* Financial — 6 bulan */
+const MONTHS = ['Jan','Feb','Mac','Apr','Mei','Jun'];
+const FINANCE = MONTHS.map((m,i)=>{
+  const income = [0,0,0,45325,0,109200][i] + (i===5?0:Math.round(Math.random()*8000));
+  const seed=[22500,0,0,0,18900,0][i];
+  const feed=[8500,12300,15600,18200,21400,19800][i];
+  const elec=[2200,2400,2600,2800,3100,2900][i];
+  const labor=[6000,6000,6000,6500,6500,6500][i];
+  const med=[1200,800,1500,2200,1800,1600][i];
+  const other=[1500,900,1100,1300,1700,1400][i];
+  const cost=seed+feed+elec+labor+med+other;
+  return { month:m, income, seed, feed, elec, labor, med, other, cost, profit:income-cost };
+});
+const COST_BREAKDOWN = [
+  { name:'Benih', value:FINANCE.reduce((s,f)=>s+f.seed,0) },
+  { name:'Feed',  value:FINANCE.reduce((s,f)=>s+f.feed,0) },
+  { name:'Elektrik', value:FINANCE.reduce((s,f)=>s+f.elec,0) },
+  { name:'Buruh', value:FINANCE.reduce((s,f)=>s+f.labor,0) },
+  { name:'Ubatan', value:FINANCE.reduce((s,f)=>s+f.med,0) },
+  { name:'Lain-lain', value:FINANCE.reduce((s,f)=>s+f.other,0) },
+];
+
+const ACTIVITY_LOG = [
+  { id:1, user:'Encik Nepho', action:'Log masuk sistem', time:daysAgo(0)+' 08:12' },
+  { id:2, user:'Pekerja Bulat', action:'Update rekod feed KOLAM C', time:daysAgo(0)+' 09:30' },
+  { id:3, user:'Manager Azlan', action:'Lihat laporan kewangan', time:daysAgo(1)+' 14:05' },
+  { id:4, user:'Pekerja Bulat', action:'Rekod kualiti air KOLAM B', time:daysAgo(1)+' 07:45' },
+];
+
+const PIE_COLORS = ['#22d3ee','#2dd4bf','#34d399','#fbbf24','#f472b6','#a78bfa'];
+const fmtRM = n => 'RM ' + (n||0).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtNum = n => (n||0).toLocaleString('en-MY');
+
+/* ============================================================
+   AUTH CONTEXT + PERMISSIONS
+   ============================================================ */
+const AuthCtx = createContext(null);
+const useAuth = () => useContext(AuthCtx);
+
+const PERMISSIONS = {
+  Admin:   { modules:'all', manageUsers:true,  edit:true },
+  Manager: { modules:'all', manageUsers:false, edit:true },
+  Pekerja: { modules:['dashboard','water','feed','growth','health'], manageUsers:false, edit:'daily' },
+};
+function canSee(role, moduleId){
+  const p = PERMISSIONS[role]; if(!p) return false;
+  if(p.modules==='all') return moduleId!=='users' ? true : p.manageUsers;
+  if(moduleId==='users') return p.manageUsers;
+  return p.modules.includes(moduleId);
+}
+
+function AuthProvider({ children }){
+  const [users, setUsers] = useState(()=>{
+    try{ const s=localStorage.getItem('upro_users'); return s?JSON.parse(s):SEED_USERS; }catch(e){ return SEED_USERS; }
+  });
+  const [user, setUser] = useState(()=>{
+    try{ const s=localStorage.getItem('upro_session'); return s?JSON.parse(s):null; }catch(e){ return null; }
+  });
+  useEffect(()=>{ localStorage.setItem('upro_users', JSON.stringify(users)); },[users]);
+
+  const login = (email, password, remember) => {
+    const u = users.find(x=>x.email.toLowerCase()===email.toLowerCase().trim() && x.password===password);
+    if(!u) return { ok:false, msg:'Email atau kata laluan salah.' };
+    if(!u.active) return { ok:false, msg:'Akaun tidak aktif. Hubungi admin.' };
+    const sess = { id:u.id, name:u.name, email:u.email, role:u.role };
+    setUser(sess);
+    if(remember) localStorage.setItem('upro_session', JSON.stringify(sess));
+    else sessionStorage.setItem('upro_session', JSON.stringify(sess));
+    setUsers(us=>us.map(x=>x.id===u.id?{...x,lastLogin:todayISO}:x));
+    return { ok:true };
+  };
+  const register = (data) => {
+    if(users.some(x=>x.email.toLowerCase()===data.email.toLowerCase().trim()))
+      return { ok:false, msg:'Email sudah didaftarkan.' };
+    const nu = { id:Date.now(), ...data, active:true, lastLogin:null };
+    setUsers(us=>[...us,nu]);
+    return { ok:true };
+  };
+  const logout = () => { setUser(null); localStorage.removeItem('upro_session'); sessionStorage.removeItem('upro_session'); };
+
+  return <AuthCtx.Provider value={{ user, users, setUsers, login, register, logout }}>{children}</AuthCtx.Provider>;
+}
+
+/* ============================================================
+   LOGIN / REGISTER PAGE
+   ============================================================ */
+function AuthPage(){
+  const { login, register } = useAuth();
+  const [mode, setMode] = useState('signin');
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'Pekerja' });
+  const [remember, setRemember] = useState(true);
+  const [err, setErr] = useState('');
+  const [ok, setOk] = useState('');
+  const [show, setShow] = useState(false);
+  const set = (k,v)=>setForm(f=>({...f,[k]:v}));
+
+  const validate = () => {
+    if(mode==='signup' && !form.name.trim()) return 'Sila isi nama penuh.';
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Format email tidak sah.';
+    if(form.password.length<6) return 'Kata laluan minimum 6 aksara.';
+    return '';
+  };
+  const submit = (e) => {
+    e.preventDefault(); setErr(''); setOk('');
+    const v=validate(); if(v){ setErr(v); return; }
+    if(mode==='signin'){
+      const r=login(form.email, form.password, remember);
+      if(!r.ok) setErr(r.msg);
+    } else {
+      const r=register(form);
+      if(!r.ok){ setErr(r.msg); return; }
+      setOk('Pendaftaran berjaya! Sila log masuk.'); setMode('signin');
+      setForm(f=>({...f,password:''}));
+    }
+  };
+  const quick = (email,password)=>{ setForm(f=>({...f,email,password})); setErr(''); };
+
+  return (
+    <div className="min-h-screen ocean-bg flex items-center justify-center p-4 relative overflow-hidden">
+      <svg className="wave floaty" viewBox="0 0 1440 140" preserveAspectRatio="none"><path fill="#22d3ee" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,53.3C672,53,768,75,864,80C960,85,1056,75,1152,64C1248,53,1344,43,1392,37.3L1440,32L1440,140L0,140Z"></path></svg>
+      <div className="absolute top-10 left-10 text-6xl opacity-10 floaty">🦐</div>
+      <div className="absolute bottom-24 right-16 text-5xl opacity-10 floaty" style={{animationDelay:'1.5s'}}>🌊</div>
+
+      <div className="glass rounded-3xl w-full max-w-md p-8 fadeUp relative z-10">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 text-3xl shadow-glow floaty">🦐</div>
+          <h1 className="mt-4 text-2xl font-extrabold text-white tracking-tight">UdangPro</h1>
+          <p className="text-sm text-slate-400">Sistem Pengurusan Ladang Udang</p>
+        </div>
+
+        <div className="flex gap-1 p-1 bg-panel2/70 rounded-xl mb-5">
+          {[['signin','Log Masuk'],['signup','Daftar Baru']].map(([m,l])=>(
+            <button key={m} onClick={()=>{setMode(m);setErr('');setOk('');}}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode===m?'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-900':'text-slate-400 hover:text-white'}`}>{l}</button>
+          ))}
+        </div>
+
+        {err && <div className="mb-3 flex items-center gap-2 text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl px-3 py-2.5 fadeUp"><Icon name="TriangleAlert" size={16}/>{err}</div>}
+        {ok && <div className="mb-3 flex items-center gap-2 text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl px-3 py-2.5 fadeUp"><Icon name="CheckCircle2" size={16}/>{ok}</div>}
+
+        <form onSubmit={submit} className="space-y-3.5">
+          {mode==='signup' && (
+            <Field label="Nama Penuh">
+              <input className={inputCls} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="cth: Ahmad bin Ali" />
+            </Field>
+          )}
+          <Field label="Email">
+            <input className={inputCls} value={form.email} onChange={e=>set('email',e.target.value)} placeholder="nama@udang.com" />
+          </Field>
+          <Field label="Kata Laluan">
+            <div className="relative">
+              <input type={show?'text':'password'} className={inputCls+' pr-10'} value={form.password} onChange={e=>set('password',e.target.value)} placeholder="••••••••" />
+              <button type="button" onClick={()=>setShow(s=>!s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-300"><Icon name={show?'EyeOff':'Eye'} size={16}/></button>
+            </div>
+          </Field>
+          {mode==='signup' && (
+            <Field label="Peranan (Role)">
+              <select className={inputCls} value={form.role} onChange={e=>set('role',e.target.value)}>
+                <option>Pekerja</option><option>Manager</option><option>Admin</option>
+              </select>
+            </Field>
+          )}
+          {mode==='signin' && (
+            <label className="flex items-center gap-2 text-sm text-slate-400 cursor-pointer select-none">
+              <input type="checkbox" checked={remember} onChange={e=>setRemember(e.target.checked)} className="w-4 h-4 rounded accent-cyan-400" />
+              Ingat saya (Remember me)
+            </label>
+          )}
+          <button type="submit" className={btnPrimary+' w-full justify-center !py-3 mt-1'}>
+            <Icon name={mode==='signin'?'LogIn':'UserPlus'} size={17}/>{mode==='signin'?'Log Masuk':'Daftar Akaun'}
+          </button>
+        </form>
+
+        {mode==='signin' && (
+          <div className="mt-5 pt-4 border-t border-edge">
+            <p className="text-[11px] text-slate-500 mb-2 text-center">Akaun contoh — klik untuk isi automatik:</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[['Admin','admin@udang.com','admin123'],['Manager','manager@udang.com','manager123'],['Pekerja','pekerja@udang.com','pekerja123']].map(([r,e,p])=>(
+                <button key={r} onClick={()=>quick(e,p)} className="px-2 py-2 rounded-lg bg-panel2 border border-edge text-xs text-slate-300 hover:border-cyan-400/40 transition">
+                  <div className="font-bold text-cyan-300">{r}</div><div className="text-[9px] text-slate-500 mt-0.5">{e}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   APP SHELL — Sidebar + Topbar + Routing
+   ============================================================ */
+const NAV = [
+  { id:'dashboard', label:'Dashboard',        icon:'LayoutDashboard' },
+  { id:'ponds',     label:'Pengurusan Kolam', icon:'Waves' },
+  { id:'water',     label:'Kualiti Air',      icon:'Droplets' },
+  { id:'seed',      label:'Pengurusan Benih', icon:'Sprout' },
+  { id:'feed',      label:'Pengurusan Makanan',icon:'Wheat' },
+  { id:'growth',    label:'Pertumbuhan',      icon:'TrendingUp' },
+  { id:'health',    label:'Kesihatan & Rawatan',icon:'HeartPulse' },
+  { id:'harvest',   label:'Pengurusan Tuaian',icon:'Package' },
+  { id:'finance',   label:'Kewangan',         icon:'Wallet' },
+  { id:'users',     label:'Pengurusan Pengguna',icon:'Users' },
+  { id:'reports',   label:'Laporan & Analitik',icon:'FileBarChart' },
+];
+
+function Avatar({ name, size=38 }){
+  const init = (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  return <div className="rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-slate-900 font-bold flex items-center justify-center shrink-0"
+    style={{width:size,height:size,fontSize:size*0.38}}>{init}</div>;
+}
+
+function Sidebar({ active, setActive, open, setOpen }){
+  const { user, logout } = useAuth();
+  const items = NAV.filter(n=>canSee(user.role, n.id));
+  return (
+    <>
+      {open && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={()=>setOpen(false)} />}
+      <aside className={`fixed lg:static z-40 h-full w-72 shrink-0 bg-panel border-r border-edge flex flex-col transition-transform ${open?'translate-x-0':'-translate-x-full lg:translate-x-0'}`}>
+        <div className="p-5 flex items-center gap-3 border-b border-edge">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-xl shadow-glow">🦐</div>
+          <div>
+            <div className="font-extrabold text-white leading-tight">UdangPro</div>
+            <div className="text-[10px] text-cyan-300/70">Ladang Udang Mersing</div>
+          </div>
+        </div>
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          {items.map(n=>(
+            <button key={n.id} onClick={()=>{setActive(n.id);setOpen(false);}}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active===n.id?'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30':'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+              <Icon name={n.icon} size={18}/>{n.label}
+            </button>
+          ))}
+        </nav>
+        <div className="p-3 border-t border-edge">
+          <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-panel2/60">
+            <Avatar name={user.name}/>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-white truncate">{user.name}</div>
+              <div className="text-[10px] text-cyan-300">{user.role}</div>
+            </div>
+          </div>
+          <button onClick={logout} className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm font-semibold hover:bg-rose-500/20 transition">
+            <Icon name="LogOut" size={16}/>Log Keluar
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function Topbar({ title, onMenu }){
+  const { user } = useAuth();
+  return (
+    <header className="sticky top-0 z-20 glass border-b border-edge px-5 py-3.5 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <button onClick={onMenu} className="lg:hidden p-2 rounded-lg hover:bg-white/10"><Icon name="Menu" size={20}/></button>
+        <div>
+          <h1 className="font-extrabold text-white text-lg leading-tight">{title}</h1>
+          <div className="text-[11px] text-slate-400 flex items-center gap-1.5"><Icon name="Calendar" size={11}/>{new Date('2026-06-07').toLocaleDateString('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-panel2/60 border border-edge">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 pulseRing"></span>
+          <span className="text-xs text-slate-300">Sistem Aktif</span>
+        </div>
+        <Avatar name={user.name} size={36}/>
+      </div>
+    </header>
+  );
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function Dashboard({ go }){
+  const { water, feed, feedStock, growth, health, medStock, ponds } = useData();
+  const activePonds = ponds.filter(p=>p.status==='Aktif'||p.status==='Tuaian');
+  const totalStock = activePonds.reduce((s,p)=>s+Math.round(p.seeded*p.survival/100),0);
+  const avgSurvival = activePonds.length?Math.round(activePonds.reduce((s,p)=>s+p.survival,0)/activePonds.length):0;
+  const monthIncome = FINANCE[FINANCE.length-1].income;
+
+  // FCR = total feed / biomass gain (anggaran)
+  const totalFeedKg = feed.reduce((s,f)=>s+(+f.kg||0),0);
+  const biomassGain = activePonds.reduce((s,p)=>{
+    const g=growth.filter(x=>x.pond===p.id).slice(-1)[0];
+    return s + (g? (g.abw/1000)*Math.round(p.seeded*p.survival/100) : 0);
+  },0);
+  const fcr = biomassGain? (totalFeedKg/biomassGain).toFixed(2) : '—';
+
+  // Alerts — guna bacaan air TERKINI setiap kolam (bukan tarikh tetap)
+  const alerts=[];
+  const seenPond={};
+  [...water].reverse().forEach(w=>{
+    if(seenPond[w.pond]) return; seenPond[w.pond]=1;
+    if(w.ph<SAFE_RANGE.ph[0]||w.ph>SAFE_RANGE.ph[1]) alerts.push({tone:'Kritikal',icon:'Droplets',msg:`pH ${w.ph} di luar julat (${w.pond})`});
+    if(w.do<SAFE_RANGE.do[0]) alerts.push({tone:'Kritikal',icon:'Wind',msg:`DO rendah ${w.do} mg/L (${w.pond})`});
+    if(w.temp>SAFE_RANGE.temp[1]) alerts.push({tone:'Warning',icon:'Thermometer',msg:`Suhu tinggi ${w.temp}°C (${w.pond})`});
+    if(w.ammonia>SAFE_RANGE.ammonia[1]) alerts.push({tone:'Warning',icon:'FlaskConical',msg:`Ammonia ${w.ammonia} mg/L (${w.pond})`});
+  });
+  feedStock.filter(f=>f.bags<=f.reorder).forEach(f=>alerts.push({tone:'Warning',icon:'Wheat',msg:`Stok ${f.item} rendah (${f.bags} beg)`}));
+  health.filter(h=>h.status==='Pemantauan').forEach(h=>alerts.push({tone:'Warning',icon:'HeartPulse',msg:`${h.issue} dipantau di ${h.pond}`}));
+  medStock.filter(m=>m.qty<=m.reorder).forEach(m=>alerts.push({tone:'Warning',icon:'Pill',msg:`Stok ${m.item} rendah (${m.qty} ${m.unit})`}));
+
+  const upcoming = ponds.filter(p=>p.harvestEst).sort((a,b)=>a.harvestEst.localeCompare(b.harvestEst)).slice(0,4);
+
+  // chart: income vs cost
+  const finChart = FINANCE.map(f=>({month:f.month, Pendapatan:f.income, Kos:f.cost}));
+  // survival per pond
+  const survChart = activePonds.map(p=>({name:p.id.replace('KOLAM ','K'), Survival:p.survival}));
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Waves" label="Kolam Aktif" value={activePonds.length} sub={`${ponds.length} kolam keseluruhan`} tone="accent"/>
+        <KpiCard icon="Fish" label="Jumlah Stok Udang" value={fmtNum(totalStock)+' ekor'} sub="anggaran hidup" tone="green"/>
+        <KpiCard icon="DollarSign" label="Pendapatan Bulan Ini" value={fmtRM(monthIncome)} sub="Jun 2026" tone="violet"/>
+        <KpiCard icon="Activity" label="Survival Rate" value={avgSurvival+'%'} sub="purata kolam aktif" tone={avgSurvival>=85?'green':'amber'}/>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Gauge" label="FCR Semasa" value={fcr} sub="sasaran < 1.5" tone={fcr<1.5?'green':'amber'}/>
+        <KpiCard icon="Wheat" label="Feed Digunakan (14h)" value={fmtNum(Math.round(totalFeedKg))+' kg'} tone="accent"/>
+        <KpiCard icon="Sprout" label="Benih Ditebar" value={fmtNum(ponds.reduce((s,p)=>s+p.seeded,0))} sub="ekor (semua kitaran)" tone="accent"/>
+        <KpiCard icon="Bell" label="Alert Aktif" value={alerts.length} sub="perlu tindakan" tone={alerts.length>3?'rose':'amber'}/>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
+          <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Icon name="TrendingUp" size={16} className="text-cyan-300"/>Pendapatan vs Kos (6 Bulan)</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={finChart}>
+              <defs>
+                <linearGradient id="gInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22d3ee" stopOpacity={0.5}/><stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/></linearGradient>
+                <linearGradient id="gCost" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fb7185" stopOpacity={0.4}/><stop offset="95%" stopColor="#fb7185" stopOpacity={0}/></linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/>
+              <XAxis dataKey="month" stroke="#64748b" fontSize={12}/><YAxis stroke="#64748b" fontSize={11} tickFormatter={v=>'RM'+(v/1000)+'k'}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}} formatter={v=>fmtRM(v)}/>
+              <Legend/>
+              <Area type="monotone" dataKey="Pendapatan" stroke="#22d3ee" fill="url(#gInc)" strokeWidth={2}/>
+              <Area type="monotone" dataKey="Kos" stroke="#fb7185" fill="url(#gCost)" strokeWidth={2}/>
+            </AreaChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card>
+          <h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="Bell" size={16} className="text-amber-300"/>Alert & Notifikasi</h3>
+          <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+            {alerts.length===0 && <div className="text-sm text-slate-500 text-center py-8">Tiada alert. Semua normal ✓</div>}
+            {alerts.map((a,i)=>(
+              <div key={i} className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-sm ${a.tone==='Kritikal'?'bg-rose-500/10 border-rose-500/30 text-rose-200':'bg-amber-500/10 border-amber-500/30 text-amber-200'}`}>
+                <Icon name={a.icon} size={16} className="mt-0.5 shrink-0"/>
+                <span className="flex-1">{a.msg}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/30">{a.tone}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card>
+          <h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="Activity" size={16} className="text-emerald-300"/>Survival Rate per Kolam</h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={survChart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/>
+              <XAxis dataKey="name" stroke="#64748b" fontSize={12}/><YAxis stroke="#64748b" fontSize={11} domain={[0,100]}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+              <Bar dataKey="Survival" radius={[6,6,0,0]}>{survChart.map((e,i)=><Cell key={i} fill={e.Survival>=85?'#34d399':e.Survival>=75?'#fbbf24':'#fb7185'}/>)}</Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-white flex items-center gap-2"><Icon name="CalendarClock" size={16} className="text-cyan-300"/>Jadual Tuaian Terdekat</h3>
+            <button onClick={()=>go('harvest')} className="text-xs text-cyan-300 hover:underline">Lihat semua →</button>
+          </div>
+          <div className="space-y-2">
+            {upcoming.map(p=>{
+              const days=Math.round((new Date(p.harvestEst)-new Date('2026-06-07'))/864e5);
+              return (
+                <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl bg-panel2/60 border border-edge">
+                  <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-300"><Icon name="Waves" size={18}/></div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-white text-sm">{p.name} <span className="text-xs text-slate-400">· {p.species.split(' ')[1]||p.species}</span></div>
+                    <div className="text-[11px] text-slate-400">DOC {p.stockDate?Math.round((new Date('2026-06-07')-new Date(p.stockDate))/864e5):0} hari · {p.harvestEst}</div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${days<=7?'bg-rose-500/15 text-rose-300':days<=30?'bg-amber-500/15 text-amber-300':'bg-slate-500/15 text-slate-300'}`}>{days<=0?'Sedia':days+' hari'}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   PENGURUSAN KOLAM (Pond Management) — full CRUD
+   ============================================================ */
+function PondsModule(){
+  const { user } = useAuth();
+  const { ponds, setPonds } = useData();
+  const canEdit = PERMISSIONS[user.role].edit===true;
+  const [modal, setModal] = useState(null); // null | 'new' | pondObj
+  const [form, setForm] = useState({});
+
+  const doc = p => p.stockDate ? Math.max(0,Math.round((new Date('2026-06-07')-new Date(p.stockDate))/864e5)) : 0;
+  const openNew = () => { setForm({ id:'', name:'', sizeM2:0, type:'Tanah', loc:'', gps:'', status:'Persediaan', density:100, species:SPECIES[0], seeded:0, survival:0, stockDate:'', harvestEst:'' }); setModal('new'); };
+  const openEdit = p => { setForm({...p}); setModal(p); };
+  const save = () => {
+    if(!form.id || !form.name){ alert('Sila isi ID & nama kolam'); return; }
+    setPonds(ps=>{
+      if(modal==='new') return [...ps, {...form, sizeHa:+(form.sizeM2/10000).toFixed(2), survival:0}];
+      return ps.map(p=>p.id===modal.id?{...p,...form, sizeHa:+(form.sizeM2/10000).toFixed(2)}:p);
+    });
+    setModal(null);
+  };
+  const del = p => { if(confirm(`Padam ${p.name}?`)) setPonds(ps=>ps.filter(x=>x.id!==p.id)); };
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+
+  const cols = [
+    { key:'name', label:'Kolam', render:r=><span className="font-semibold text-white">{r.name}</span> },
+    { key:'type', label:'Jenis' },
+    { key:'sizeM2', label:'Saiz (m²)', render:r=>fmtNum(r.sizeM2) },
+    { key:'loc', label:'Lokasi' },
+    { key:'species', label:'Spesies', render:r=><span className="text-xs">{r.species==='-'?'-':r.species.split('(')[0]}</span> },
+    { key:'doc', label:'DOC', render:r=>r.stockDate?doc(r)+' hari':'-' },
+    { key:'density', label:'Kepadatan', render:r=>r.density?r.density+' /m³':'-' },
+    { key:'status', label:'Status', render:r=><StatusBadge status={r.status}/> },
+    { key:'_act', label:'', sortable:false, render:r=> canEdit ? (
+      <div className="flex gap-1">
+        <button onClick={()=>openEdit(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-cyan-500/20 text-cyan-300"><Icon name="Pencil" size={14}/></button>
+        <button onClick={()=>del(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-rose-500/20 text-rose-300"><Icon name="Trash2" size={14}/></button>
+      </div>) : <span className="text-xs text-slate-600">—</span> },
+  ];
+  const statusCount = ['Aktif','Persediaan','Tuaian','Kosong','Penyelenggaraan'].map(s=>({status:s,n:ponds.filter(p=>p.status===s).length}));
+
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Waves" title="Pengurusan Kolam" desc="Profil, status & kepadatan tebar setiap kolam"
+        action={canEdit && <button onClick={openNew} className={btnPrimary}><Icon name="Plus" size={16}/>Tambah Kolam</button>}/>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {statusCount.map(s=>(
+          <div key={s.status} className="glass rounded-xl p-3 text-center">
+            <div className="text-2xl font-extrabold text-white">{s.n}</div>
+            <div className="mt-1"><StatusBadge status={s.status}/></div>
+          </div>
+        ))}
+      </div>
+      <Card><DataTable columns={cols} rows={ponds}/></Card>
+
+      <Modal open={!!modal} onClose={()=>setModal(null)} title={modal==='new'?'Tambah Kolam Baru':'Edit '+(modal?.name||'')} wide>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="ID Kolam (cth: KOLAM E)"><input className={inputCls} value={form.id||''} onChange={e=>set('id',e.target.value)} disabled={modal!=='new'}/></Field>
+          <Field label="Nama Kolam"><input className={inputCls} value={form.name||''} onChange={e=>set('name',e.target.value)}/></Field>
+          <Field label="Saiz (m²)"><input type="number" className={inputCls} value={form.sizeM2||0} onChange={e=>set('sizeM2',+e.target.value)}/></Field>
+          <Field label="Jenis Kolam"><select className={inputCls} value={form.type} onChange={e=>set('type',e.target.value)}><option>Tanah</option><option>Plastik</option><option>Beton</option></select></Field>
+          <Field label="Lokasi"><input className={inputCls} value={form.loc||''} onChange={e=>set('loc',e.target.value)}/></Field>
+          <Field label="GPS"><input className={inputCls} value={form.gps||''} onChange={e=>set('gps',e.target.value)} placeholder="2.43, 103.83"/></Field>
+          <Field label="Status"><select className={inputCls} value={form.status} onChange={e=>set('status',e.target.value)}><option>Aktif</option><option>Persediaan</option><option>Tuaian</option><option>Kosong</option><option>Penyelenggaraan</option></select></Field>
+          <Field label="Spesies"><select className={inputCls} value={form.species} onChange={e=>set('species',e.target.value)}>{SPECIES.map(s=><option key={s}>{s}</option>)}<option>-</option></select></Field>
+          <Field label="Kepadatan (ekor/m³)"><input type="number" className={inputCls} value={form.density||0} onChange={e=>set('density',+e.target.value)}/></Field>
+          <Field label="Kuantiti Benih (ekor)"><input type="number" className={inputCls} value={form.seeded||0} onChange={e=>set('seeded',+e.target.value)}/></Field>
+          <Field label="Tarikh Tebar"><input type="date" className={inputCls} value={form.stockDate||''} onChange={e=>set('stockDate',e.target.value)}/></Field>
+          <Field label="Anggaran Tuaian"><input type="date" className={inputCls} value={form.harvestEst||''} onChange={e=>set('harvestEst',e.target.value)}/></Field>
+        </div>
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={()=>setModal(null)} className={btnGhost}>Batal</button>
+          <button onClick={save} className={btnPrimary}><Icon name="Save" size={16}/>Simpan</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   KUALITI AIR (Water Quality) — graf + alert + gauge
+   ============================================================ */
+function WaterModule(){
+  const { water, setWater, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true || PERMISSIONS[user.role].edit==='daily';
+  const activePonds = ponds.filter(p=>p.status==='Aktif'||p.status==='Tuaian');
+  const [pond, setPond] = useState(activePonds[0]?.id || 'KOLAM C');
+  const data = water.filter(w=>w.pond===pond);
+  const latest = data[data.length-1] || {ph:0,do:0,temp:0,salinity:0,ammonia:0,nitrite:0};
+  const trend = data.slice(-14).map(w=>({date:w.date.slice(5), pH:w.ph, DO:w.do, Suhu:w.temp, Saliniti:w.salinity}));
+
+  const checks = [
+    { key:'ph', label:'pH', val:latest.ph, range:SAFE_RANGE.ph, unit:'', min:6, max:10 },
+    { key:'do', label:'DO', val:latest.do, range:[4,8], unit:'mg/L', min:0, max:10 },
+    { key:'temp', label:'Suhu', val:latest.temp, range:SAFE_RANGE.temp, unit:'°C', min:20, max:38 },
+    { key:'salinity', label:'Saliniti', val:latest.salinity, range:SAFE_RANGE.salinity, unit:'ppt', min:0, max:35 },
+    { key:'ammonia', label:'Ammonia', val:latest.ammonia, range:[0,0.1], unit:'mg/L', min:0, max:0.3 },
+    { key:'nitrite', label:'Nitrite', val:latest.nitrite, range:[0,0.1], unit:'mg/L', min:0, max:0.3 },
+  ];
+  const criticals = checks.filter(c=>c.val<c.range[0]||c.val>c.range[1]);
+  const advice = {
+    ph:'Tukar air sebahagian / tambah kapur untuk stabilkan pH.',
+    do:'Hidupkan aerator / kincir air segera. DO rendah bahaya.',
+    temp:'Tambah paras air / sediakan teduhan untuk turunkan suhu.',
+    salinity:'Laraskan dengan tambah air tawar atau air laut.',
+    ammonia:'Kurangkan feeding, tukar air, tambah probiotik.',
+    nitrite:'Tukar air & tambah probiotik nitrifikasi.',
+  };
+
+  const cols=[
+    { key:'date', label:'Tarikh' }, { key:'time', label:'Masa' },
+    { key:'ph', label:'pH' }, { key:'do', label:'DO' }, { key:'temp', label:'Suhu' },
+    { key:'salinity', label:'Saliniti' }, { key:'transparency', label:'Telus(cm)' },
+    { key:'ammonia', label:'NH₃' }, { key:'nitrite', label:'NO₂' }, { key:'alkalinity', label:'Alk' },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Droplets" title="Pemantauan Kualiti Air" desc="Log harian pagi/petang + alert automatik"
+        action={<select className={inputCls+' !w-auto'} value={pond} onChange={e=>setPond(e.target.value)}>{activePonds.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>}/>
+
+      {criticals.length>0 && (
+        <div className="glass rounded-2xl p-4 border border-rose-500/30 bg-rose-500/5">
+          <div className="flex items-center gap-2 text-rose-300 font-bold mb-2"><Icon name="TriangleAlert" size={18}/>Parameter Kritikal — Tindakan Diperlukan</div>
+          <div className="space-y-1.5">
+            {criticals.map(c=><div key={c.key} className="text-sm text-rose-200 flex items-start gap-2"><Icon name="ArrowRight" size={14} className="mt-0.5"/><span><b>{c.label} {c.val}{c.unit}</b> (selamat {c.range[0]}–{c.range[1]}). {advice[c.key]}</span></div>)}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        {checks.map(c=><Gauge key={c.key} label={c.label} value={c.val} min={c.min} max={c.max} low={c.range[0]} high={c.range[1]} unit={c.unit}/>)}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-5">
+        <Card>
+          <h3 className="font-bold text-white mb-3">Trend pH & DO (14 hari)</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="date" stroke="#64748b" fontSize={11}/><YAxis stroke="#64748b" fontSize={11}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/><Legend/>
+              <Line type="monotone" dataKey="pH" stroke="#22d3ee" strokeWidth={2} dot={false}/>
+              <Line type="monotone" dataKey="DO" stroke="#34d399" strokeWidth={2} dot={false}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">Trend Suhu & Saliniti (14 hari)</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="date" stroke="#64748b" fontSize={11}/><YAxis stroke="#64748b" fontSize={11}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/><Legend/>
+              <Line type="monotone" dataKey="Suhu" stroke="#fbbf24" strokeWidth={2} dot={false}/>
+              <Line type="monotone" dataKey="Saliniti" stroke="#a78bfa" strokeWidth={2} dot={false}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+      <CrudPanel title={`Log Bacaan (${pond})`} icon="ClipboardList" columns={cols} rows={[...data].reverse()} setRows={setWater} canEdit={canEdit}
+        fields={[
+          { key:'date',label:'Tarikh',type:'date',required:true,def:todayISO },
+          { key:'pond',label:'Kolam',type:'select',options:activePonds.map(p=>p.id),def:pond,required:true },
+          { key:'time',label:'Masa',type:'select',options:['Pagi','Petang'],def:'Pagi' },
+          { key:'ph',label:'pH',type:'number' },{ key:'do',label:'DO (mg/L)',type:'number' },
+          { key:'temp',label:'Suhu (°C)',type:'number' },{ key:'salinity',label:'Saliniti (ppt)',type:'number' },
+          { key:'transparency',label:'Ketelusan (cm)',type:'number' },{ key:'ammonia',label:'Ammonia (mg/L)',type:'number' },
+          { key:'nitrite',label:'Nitrite (mg/L)',type:'number' },{ key:'alkalinity',label:'Alkalinity',type:'number' },
+        ]}/>
+    </div>
+  );
+}
+
+/* ============================================================
+   PENGURUSAN MAKANAN (Feed Management)
+   ============================================================ */
+function FeedModule(){
+  const { feed:FEED, setFeed, feedStock:STOCK, setFeedStock, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true || PERMISSIONS[user.role].edit==='daily';
+  const activePonds = ponds.filter(p=>p.status==='Aktif'||p.status==='Tuaian');
+  const [pond,setPond]=useState('Semua');
+  const rows = pond==='Semua'?FEED:FEED.filter(f=>f.pond===pond);
+  const totalKg = rows.reduce((s,f)=>s+(+f.kg||0),0);
+  const feedCostPerKg = 4.8;
+  const totalCost = totalKg*feedCostPerKg;
+
+  // FCR per pond
+  const fcrData = activePonds.map(p=>{
+    const feedKg=FEED.filter(f=>f.pond===p.id).reduce((s,f)=>s+(+f.kg||0),0);
+    const g=GROWTH.filter(x=>x.pond===p.id).slice(-1)[0];
+    const biomass=g?(g.abw/1000)*Math.round(p.seeded*p.survival/100):0;
+    return { name:p.id.replace('KOLAM ','K'), FCR:biomass?+(feedKg/biomass).toFixed(2):0 };
+  });
+  // daily feed chart
+  const daily = {};
+  rows.forEach(f=>{ daily[f.date]=(daily[f.date]||0)+(+f.kg||0); });
+  const dailyChart = Object.entries(daily).sort().slice(-14).map(([d,kg])=>({date:d.slice(5),kg:+kg.toFixed(0)}));
+
+  const cols=[
+    { key:'date',label:'Tarikh' },{ key:'pond',label:'Kolam' },{ key:'feedType',label:'Jenis Feed' },
+    { key:'kg',label:'Kuantiti (kg)',render:r=><b className="text-cyan-300">{r.kg}</b> },
+    { key:'times',label:'Waktu Beri' },
+    { key:'cost',label:'Kos (RM)',render:r=>fmtRM(r.kg*feedCostPerKg) },
+  ];
+  const stockCols=[
+    { key:'item',label:'Item Feed' },
+    { key:'bags',label:'Stok (beg)',render:r=><span className={r.bags<=r.reorder?'text-rose-300 font-bold':'text-white'}>{r.bags}</span> },
+    { key:'total',label:'Jumlah (kg)',render:r=>fmtNum(r.bags*r.kgPerBag) },
+    { key:'pricePerKg',label:'Harga/kg',render:r=>'RM '+r.pricePerKg.toFixed(2) },
+    { key:'value',label:'Nilai (RM)',render:r=>fmtRM(r.bags*r.kgPerBag*r.pricePerKg) },
+    { key:'status',label:'Status',render:r=><StatusBadge status={r.bags<=r.reorder?'Kritikal':'Normal'}/> },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Wheat" title="Pengurusan Makanan" desc="Jadual feed, FCR tracker & stok gudang"
+        action={<select className={inputCls+' !w-auto'} value={pond} onChange={e=>setPond(e.target.value)}><option>Semua</option>{activePonds.map(p=><option key={p.id}>{p.id}</option>)}</select>}/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Wheat" label="Feed (14 hari)" value={fmtNum(Math.round(totalKg))+' kg'} tone="accent"/>
+        <KpiCard icon="DollarSign" label="Kos Feed" value={fmtRM(totalCost)} tone="violet"/>
+        <KpiCard icon="Package" label="Stok Gudang" value={fmtNum(STOCK.reduce((s,f)=>s+f.bags*f.kgPerBag,0))+' kg'} tone="green"/>
+        <KpiCard icon="AlertTriangle" label="Feed Stok Rendah" value={STOCK.filter(f=>f.bags<=f.reorder).length} tone="rose"/>
+      </div>
+      <div className="grid lg:grid-cols-2 gap-5">
+        <Card>
+          <h3 className="font-bold text-white mb-3">Pemberian Feed Harian (kg)</h3>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={dailyChart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="date" stroke="#64748b" fontSize={11}/><YAxis stroke="#64748b" fontSize={11}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+              <Bar dataKey="kg" fill="#22d3ee" radius={[5,5,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">FCR per Kolam (sasaran &lt; 1.5)</h3>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={fcrData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis type="number" stroke="#64748b" fontSize={11}/><YAxis dataKey="name" type="category" stroke="#64748b" fontSize={12}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+              <Bar dataKey="FCR" radius={[0,5,5,0]}>{fcrData.map((e,i)=><Cell key={i} fill={e.FCR<1.5?'#34d399':e.FCR<1.8?'#fbbf24':'#fb7185'}/>)}</Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2"><CrudPanel title="Rekod Feed Harian" icon="Wheat" columns={cols} rows={[...rows].reverse()} setRows={setFeed} canEdit={canEdit}
+          fields={[
+            { key:'date',label:'Tarikh',type:'date',required:true,def:todayISO },
+            { key:'pond',label:'Kolam',type:'select',options:activePonds.map(p=>p.id),required:true },
+            { key:'feedType',label:'Jenis Feed',type:'select',options:FEED_TYPES.map(f=>f.name) },
+            { key:'kg',label:'Kuantiti (kg)',type:'number',required:true },
+            { key:'times',label:'Waktu Beri',def:'Pagi/Tengahari/Petang/Malam' },
+          ]}/></Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">Jenis Feed</h3>
+          <div className="space-y-2">
+            {FEED_TYPES.map(f=>(
+              <div key={f.name} className="p-3 rounded-xl bg-panel2/60 border border-edge">
+                <div className="font-semibold text-white text-sm">{f.name}</div>
+                <div className="flex justify-between text-xs text-slate-400 mt-1"><span>Saiz: {f.stage}</span><span className="text-cyan-300">RM {f.pricePerKg}/kg</span></div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+      <Card><h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="Warehouse" size={16} className="text-cyan-300"/>Stok Feed Gudang</h3><DataTable columns={stockCols} rows={FEED_STOCK} searchable={false}/></Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   PERTUMBUHAN UDANG (Growth Monitoring)
+   ============================================================ */
+function GrowthModule(){
+  const { growth:GR, setGrowth, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true || PERMISSIONS[user.role].edit==='daily';
+  const activePonds = ponds.filter(p=>p.status==='Aktif'||p.status==='Tuaian');
+  const [pond,setPond]=useState(activePonds[0]?.id||'KOLAM C');
+  const data = GR.filter(g=>g.pond===pond).sort((a,b)=>a.week-b.week);
+  const pondObj = ponds.find(p=>p.id===pond);
+  const latest = data[data.length-1]||{};
+  const alive = pondObj?Math.round(pondObj.seeded*pondObj.survival/100):0;
+  const biomass = latest.abw?((latest.abw/1000)*alive):0;
+  const adg = latest.adg||0;
+  const chart = data.map(g=>({week:'W'+g.week, ABW:g.abw, Sasaran:g.target}));
+
+  const cols=[
+    { key:'week',label:'Minggu',render:r=>'Minggu '+r.week },{ key:'date',label:'Tarikh' },
+    { key:'abw',label:'ABW (g)',render:r=><b className="text-cyan-300">{r.abw}</b> },
+    { key:'length',label:'Panjang (cm)' },
+    { key:'adg',label:'ADG (g/hari)' },
+    { key:'target',label:'Sasaran (g)' },
+    { key:'_v',label:'vs Sasaran',sortable:false,render:r=>{const d=r.abw-r.target;return <span className={d>=0?'text-emerald-300':'text-amber-300'}>{d>=0?'+':''}{d.toFixed(2)}g</span>;} },
+  ];
+  // size grade distribution (count/kg)
+  const countPerKg = latest.abw?Math.round(1000/latest.abw):0;
+  const gradeData=[
+    { name:'Jumbo (<30)', value: countPerKg<30?60:10 },
+    { name:'Besar (30-50)', value: countPerKg>=30&&countPerKg<50?55:25 },
+    { name:'Sederhana (50-70)', value: countPerKg>=50&&countPerKg<70?50:35 },
+    { name:'Kecil (>70)', value: countPerKg>=70?45:30 },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="TrendingUp" title="Pemantauan Pertumbuhan" desc="Sampling mingguan: ABW, ADG, biomass & survival"
+        action={<select className={inputCls+' !w-auto'} value={pond} onChange={e=>setPond(e.target.value)}>{activePonds.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>}/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Scale" label="ABW Semasa" value={(latest.abw||0)+' g'} sub={'Minggu '+(latest.week||0)} tone="accent"/>
+        <KpiCard icon="TrendingUp" label="ADG" value={adg.toFixed(3)+' g/hari'} sub="purata harian" tone="green"/>
+        <KpiCard icon="Boxes" label="Biomass Anggaran" value={biomass.toFixed(0)+' kg'} sub={fmtNum(alive)+' ekor hidup'} tone="violet"/>
+        <KpiCard icon="Activity" label="Survival Rate" value={(pondObj?.survival||0)+'%'} tone={pondObj?.survival>=85?'green':'amber'}/>
+      </div>
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
+          <h3 className="font-bold text-white mb-3">Pertumbuhan ABW vs Sasaran</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={chart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="week" stroke="#64748b" fontSize={12}/><YAxis stroke="#64748b" fontSize={11} unit="g"/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/><Legend/>
+              <Line type="monotone" dataKey="ABW" stroke="#22d3ee" strokeWidth={3} dot={{r:3}}/>
+              <Line type="monotone" dataKey="Sasaran" stroke="#64748b" strokeWidth={2} strokeDasharray="5 5" dot={false}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">Taburan Saiz (count/kg ≈ {countPerKg})</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie data={gradeData} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={70} label={e=>e.name.split(' ')[0]}>
+                {gradeData.map((e,i)=><Cell key={i} fill={PIE_COLORS[i]}/>)}
+              </Pie>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+      <CrudPanel title={`Rekod Sampling Mingguan (${pond})`} icon="Scale" columns={cols} rows={[...data].reverse()} setRows={setGrowth} canEdit={canEdit} searchable={false}
+        fields={[
+          { key:'date',label:'Tarikh',type:'date',required:true,def:todayISO },
+          { key:'pond',label:'Kolam',type:'select',options:activePonds.map(p=>p.id),def:pond,required:true },
+          { key:'week',label:'Minggu',type:'number',required:true },
+          { key:'abw',label:'ABW (gram)',type:'number',required:true },
+          { key:'length',label:'Panjang (cm)',type:'number' },
+          { key:'adg',label:'ADG (g/hari)',type:'number' },
+          { key:'target',label:'Sasaran (gram)',type:'number' },
+        ]}/>
+    </div>
+  );
+}
+
+/* ============================================================
+   PENGURUSAN BENIH (Seed/PL Management)
+   ============================================================ */
+function SeedModule(){
+  const { seed, setSeed, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true || PERMISSIONS[user.role].edit==='daily';
+  const totalPL = seed.reduce((s,r)=>s+(+r.qty||0),0);
+  const totalCost = seed.reduce((s,r)=>s+(+r.qty||0)*(+r.price||0),0);
+  const survRows = seed.filter(r=>+r.surv7>0);
+  const avgSurv = survRows.length?Math.round(survRows.reduce((s,r)=>s+(+r.surv7),0)/survRows.length):0;
+  const cols=[
+    { key:'date',label:'Tarikh Tebar' },{ key:'pond',label:'Kolam' },
+    { key:'species',label:'Spesies',render:r=><span className="text-xs">{String(r.species).split('(')[0]}</span> },
+    { key:'plSize',label:'Saiz PL' },
+    { key:'qty',label:'Kuantiti',render:r=>fmtNum(+r.qty) },
+    { key:'supplier',label:'Hatchery' },
+    { key:'price',label:'Harga/ekor',render:r=>'RM '+(+r.price).toFixed(3) },
+    { key:'pcr',label:'PCR Test',render:r=><StatusBadge status={String(r.pcr).includes('Negatif')?'Normal':r.pcr==='Pending'?'Warning':'Kritikal'}/> },
+    { key:'surv7',label:'Survival 7H',render:r=>r.surv7?r.surv7+'%':'-' },
+  ];
+  const fields=[
+    { key:'date',label:'Tarikh Tebar',type:'date',required:true },
+    { key:'pond',label:'Kolam',type:'select',options:ponds.map(p=>p.id),required:true },
+    { key:'species',label:'Spesies',type:'select',options:SPECIES },
+    { key:'plSize',label:'Saiz PL (cth: PL12)' },
+    { key:'qty',label:'Kuantiti (ekor)',type:'number',required:true },
+    { key:'supplier',label:'Hatchery/Pembekal' },
+    { key:'price',label:'Harga/ekor (RM)',type:'number' },
+    { key:'pcr',label:'PCR Test',type:'select',options:['Negatif (Clean)','Positif','Pending'] },
+    { key:'surv7',label:'Survival 7 Hari (%)',type:'number' },
+  ];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Sprout" title="Pengurusan Benih (PL)" desc="Rekod tebar benih, PCR test & survival awal"/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Sprout" label="Jumlah PL Ditebar" value={fmtNum(totalPL)} tone="accent"/>
+        <KpiCard icon="DollarSign" label="Kos Benih" value={fmtRM(totalCost)} tone="violet"/>
+        <KpiCard icon="Activity" label="Survival 7 Hari" value={avgSurv+'%'} sub="purata" tone="green"/>
+        <KpiCard icon="Microscope" label="PCR Clean" value={seed.filter(r=>String(r.pcr).includes('Negatif')).length+'/'+seed.length} tone="accent"/>
+      </div>
+      <CrudPanel title="Rekod Tebar Benih" icon="Sprout" columns={cols} fields={fields} rows={seed} setRows={setSeed} canEdit={canEdit}/>
+      <Card>
+        <h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="Building2" size={16} className="text-cyan-300"/>Pembekal Hatchery</h3>
+        <div className="grid sm:grid-cols-3 gap-3">
+          {[...new Set(seed.map(r=>r.supplier).filter(Boolean))].map(s=>(
+            <div key={s} className="p-3 rounded-xl bg-panel2/60 border border-edge">
+              <div className="font-semibold text-white text-sm">{s}</div>
+              <div className="text-xs text-slate-400 mt-1">{seed.filter(r=>r.supplier===s).length} transaksi</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   KESIHATAN & RAWATAN (Health & Disease)
+   ============================================================ */
+function HealthModule(){
+  const { health:HR, setHealth, medStock:MED, setMedStock, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true || PERMISSIONS[user.role].edit==='daily';
+  const totalMort = MORTALITY.reduce((s,m)=>s+m.dead,0);
+  const mortChart={};
+  MORTALITY.forEach(m=>{mortChart[m.date]=(mortChart[m.date]||0)+m.dead;});
+  const chart=Object.entries(mortChart).sort().map(([d,v])=>({date:d.slice(5),Kematian:v}));
+  const cols=[
+    { key:'date',label:'Tarikh' },{ key:'pond',label:'Kolam' },
+    { key:'issue',label:'Isu/Penyakit',render:r=><span className={r.issue==='-'?'text-slate-400':'text-rose-300 font-medium'}>{r.issue==='-'?'Normal':r.issue}</span> },
+    { key:'mortality',label:'Kematian',render:r=>fmtNum(r.mortality) },
+    { key:'treatment',label:'Rawatan' },
+    { key:'dose',label:'Dos' },
+    { key:'vet',label:'Doktor' },
+    { key:'status',label:'Status',render:r=><StatusBadge status={r.status==='Normal'?'Normal':r.status==='Terkawal'?'Normal':'Warning'}/> },
+  ];
+  const medCols=[
+    { key:'item',label:'Ubat/Bahan Kimia' },
+    { key:'qty',label:'Stok',render:r=><span className={r.qty<=r.reorder?'text-rose-300 font-bold':'text-white'}>{r.qty} {r.unit}</span> },
+    { key:'reorder',label:'Paras Reorder',render:r=>r.reorder+' '+r.unit },
+    { key:'status',label:'Status',render:r=><StatusBadge status={r.qty<=r.reorder?'Kritikal':'Normal'}/> },
+  ];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="HeartPulse" title="Kesihatan & Rawatan" desc="Log penyakit, kematian, rawatan & stok ubatan"/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Skull" label="Kematian (14 hari)" value={fmtNum(totalMort)} sub="semua kolam" tone="rose"/>
+        <KpiCard icon="HeartPulse" label="Kes Aktif" value={HR.filter(h=>h.status==='Pemantauan').length} tone="amber"/>
+        <KpiCard icon="Pill" label="Ubat Stok Rendah" value={MED.filter(m=>m.qty<=m.reorder).length} tone="rose"/>
+        <KpiCard icon="ShieldCheck" label="Kolam Sihat" value={ponds.filter(p=>p.status==='Aktif').length} tone="green"/>
+      </div>
+      <Card>
+        <h3 className="font-bold text-white mb-3">Trend Kematian Harian</h3>
+        <ResponsiveContainer width="100%" height={230}>
+          <AreaChart data={chart}>
+            <defs><linearGradient id="gMort" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fb7185" stopOpacity={0.5}/><stop offset="95%" stopColor="#fb7185" stopOpacity={0}/></linearGradient></defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="date" stroke="#64748b" fontSize={11}/><YAxis stroke="#64748b" fontSize={11}/>
+            <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+            <Area type="monotone" dataKey="Kematian" stroke="#fb7185" fill="url(#gMort)" strokeWidth={2}/>
+          </AreaChart>
+        </ResponsiveContainer>
+      </Card>
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2"><CrudPanel title="Log Penyakit & Rawatan" icon="HeartPulse" columns={cols} rows={HR} setRows={setHealth} canEdit={canEdit} searchable={false}
+          fields={[
+            { key:'date',label:'Tarikh',type:'date',required:true,def:todayISO },
+            { key:'pond',label:'Kolam',type:'select',options:ponds.map(p=>p.id),required:true },
+            { key:'issue',label:'Isu/Penyakit',type:'select',options:['-',...DISEASES] },
+            { key:'mortality',label:'Kematian (ekor)',type:'number' },
+            { key:'treatment',label:'Rawatan' },
+            { key:'dose',label:'Dos' },
+            { key:'vet',label:'Doktor Haiwan' },
+            { key:'status',label:'Status',type:'select',options:['Normal','Terkawal','Pemantauan'] },
+          ]}/></Card>
+        <Card><CrudPanel title="Stok Ubatan & Bahan Kimia" icon="Pill" columns={medCols} rows={MED} setRows={setMedStock} canEdit={canEdit} searchable={false} pageSize={6}
+          fields={[
+            { key:'item',label:'Ubat/Bahan Kimia',required:true },
+            { key:'unit',label:'Unit',type:'select',options:['Liter','kg','botol','paket'] },
+            { key:'qty',label:'Kuantiti Stok',type:'number',required:true },
+            { key:'reorder',label:'Paras Reorder',type:'number' },
+          ]}/></Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   PENGURUSAN TUAIAN (Harvest Management)
+   ============================================================ */
+function HarvestModule(){
+  const { harvest:HV, setHarvest, ponds } = useData();
+  const { user } = useAuth();
+  const canEdit = PERMISSIONS[user.role].edit===true;
+  const totalKg = HV.reduce((s,h)=>s+(+h.kg||0),0);
+  const totalRevenue = HV.reduce((s,h)=>s+(+h.kg||0)*(+h.pricePerKg||0),0);
+  const avgPrice = totalKg?(totalRevenue/totalKg).toFixed(2):'0';
+  const planned = ponds.filter(p=>p.harvestEst && (p.status==='Aktif'||p.status==='Tuaian')).sort((a,b)=>a.harvestEst.localeCompare(b.harvestEst));
+  const cols=[
+    { key:'date',label:'Tarikh' },{ key:'pond',label:'Kolam' },
+    { key:'type',label:'Jenis',render:r=><StatusBadge status={r.type==='Full'?'Aktif':'Tuaian'}/> },
+    { key:'kg',label:'Berat (kg)',render:r=><b className="text-cyan-300">{fmtNum(r.kg)}</b> },
+    { key:'count',label:'Saiz (ekor/kg)' },{ key:'grade',label:'Gred' },
+    { key:'buyer',label:'Pembeli' },
+    { key:'pricePerKg',label:'Harga/kg',render:r=>'RM '+r.pricePerKg.toFixed(2) },
+    { key:'total',label:'Hasil (RM)',render:r=><b className="text-emerald-300">{fmtRM(r.kg*r.pricePerKg)}</b> },
+  ];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Package" title="Pengurusan Tuaian" desc="Perancangan, rekod tuaian & hasil jualan"/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="Package" label="Jumlah Tuaian" value={fmtNum(totalKg)+' kg'} tone="accent"/>
+        <KpiCard icon="DollarSign" label="Hasil Tuaian" value={fmtRM(totalRevenue)} tone="green"/>
+        <KpiCard icon="Tag" label="Harga Purata" value={'RM '+avgPrice+'/kg'} tone="violet"/>
+        <KpiCard icon="CalendarClock" label="Tuaian Dirancang" value={planned.length} tone="amber"/>
+      </div>
+      <Card>
+        <h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="CalendarClock" size={16} className="text-amber-300"/>Perancangan Jadual Tuaian</h3>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {planned.map(p=>{
+            const days=Math.round((new Date(p.harvestEst)-new Date('2026-06-07'))/864e5);
+            const g=GROWTH.filter(x=>x.pond===p.id).slice(-1)[0];
+            const biomass=g?((g.abw/1000)*Math.round(p.seeded*p.survival/100)).toFixed(0):0;
+            return (
+              <div key={p.id} className="p-4 rounded-xl bg-panel2/60 border border-edge">
+                <div className="flex items-center justify-between"><span className="font-bold text-white">{p.name}</span><span className={`text-xs px-2 py-0.5 rounded-full ${days<=7?'bg-rose-500/15 text-rose-300':'bg-amber-500/15 text-amber-300'}`}>{days<=0?'Sedia':days+' hari'}</span></div>
+                <div className="text-xs text-slate-400 mt-2">Anggaran: {p.harvestEst}</div>
+                <div className="text-xs text-slate-400">Biomass: <b className="text-cyan-300">{fmtNum(+biomass)} kg</b></div>
+                <div className="text-xs text-slate-400">Anggaran nilai: <b className="text-emerald-300">{fmtRM(biomass*24)}</b></div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+      <CrudPanel title="Rekod Tuaian" icon="Package" columns={cols} rows={HV} setRows={setHarvest} canEdit={canEdit} searchable={false}
+        fields={[
+          { key:'date',label:'Tarikh',type:'date',required:true,def:todayISO },
+          { key:'pond',label:'Kolam',type:'select',options:ponds.map(p=>p.id),required:true },
+          { key:'type',label:'Jenis',type:'select',options:['Partial','Full'] },
+          { key:'kg',label:'Berat (kg)',type:'number',required:true },
+          { key:'count',label:'Saiz (ekor/kg)',type:'number' },
+          { key:'grade',label:'Gred',type:'select',options:['A','B','C'] },
+          { key:'buyer',label:'Pembeli/Kilang' },
+          { key:'pricePerKg',label:'Harga/kg (RM)',type:'number',required:true },
+          { key:'transport',label:'Pengangkutan' },
+        ]}/>
+    </div>
+  );
+}
+
+/* ============================================================
+   KEWANGAN (Financial Management)
+   ============================================================ */
+function FinanceModule(){
+  const { harvest } = useData();
+  const totalIncome = FINANCE.reduce((s,f)=>s+f.income,0);
+  const totalCost = FINANCE.reduce((s,f)=>s+f.cost,0);
+  const profit = totalIncome-totalCost;
+  const roi = ((profit/totalCost)*100).toFixed(1);
+  const totalHarvestKg = harvest.reduce((s,h)=>s+(+h.kg||0),0);
+  const costPerKg = totalHarvestKg?(totalCost/totalHarvestKg).toFixed(2):'—';
+  const chart = FINANCE.map(f=>({month:f.month, Pendapatan:f.income, Kos:f.cost, Untung:f.profit}));
+
+  const exportCSV = () => {
+    const header='Bulan,Pendapatan,Benih,Feed,Elektrik,Buruh,Ubatan,Lain,Jumlah Kos,Untung/Rugi';
+    const lines=FINANCE.map(f=>[f.month,f.income,f.seed,f.feed,f.elec,f.labor,f.med,f.other,f.cost,f.profit].join(','));
+    const csv=[header,...lines,['JUMLAH',totalIncome,'','','','','','',totalCost,profit].join(',')].join('\n');
+    const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='laporan_kewangan_2026.csv';a.click();
+  };
+  const cols=[
+    { key:'month',label:'Bulan' },
+    { key:'income',label:'Pendapatan',render:r=><span className="text-emerald-300">{fmtRM(r.income)}</span> },
+    { key:'feed',label:'Feed',render:r=>fmtRM(r.feed) },
+    { key:'seed',label:'Benih',render:r=>fmtRM(r.seed) },
+    { key:'labor',label:'Buruh',render:r=>fmtRM(r.labor) },
+    { key:'cost',label:'Jumlah Kos',render:r=><span className="text-rose-300">{fmtRM(r.cost)}</span> },
+    { key:'profit',label:'Untung/Rugi',render:r=><b className={r.profit>=0?'text-emerald-300':'text-rose-300'}>{fmtRM(r.profit)}</b> },
+  ];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Wallet" title="Pengurusan Kewangan" desc="Kos operasi, pendapatan, untung/rugi & ROI"
+        action={<button onClick={exportCSV} className={btnPrimary}><Icon name="Download" size={16}/>Export CSV</button>}/>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon="TrendingUp" label="Jumlah Pendapatan" value={fmtRM(totalIncome)} sub="6 bulan" tone="green"/>
+        <KpiCard icon="TrendingDown" label="Jumlah Kos" value={fmtRM(totalCost)} tone="rose"/>
+        <KpiCard icon="Wallet" label="Untung Bersih" value={fmtRM(profit)} tone={profit>=0?'green':'rose'}/>
+        <KpiCard icon="Percent" label="ROI" value={roi+'%'} sub={'Kos/kg: RM '+costPerKg} tone="violet"/>
+      </div>
+      <div className="grid lg:grid-cols-3 gap-5">
+        <Card className="lg:col-span-2">
+          <h3 className="font-bold text-white mb-3">Pendapatan, Kos & Untung Bulanan</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="month" stroke="#64748b" fontSize={12}/><YAxis stroke="#64748b" fontSize={11} tickFormatter={v=>(v/1000)+'k'}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}} formatter={v=>fmtRM(v)}/><Legend/>
+              <Bar dataKey="Pendapatan" fill="#34d399" radius={[4,4,0,0]}/>
+              <Bar dataKey="Kos" fill="#fb7185" radius={[4,4,0,0]}/>
+              <Bar dataKey="Untung" fill="#22d3ee" radius={[4,4,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">Pecahan Kos Operasi</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie data={COST_BREAKDOWN} dataKey="value" nameKey="name" cx="50%" cy="45%" outerRadius={75} label={e=>e.name}>
+                {COST_BREAKDOWN.map((e,i)=><Cell key={i} fill={PIE_COLORS[i]}/>)}
+              </Pie>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}} formatter={v=>fmtRM(v)}/>
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+      <Card><h3 className="font-bold text-white mb-3">Rekod Kewangan Bulanan</h3><DataTable columns={cols} rows={FINANCE} searchable={false}/></Card>
+    </div>
+  );
+}
+
+/* ============================================================
+   PENGURUSAN PENGGUNA (Admin only)
+   ============================================================ */
+function UsersModule(){
+  const { users, setUsers, user } = useAuth();
+  const [modal,setModal]=useState(null);
+  const [form,setForm]=useState({});
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const openNew=()=>{setForm({name:'',email:'',password:'',role:'Pekerja',active:true});setModal('new');};
+  const openEdit=u=>{setForm({...u});setModal(u);};
+  const save=()=>{
+    if(!form.name||!form.email){alert('Sila isi nama & email');return;}
+    if(modal==='new') setUsers(us=>[...us,{...form,id:Date.now(),lastLogin:null}]);
+    else setUsers(us=>us.map(u=>u.id===modal.id?{...form}:u));
+    setModal(null);
+  };
+  const del=u=>{if(u.id===user.id){alert('Tak boleh padam akaun sendiri');return;}if(confirm(`Padam ${u.name}?`))setUsers(us=>us.filter(x=>x.id!==u.id));};
+  const cols=[
+    { key:'name',label:'Nama',render:r=><div className="flex items-center gap-2"><Avatar name={r.name} size={28}/><span className="font-semibold text-white">{r.name}</span></div> },
+    { key:'email',label:'Email' },
+    { key:'role',label:'Peranan',render:r=><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${r.role==='Admin'?'bg-rose-500/15 text-rose-300':r.role==='Manager'?'bg-violet-500/15 text-violet-300':'bg-cyan-500/15 text-cyan-300'}`}>{r.role}</span> },
+    { key:'active',label:'Status',render:r=><StatusBadge status={r.active?'Normal':'Kosong'}/> },
+    { key:'lastLogin',label:'Login Akhir',render:r=>r.lastLogin||'-' },
+    { key:'_act',label:'',sortable:false,render:r=>(
+      <div className="flex gap-1">
+        <button onClick={()=>openEdit(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-cyan-500/20 text-cyan-300"><Icon name="Pencil" size={14}/></button>
+        <button onClick={()=>del(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-rose-500/20 text-rose-300"><Icon name="Trash2" size={14}/></button>
+      </div>) },
+  ];
+  const aCols=[{key:'time',label:'Masa'},{key:'user',label:'Pengguna'},{key:'action',label:'Aktiviti'}];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="Users" title="Pengurusan Pengguna" desc="Senarai, peranan & log aktiviti (Admin sahaja)"
+        action={<button onClick={openNew} className={btnPrimary}><Icon name="UserPlus" size={16}/>Tambah Pengguna</button>}/>
+      <div className="grid grid-cols-3 gap-4">
+        <KpiCard icon="Users" label="Jumlah Pengguna" value={users.length} tone="accent"/>
+        <KpiCard icon="ShieldCheck" label="Admin" value={users.filter(u=>u.role==='Admin').length} tone="rose"/>
+        <KpiCard icon="UserCheck" label="Aktif" value={users.filter(u=>u.active).length} tone="green"/>
+      </div>
+      <Card><h3 className="font-bold text-white mb-3">Senarai Pengguna</h3><DataTable columns={cols} rows={users} searchable={false}/></Card>
+      <Card><h3 className="font-bold text-white mb-3 flex items-center gap-2"><Icon name="History" size={16} className="text-cyan-300"/>Log Aktiviti Pengguna</h3><DataTable columns={aCols} rows={ACTIVITY_LOG} searchable={false} pageSize={6}/></Card>
+
+      <Modal open={!!modal} onClose={()=>setModal(null)} title={modal==='new'?'Tambah Pengguna':'Edit Pengguna'}>
+        <div className="space-y-3.5">
+          <Field label="Nama Penuh"><input className={inputCls} value={form.name||''} onChange={e=>set('name',e.target.value)}/></Field>
+          <Field label="Email"><input className={inputCls} value={form.email||''} onChange={e=>set('email',e.target.value)}/></Field>
+          <Field label="Kata Laluan"><input className={inputCls} value={form.password||''} onChange={e=>set('password',e.target.value)}/></Field>
+          <Field label="Peranan"><select className={inputCls} value={form.role} onChange={e=>set('role',e.target.value)}><option>Pekerja</option><option>Manager</option><option>Admin</option></select></Field>
+          <label className="flex items-center gap-2 text-sm text-slate-300"><input type="checkbox" checked={form.active} onChange={e=>set('active',e.target.checked)} className="w-4 h-4 accent-cyan-400"/>Akaun Aktif</label>
+        </div>
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={()=>setModal(null)} className={btnGhost}>Batal</button>
+          <button onClick={save} className={btnPrimary}><Icon name="Save" size={16}/>Simpan</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+/* ============================================================
+   LAPORAN & ANALITIK (Reports & Analytics)
+   ============================================================ */
+function ReportsModule(){
+  const { ponds, feed, growth } = useData();
+  const [period,setPeriod]=useState('Bulanan');
+  // pond performance comparison
+  const activePonds = ponds.filter(p=>p.status==='Aktif'||p.status==='Tuaian');
+  const perf = activePonds.map(p=>{
+    const feedKg=feed.filter(f=>f.pond===p.id).reduce((s,f)=>s+(+f.kg||0),0);
+    const g=growth.filter(x=>x.pond===p.id).slice(-1)[0];
+    const biomass=g?(g.abw/1000)*Math.round(p.seeded*p.survival/100):0;
+    return { name:p.id.replace('KOLAM ','K'), Survival:p.survival, FCR:biomass?+(feedKg/biomass).toFixed(2):0, ABW:g?g.abw:0 };
+  });
+  const exportData = (fmt) => {
+    const header='Kolam,Survival(%),FCR,ABW(g)';
+    const lines=perf.map(p=>[p.name,p.Survival,p.FCR,p.ABW].join(','));
+    const csv=[header,...lines].join('\n');
+    if(fmt==='excel'){
+      const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='laporan_prestasi_kolam.csv';a.click();
+    } else { window.print(); }
+  };
+  const cols=[
+    { key:'name',label:'Kolam' },
+    { key:'Survival',label:'Survival %',render:r=><span className={r.Survival>=85?'text-emerald-300':'text-amber-300'}>{r.Survival}%</span> },
+    { key:'FCR',label:'FCR',render:r=><span className={r.FCR<1.5?'text-emerald-300':'text-amber-300'}>{r.FCR}</span> },
+    { key:'ABW',label:'ABW (g)' },
+  ];
+  return (
+    <div className="space-y-5">
+      <SectionHeader icon="FileBarChart" title="Laporan & Analitik" desc="Perbandingan prestasi & trend antara kolam"
+        action={<div className="flex gap-2">
+          <select className={inputCls+' !w-auto'} value={period} onChange={e=>setPeriod(e.target.value)}><option>Harian</option><option>Mingguan</option><option>Bulanan</option></select>
+          <button onClick={()=>exportData('excel')} className={btnGhost}><Icon name="FileSpreadsheet" size={15}/>Excel</button>
+          <button onClick={()=>exportData('pdf')} className={btnPrimary}><Icon name="FileText" size={15}/>PDF</button>
+        </div>}/>
+      <div className="grid lg:grid-cols-2 gap-5">
+        <Card>
+          <h3 className="font-bold text-white mb-3">Survival Rate vs FCR per Kolam</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={perf}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis dataKey="name" stroke="#64748b" fontSize={12}/>
+              <YAxis yAxisId="l" stroke="#34d399" fontSize={11}/><YAxis yAxisId="r" orientation="right" stroke="#fbbf24" fontSize={11}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/><Legend/>
+              <Bar yAxisId="l" dataKey="Survival" fill="#34d399" radius={[4,4,0,0]}/>
+              <Bar yAxisId="r" dataKey="FCR" fill="#fbbf24" radius={[4,4,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+        <Card>
+          <h3 className="font-bold text-white mb-3">Pertumbuhan ABW Semua Kolam</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={perf} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#1c2740"/><XAxis type="number" stroke="#64748b" fontSize={11}/><YAxis dataKey="name" type="category" stroke="#64748b" fontSize={12}/>
+              <Tooltip contentStyle={{background:'#0d1424',border:'1px solid #1c2740',borderRadius:12}}/>
+              <Bar dataKey="ABW" fill="#22d3ee" radius={[0,5,5,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+      <Card><h3 className="font-bold text-white mb-3">Jadual Prestasi Kolam ({period})</h3><DataTable columns={cols} rows={perf} searchable={false}/></Card>
+      <div className="grid sm:grid-cols-3 gap-4">
+        <Card><div className="text-center"><div className="text-3xl font-extrabold text-emerald-300">{Math.round(perf.reduce((s,p)=>s+p.Survival,0)/perf.length)}%</div><div className="text-xs text-slate-400 mt-1">Purata Survival</div></div></Card>
+        <Card><div className="text-center"><div className="text-3xl font-extrabold text-cyan-300">{(perf.reduce((s,p)=>s+p.FCR,0)/perf.length).toFixed(2)}</div><div className="text-xs text-slate-400 mt-1">Purata FCR</div></div></Card>
+        <Card><div className="text-center"><div className="text-3xl font-extrabold text-violet-300">{(perf.reduce((s,p)=>s+p.ABW,0)/perf.length).toFixed(1)}g</div><div className="text-xs text-slate-400 mt-1">Purata ABW</div></div></Card>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   MAIN APP SHELL + ROUTING
+   ============================================================ */
+function MainApp(){
+  const { user } = useAuth();
+  const { status, msg } = useSync();
+  const [active,setActive]=useState('dashboard');
+  const [open,setOpen]=useState(false);
+  useEffect(()=>{ if(!canSee(user.role,active)) setActive('dashboard'); },[active,user.role]);
+
+  const titles={dashboard:'Dashboard',ponds:'Pengurusan Kolam',water:'Kualiti Air',seed:'Pengurusan Benih',feed:'Pengurusan Makanan',growth:'Pertumbuhan Udang',health:'Kesihatan & Rawatan',harvest:'Pengurusan Tuaian',finance:'Kewangan',users:'Pengurusan Pengguna',reports:'Laporan & Analitik'};
+  const render=()=>{
+    switch(active){
+      case 'dashboard': return <Dashboard go={setActive}/>;
+      case 'ponds': return <PondsModule/>;
+      case 'water': return <WaterModule/>;
+      case 'seed': return <SeedModule/>;
+      case 'feed': return <FeedModule/>;
+      case 'growth': return <GrowthModule/>;
+      case 'health': return <HealthModule/>;
+      case 'harvest': return <HarvestModule/>;
+      case 'finance': return <FinanceModule/>;
+      case 'users': return canSee(user.role,'users')?<UsersModule/>:<Dashboard go={setActive}/>;
+      case 'reports': return <ReportsModule/>;
+      default: return <Dashboard go={setActive}/>;
+    }
+  };
+  return (
+    <div className="flex h-screen overflow-hidden bg-ink">
+      <Sidebar active={active} setActive={setActive} open={open} setOpen={setOpen}/>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Topbar title={titles[active]} onMenu={()=>setOpen(true)}/>
+        {/* Sync status bar */}
+        <div className={`px-4 py-1 text-[11px] font-medium flex items-center gap-2 border-b transition-all ${
+          status==='synced'?'text-emerald-400 border-emerald-500/20 bg-emerald-500/5':
+          status==='offline'?'text-amber-400 border-amber-500/20 bg-amber-500/5':
+          'text-cyan-400 border-cyan-500/20 bg-cyan-500/5'
+        }`}>
+          <span className={`w-2 h-2 rounded-full ${
+            status==='synced'?'bg-emerald-400':
+            status==='offline'?'bg-amber-400':
+            'bg-cyan-400 animate-pulse'
+          }`}/>
+          {msg}
+        </div>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{render()}</main>
+      </div>
+    </div>
+  );
+}
+
+function Root(){
+  const { user } = useAuth();
+  return user ? <MainApp/> : <AuthPage/>;
+}
+
+/* ============================================================
+   DATA STORE — Supabase + localStorage (offline fallback)
+   ============================================================ */
+const DataCtx = createContext(null);
+const useData = () => useContext(DataCtx);
+function withIds(arr){ return (arr||[]).map((r,i)=>({ _id: r._id ?? ('s'+i+'-'+Math.random().toString(36).slice(2,8)), ...r })); }
+
+function DataProvider({ children }){
+  const [syncSt, setSyncSt] = useState({ status:'syncing', msg:'Menyambung...' });
+  const [loaded, setLoaded] = useState(false);
+
+  const mk = (key, seed) => {
+    const [v, setV] = useState(withIds(seed));
+    const initRef = useRef(false);
+
+    useEffect(() => {
+      if(initRef.current) return;
+      initRef.current = true;
+
+      // Load dari localStorage dulu (cepat)
+      try {
+        const local = localStorage.getItem('upro_'+key);
+        if(local) { const d=JSON.parse(local); if(d.length) setV(withIds(d)); }
+      } catch(e){}
+
+      // Sync dari Supabase
+      supabase.from('farm_data').select('data').eq('id', key).single()
+        .then(({ data, error }) => {
+          if(data && data.data && data.data.length) {
+            setV(withIds(data.data));
+            localStorage.setItem('upro_'+key, JSON.stringify(data.data));
+          } else if(!localStorage.getItem('upro_'+key)) {
+            localStorage.setItem('upro_'+key, JSON.stringify(withIds(seed)));
+          }
+          setSyncSt({ status:'synced', msg:'Tersimpan di cloud' });
+        })
+        .catch(() => setSyncSt(s => s.status==='syncing' ? { status:'offline', msg:'Offline — simpan lokal' } : s));
+    }, []);
+
+    // Auto-save ke localStorage + Supabase (debounced)
+    useEffect(() => {
+      if(!initRef.current) return;
+      localStorage.setItem('upro_'+key, JSON.stringify(v));
+      const timer = setTimeout(() => {
+        setSyncSt({ status:'syncing', msg:'Menyimpan...' });
+        supabase.from('farm_data').upsert({ id: key, data: v }, { onConflict: 'id' })
+          .then(() => setSyncSt({ status:'synced', msg:'Tersimpan di cloud' }))
+          .catch(() => setSyncSt({ status:'offline', msg:'Offline — simpan lokal' }));
+      }, 800);
+      return () => clearTimeout(timer);
+    }, [v]);
+
+    return [v, setV];
+  };
+
+  const [ponds,setPonds]       = mk('ponds', PONDS);
+  const [water,setWater]       = mk('water', WATER_QUALITY);
+  const [seed,setSeed]         = mk('seed', SEED_RECORDS);
+  const [feed,setFeed]         = mk('feed', FEED_RECORDS);
+  const [feedStock,setFeedStock]=mk('feedstock', FEED_STOCK);
+  const [growth,setGrowth]     = mk('growth', GROWTH);
+  const [health,setHealth]     = mk('health', HEALTH_RECORDS);
+  const [medStock,setMedStock] = mk('medstock', MED_STOCK);
+  const [harvest,setHarvest]   = mk('harvest', HARVESTS);
+
+  const reset = () => {
+    ['ponds','water','seed','feed','feedstock','growth','health','medstock','harvest']
+      .forEach(k=>{ localStorage.removeItem('upro_'+k); supabase.from('farm_data').delete().eq('id',k).then() });
+    location.reload();
+  };
+
+  return <SyncCtx.Provider value={syncSt}>
+    <DataCtx.Provider value={{ ponds,setPonds, water,setWater, seed,setSeed, feed,setFeed, feedStock,setFeedStock, growth,setGrowth, health,setHealth, medStock,setMedStock, harvest,setHarvest, reset }}>
+      {children}
+    </DataCtx.Provider>
+  </SyncCtx.Provider>;
+}
+
+/* ============================================================
+   CrudPanel — table + Tambah/Edit/Padam + borang auto (schema)
+   ============================================================ */
+function CrudPanel({ title, icon, columns, fields, rows, setRows, canEdit=true, idKey='_id', searchable=true, pageSize=8 }){
+  const [modal,setModal]=useState(null);
+  const [form,setForm]=useState({});
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const openNew=()=>{ const init={}; fields.forEach(f=>init[f.key]=f.def!==undefined?f.def:(f.type==='number'?0:'')); setForm(init); setModal('new'); };
+  const openEdit=r=>{ setForm({...r}); setModal(r); };
+  const save=()=>{
+    for(const f of fields){ if(f.required && (form[f.key]===''||form[f.key]==null)){ alert('Sila isi '+f.label); return; } }
+    if(modal==='new'){ const nr={...form,[idKey]:('n'+Date.now()+'-'+Math.random().toString(36).slice(2,6))}; setRows(rs=>[nr,...rs]); }
+    else setRows(rs=>rs.map(r=>r[idKey]===modal[idKey]?{...r,...form}:r));
+    setModal(null);
+  };
+  const del=r=>{ if(confirm('Padam rekod ni?')) setRows(rs=>rs.filter(x=>x[idKey]!==r[idKey])); };
+  const allCols = canEdit ? [...columns,{key:'_act',label:'',sortable:false,render:r=>(
+    <div className="flex gap-1">
+      <button onClick={()=>openEdit(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-cyan-500/20 text-cyan-300"><Icon name="Pencil" size={14}/></button>
+      <button onClick={()=>del(r)} className="p-1.5 rounded-lg bg-panel2 hover:bg-rose-500/20 text-rose-300"><Icon name="Trash2" size={14}/></button>
+    </div>)}] : columns;
+  return (<>
+    <Card>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 className="font-bold text-white flex items-center gap-2">{icon&&<Icon name={icon} size={16} className="text-cyan-300"/>}{title}</h3>
+        {canEdit && <button onClick={openNew} className={btnPrimary}><Icon name="Plus" size={15}/>Tambah Rekod</button>}
+      </div>
+      <DataTable columns={allCols} rows={rows} searchable={searchable} pageSize={pageSize}/>
+    </Card>
+    <Modal open={!!modal} onClose={()=>setModal(null)} title={modal==='new'?'Tambah Rekod Baru':'Edit Rekod'} wide>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {fields.map(f=>(<Field key={f.key} label={f.label}>
+          {f.type==='select'
+            ? <select className={inputCls} value={form[f.key]??''} onChange={e=>set(f.key,e.target.value)}>{f.options.map(o=><option key={o} value={o}>{o}</option>)}</select>
+            : <input type={f.type||'text'} step="any" className={inputCls} value={form[f.key]??''} onChange={e=>set(f.key, f.type==='number'?(+e.target.value):e.target.value)}/>}
+        </Field>))}
+      </div>
+      <div className="flex justify-end gap-2 mt-5">
+        <button onClick={()=>setModal(null)} className={btnGhost}>Batal</button>
+        <button onClick={save} className={btnPrimary}><Icon name="Save" size={16}/>Simpan</button>
+      </div>
+    </Modal>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <AuthProvider><DataProvider><Root/></DataProvider></AuthProvider>
+);
+
+</script>
+</body>
+</html>
