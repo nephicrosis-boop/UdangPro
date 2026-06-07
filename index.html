@@ -1714,5 +1714,21 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>s.remove(),500); } }, 100);
 
 </script>
+<script>
+/* Manual Babel transform (in case auto-detect fails) */
+(function(){
+  try {
+    var s = document.querySelector('script[type="text/babel"]');
+    if(s && !window.__babelDone) {
+      window.__babelDone = true;
+      var code = s.textContent;
+      var result = Babel.transform(code, { presets: s.getAttribute('data-presets') ? [s.getAttribute('data-presets')] : [] });
+      var newScript = document.createElement('script');
+      newScript.textContent = result.code;
+      document.body.appendChild(newScript);
+    }
+  } catch(e) { console.error('Babel manual transform error:', e); }
+})();
+</script>
 </body>
 </html>
