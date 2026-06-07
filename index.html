@@ -56,6 +56,17 @@
 </head>
 <body>
 <div id="root"></div>
+<div id="splash" style="position:fixed;inset:0;background:#070b16;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:sans-serif;transition:opacity .5s">
+  <div style="font-size:48px;margin-bottom:16px">🦐</div>
+  <div style="color:#22d3ee;font-size:18px;font-weight:700">UdangPro</div>
+  <div style="color:#64748b;font-size:13px;margin-top:8px">Memuatkan...</div>
+  <div style="margin-top:20px;width:120px;height:3px;background:#1c2740;border-radius:4px;overflow:hidden">
+    <div id="splash-bar" style="width:0%;height:100%;background:linear-gradient(90deg,#22d3ee,#2dd4bf);border-radius:4px;transition:width 2s ease"></div>
+  </div>
+</div>
+<script>
+  setTimeout(()=>document.getElementById('splash-bar')&&(document.getElementById('splash-bar').style.width='80%'),100);
+</script>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useMemo, createContext, useContext, useRef } = React;
 const RC = window.Recharts || {};
@@ -65,12 +76,12 @@ const {
   CartesianGrid, Tooltip, Legend
 } = RC;
 
-/* ---------- Supabase ---------- */
+/* ---------- Supabase (gagal = offline mode) ---------- */
 const SUPABASE_URL = 'https://nfxehlmkohmemsjldsbc.supabase.co';
 const SUPABASE_ANON = 'eyJ...6g';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-  auth: { persistSession: false }
-});
+let supabase = null;
+try { if(window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } }); }
+catch(e){ console.warn('Supabase init failed:', e); }
 
 /* Sync context */
 const SyncCtx = React.createContext({ status: 'local', msg: '' });
@@ -1597,23 +1608,28 @@ function DataProvider({ children }){
       } catch(e){}
 
       // Sync dari Supabase
-      supabase.from('farm_data').select('data').eq('id', key).single()
-        .then(({ data, error }) => {
-          if(data && data.data && data.data.length) {
-            setV(withIds(data.data));
-            localStorage.setItem('upro_'+key, JSON.stringify(data.data));
-          } else if(!localStorage.getItem('upro_'+key)) {
-            localStorage.setItem('upro_'+key, JSON.stringify(withIds(seed)));
-          }
-          setSyncSt({ status:'synced', msg:'Tersimpan di cloud' });
-        })
-        .catch(() => setSyncSt(s => s.status==='syncing' ? { status:'offline', msg:'Offline — simpan lokal' } : s));
+      if(supabase) {
+        supabase.from('farm_data').select('data').eq('id', key).single()
+          .then(({ data, error }) => {
+            if(data && data.data && data.data.length) {
+              setV(withIds(data.data));
+              localStorage.setItem('upro_'+key, JSON.stringify(data.data));
+            } else if(!localStorage.getItem('upro_'+key)) {
+              localStorage.setItem('upro_'+key, JSON.stringify(withIds(seed)));
+            }
+            setSyncSt({ status:'synced', msg:'Tersimpan di cloud' });
+          })
+          .catch(() => setSyncSt(s => s.status==='syncing' ? { status:'offline', msg:'Offline — simpan lokal' } : s));
+      } else {
+        setSyncSt({ status:'offline', msg:'Supabase CDN tak ready' });
+      }
     }, []);
 
     // Auto-save ke localStorage + Supabase (debounced)
     useEffect(() => {
       if(!initRef.current) return;
       localStorage.setItem('upro_'+key, JSON.stringify(v));
+      if(!supabase) return;
       const timer = setTimeout(() => {
         setSyncSt({ status:'syncing', msg:'Menyimpan...' });
         supabase.from('farm_data').upsert({ id: key, data: v }, { onConflict: 'id' })
@@ -1697,6 +1713,8 @@ function CrudPanel({ title, icon, columns, fields, rows, setRows, canEdit=true, 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <AuthProvider><DataProvider><Root/></DataProvider></AuthProvider>
 );
+/* Hide splash screen */
+setTimeout(()=>{ const s=document.getElementById('splash'); if(s){ s.style.opacity='0'; setTimeout(()=>s.remove(),500); } }, 100);
 
 </script>
 </body>
