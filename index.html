@@ -13,6 +13,28 @@
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>/* Manual Babel trigger — guarantee transform runs */
+(function(){
+  var check = function(){
+    var s = document.querySelector('script[type="text/babel"]');
+    if(s && window.Babel && typeof Babel.transform==='function' && !s.getAttribute('data-transformed')){
+      try {
+        var code = Babel.transform(s.innerHTML, {presets:['react']}).code;
+        s.setAttribute('data-transformed','1');
+        s.type = 'text/javascript';
+        s.innerHTML = code;
+        // Execute inline
+        var newScript = document.createElement('script');
+        newScript.textContent = code;
+        document.body.appendChild(newScript);
+      } catch(e){ console.error('Babel transform error:', e); }
+    }
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', check);
+  else check();
+  setTimeout(check, 500);
+})();
+</script>
 <!-- Supabase REST client — no CDN dependency -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
