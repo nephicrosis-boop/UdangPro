@@ -4669,9 +4669,9 @@ function CrudPanel({
     onChange: e => set(f.key, e.target.value)
   }, f.options.map(o => /*#__PURE__*/React.createElement("option", {
     key: o.value,
-    value: o.value
-  }, o.label)))
-    type: f.type || 'text',
+        value: o.value
+      }, o.label))) : /*#__PURE__*/React.createElement("input", {
+        type: f.type || 'text',
     step: "any",
     className: inputCls,
     value: form[f.key] ?? '',
