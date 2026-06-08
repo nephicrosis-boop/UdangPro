@@ -5529,7 +5529,7 @@ function DataProvider({
         eq: ['id', key],
         single: true
       }).then(d => {
-        if (d?.data?.length) {
+        if (d?.data && Array.isArray(d.data)) {
           setV(withIds(d.data));
           localStorage.setItem('upro_' + key, JSON.stringify(d.data));
         } else if (!localStorage.getItem('upro_' + key)) localStorage.setItem('upro_' + key, JSON.stringify(withIds(seed)));
