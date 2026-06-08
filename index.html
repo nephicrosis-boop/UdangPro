@@ -14,6 +14,10 @@
 <script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
 <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin></script>
 <!-- Supabase REST client — no CDN dependency -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1127,6 +1131,7 @@ const TR = {
     nav_users: 'Pengurusan Pengguna',
     nav_reports: 'Laporan & Analitik',
     nav_stock: 'Stok & Inventori',
+    nav_report: '📄 Laporan Akhir',
     nav_settings: 'Tetapan',
     /* Settings */
     lang_label: 'Bahasa',
@@ -1180,6 +1185,7 @@ const TR = {
     nav_users: 'User Management',
     nav_reports: 'Reports & Analytics',
     nav_stock: 'Stock & Inventory',
+    nav_report: '📄 Final Report',
     nav_settings: 'Settings',
     lang_label: 'Language',
     lang_ms: 'Bahasa Melayu',
@@ -1466,6 +1472,10 @@ const NAV = [{
   id: 'stock',
   labelKey: 'nav_stock',
   icon: 'Warehouse'
+}, {
+  id: 'report',
+  labelKey: 'nav_report',
+  icon: 'FileText'
 }, {
   id: 'settings',
   labelKey: 'nav_settings',
@@ -4118,6 +4128,169 @@ function SettingsPage() {
 }
 
 /* ============================================================
+   FINAL REPORT MODULE — Pond Final Report with PDF/Excel Export
+   ============================================================ */
+function FinalReportModule() {
+  const { t } = useLang();
+  const { user } = useAuth();
+  const { ponds, pondData, waterData, growthData, feedData, healthData, harvestData, financeData } = useData();
+  const [selectedPond, setSelectedPond] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [format, setFormat] = useState('pdf');
+  const [lang, setLang] = useState('ms');
+  const [sections, setSections] = useState({cover:true,exec:true,seed:true,water:true,growth:true,feed:true,health:true,harvest:true,finance:true,kpi:true,review:true});
+  const canExport = user.role === 'Admin' || user.role === 'Manager';
+  const today = new Date().toISOString().slice(0,10);
+  const rptNum = 'LP' + today.replace(/-/g,'') + '-' + String(Date.now()).slice(-4);
+  const pondGrowth = (pid) => (growthData||[]).filter(g => g.pondId === pid).sort((a,b) => (a.week||0)-(b.week||0));
+  const pondWater = (pid) => (waterData||[]).filter(w => w.pondId === pid).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const pondFeed = (pid) => (feedData||[]).filter(f => f.pondId === pid);
+  const pondHealth = (pid) => (healthData||[]).filter(h => h.pondId === pid);
+  const pondHarvest = (pid) => (harvestData||[]).filter(h => h.pondId === pid);
+  const pondFinance = (pid) => (financeData||[]).filter(f => f.pondId === pid);
+  const calcMetrics = (pond) => {
+    if (!pond) return {};
+    const gr = pondGrowth(pond.id); const hrv = pondHarvest(pond.id); const fd = pondFeed(pond.id);
+    const totalHarvest = hrv.reduce((s,h) => s + (h.kg||0), 0);
+    const totalFeed = fd.reduce((s,f) => s + (f.kg||0), 0);
+    const lastG = gr.length > 0 ? gr[gr.length-1] : null;
+    const abw = lastG ? (lastG.abw||0) : 0; const survival = lastG ? (lastG.survival||0) : 0;
+    const doc = pond.stockDate ? Math.max(0, Math.round((new Date(today) - new Date(pond.stockDate)) / 864e5)) : 0;
+    const fcr = totalHarvest > 0 ? (totalFeed / totalHarvest) : 0;
+    const countKg = abw > 0 ? Math.round(1000 / abw) : 0;
+    const price = hrv.length > 0 ? (hrv[0].price||0) : 0;
+    const revenue = totalHarvest * price;
+    const costs = pondFinance(pond.id).reduce((s,f) => s + (f.amount||0), 0);
+    const profit = revenue - costs;
+    const roi = costs > 0 ? ((profit / costs) * 100) : 0;
+    const density = pond.density || 0; const sizeM2 = pond.sizeM2 || 0;
+    return { doc, totalHarvest, totalFeed, abw, survival, fcr, countKg, price, revenue, costs, profit, roi, density, sizeM2 };
+  };
+  const generatePDF = async (pond) => {
+    setGenerating(true); setProgress(5);
+    const m = 20; const w = 170;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p','mm','a4');
+    const metrics = calcMetrics(pond);
+    const species = pond.species||'Vannamei'; const pondName = pond.id||'Kolam';
+    const stockDate = pond.stockDate||'—'; const harvestEst = pond.harvestEst||today;
+    const density = metrics.density; const sizeM2 = metrics.sizeM2;
+    const totalStocked = density * sizeM2;
+    const fin = pondFinance(pond.id);
+    let y = m; let pg = 1;
+    const ft = () => { for(let i=1;i<=doc.internal.getNumberOfPages();i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150);doc.text('Halaman '+i+' dari '+doc.internal.getNumberOfPages(),105,295,{align:'center'});} };
+    const hdr = () => { doc.setFontSize(7);doc.setTextColor(100);doc.text('UdangPro — Laporan Akhir Kolam',m,10);doc.text('No: '+rptNum,210-m,10,{align:'r'});doc.setDrawColor(34,211,238);doc.setLineWidth(0.3);doc.line(m,12,210-m,12); };
+    const ftr = () => { doc.setFontSize(7);doc.setTextColor(150);doc.text('Halaman '+pg+' dari {total}',105,295,{align:'center'});doc.text('Dijana: '+today,210-m,295,{align:'r'});pg++; };
+    const chk = n => { if(y+n>280){ftr();doc.addPage();hdr();y=m;pg++;} };
+    const sec = t => { chk(14);doc.setFontSize(13);doc.setTextColor(34,211,238);doc.setFont(undefined,'bold');doc.text(t,m,y+6);y+=10;doc.setDrawColor(34,211,238,50);doc.line(m,y,210-m,y);y+=4; };
+    const lbl = (k,v) => { chk(8);doc.setFontSize(9);doc.setFont(undefined,'normal');doc.setTextColor(150);doc.text(k+':',m,y+4);doc.setTextColor(220);doc.setFont(undefined,'bold');doc.text(String(v||'—'),m+50,y+4);y+=6; };
+    const tbl = (h,d) => { doc.autoTable({head:[h],body:d,startY:y,margin:{left:m,right:m},theme:'grid',headStyles:{fillColor:[13,20,36],textColor:[34,211,238],fontSize:8,fontStyle:'bold'},bodyStyles:{fontSize:7,textColor:[200,200,200]},alternateRowStyles:{fillColor:[13,20,36,30]},styles:{cellPadding:2}}); y=doc.lastAutoTable.finalY+8; };
+    // Cover
+    doc.setFillColor(7,11,22);doc.rect(0,0,210,297,'F');hdr();y=80;
+    doc.setFontSize(28);doc.setTextColor(34,211,238);doc.setFont(undefined,'bold');
+    doc.text('LAPORAN AKHIR',105,y,{align:'center'});y+=9;
+    doc.text('PENTERNAKAN UDANG',105,y,{align:'center'});y+=16;
+    doc.setDrawColor(34,211,238);doc.setLineWidth(0.5);doc.line(60,y,150,y);y+=12;
+    doc.setFontSize(14);doc.setTextColor(255);doc.text('Kolam: '+pondName,105,y,{align:'center'});y+=8;
+    doc.setFontSize(10);doc.setTextColor(150);
+    doc.text('Spesies: '+species+' | Saiz: '+sizeM2+'m\u00B2 | '+density+'ekor/m\u00B3',105,y,{align:'center'});y+=8;
+    doc.text('Tempoh: '+stockDate+' hingga '+harvestEst,105,y,{align:'center'});y+=12;
+    doc.setFontSize(9);doc.setTextColor(100);doc.text('Pengurus: '+(user.name||'—'),105,y,{align:'center'});y+=6;
+    doc.text('Tarikh: '+today+' | No: '+rptNum,105,y,{align:'center'});ftr();
+    // Exec Summary
+    doc.addPage();hdr();y=m;sec('1. RINGKASAN EKSEKUTIF');
+    lbl('Nama Kolam',pondName);lbl('Saiz',sizeM2+'m\u00B2 ('+(sizeM2/10000).toFixed(2)+'ha)');
+    lbl('Spesies',species);lbl('Tarikh Tebar',stockDate);lbl('Tempoh',metrics.doc+' hari (DOC)');
+    lbl('Benih Ditebar',(totalStocked||0).toLocaleString()+' ekor');lbl('Hasil Tuaian',metrics.totalHarvest+' kg');
+    lbl('Survival Rate',metrics.survival+'%');lbl('FCR',metrics.fcr.toFixed(2));
+    lbl('ABW',metrics.abw+'g ('+metrics.countKg+' ekor/kg)');lbl('Pendapatan','RM '+(metrics.revenue||0).toLocaleString());
+    lbl('Jumlah Kos','RM '+(metrics.costs||0).toLocaleString());lbl('Keuntungan','RM '+(metrics.profit||0).toLocaleString());
+    lbl('ROI',metrics.roi.toFixed(1)+'%');
+    chk(10);doc.setFontSize(14);doc.setTextColor(metrics.profit>=0?34:220);
+    doc.text(metrics.profit>=0?'\u2705 UNTUNG':'❌ RUGI',105,y+4,{align:'center'});y+=10;
+    if(sections.seed){doc.addPage();hdr();y=m;sec('2. DATA BENIH');
+      lbl('Pembekal Hatchery',pond.supplier||'—');lbl('Spesies & Strain',species);
+      lbl('Kepadatan Tebar',density+' ekor/m\u00B3');lbl('Keputusan PCR',pond.pcrResult||'Negatif');
+      lbl('Kos Benih','RM '+(((totalStocked/1000)*(pond.plPrice||35))||0).toLocaleString());}
+    if(sections.water){doc.addPage();hdr();y=m;sec('3. KUALITI AIR');
+      const wd = pondWater(pond.id);if(wd.length>0){const avg=f=>((wd.reduce((s,r)=>s+(Number(r[f])||0),0)/wd.length)||0).toFixed(1);
+      tbl(['Parameter','Min','Max','Purata','Unit'],[['pH',Math.min(...wd.map(r=>r.ph||0)),Math.max(...wd.map(r=>r.ph||0)),avg('ph'),''],['DO',Math.min(...wd.map(r=>r.do||0)),Math.max(...wd.map(r=>r.do||0)),avg('do'),'mg/L'],['Suhu',Math.min(...wd.map(r=>r.temp||0)),Math.max(...wd.map(r=>r.temp||0)),avg('temp'),'\u00B0C'],['Saliniti',Math.min(...wd.map(r=>r.sal||0)),Math.max(...wd.map(r=>r.sal||0)),avg('sal'),'ppt'],['Ammonia',Math.min(...wd.map(r=>r.nh3||0)),Math.max(...wd.map(r=>r.nh3||0)),avg('nh3'),'mg/L']]);}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+    if(sections.growth){doc.addPage();hdr();y=m;sec('4. PERTUMBUHAN');
+      const gr=pondGrowth(pond.id);if(gr.length>0){tbl(['Minggu','DOC','ABW(g)','ADG(g/h)','SR%','Biomass(kg)'],gr.map(g=>[g.week||'—',g.doc||'—',(g.abw||0).toFixed(1),(g.adg||0).toFixed(2),(g.survival||0).toFixed(0),(g.biomass||0).toFixed(1)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+    if(sections.feed){doc.addPage();hdr();y=m;sec('5. MAKANAN & FCR');const fd=pondFeed(pond.id);if(fd.length>0){const tf=fd.reduce((s,f)=>s+(f.kg||0),0);lbl('Jumlah Feed',tf+' kg');lbl('FCR',metrics.fcr.toFixed(2));tbl(['Minggu','Feed(kg)','FCR'],fd.map(f=>[f.week||'—',(f.kg||0).toFixed(1),(f.fcr||0).toFixed(2)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+    if(sections.health){doc.addPage();hdr();y=m;sec('6. KESIHATAN & RAWATAN');const hl=pondHealth(pond.id);if(hl.length>0){tbl(['Tarikh','Masalah','Rawatan','Kos(RM)'],hl.map(h=>[h.date||'—',h.issue||'—',h.treatment||'—',(h.cost||0).toFixed(2)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
+    if(sections.harvest){doc.addPage();hdr();y=m;sec('7. TUAIAN');const hrv=pondHarvest(pond.id);if(hrv.length>0){tbl(['Tarikh','Kuantiti(kg)','Saiz','Harga(RM/kg)','Pembeli'],hrv.map(h=>[h.date||'—',(h.kg||0).toFixed(1),h.size||'—',(h.price||0).toFixed(2),h.buyer||'—']));lbl('Jumlah Hasil',metrics.totalHarvest+' kg');lbl('Pendapatan','RM '+(metrics.revenue||0).toLocaleString());}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
+    if(sections.finance){doc.addPage();hdr();y=m;sec('8. ANALISIS KEWANGAN');
+      doc.setFontSize(10);doc.setTextColor(34,211,238);doc.setFont(undefined,'bold');doc.text('PENDAPATAN',m,y+4);y+=8;
+      doc.setFontSize(9);doc.setTextColor(200);doc.text('Hasil Tuaian Udang',m,y+3);doc.text('RM '+(metrics.revenue||0).toLocaleString(),210-m,y+3,{align:'r'});y+=6;
+      doc.setDrawColor(34,211,238,80);doc.line(m,y,210-m,y);y+=6;
+      doc.setFont(undefined,'bold');doc.text('JUMLAH PENDAPATAN',m,y+3);doc.text('RM '+(metrics.revenue||0).toLocaleString(),210-m,y+3,{align:'r'});y+=10;
+      doc.setFontSize(10);doc.setTextColor(255,100,100);doc.setFont(undefined,'bold');doc.text('PERBELANJAAN',m,y+4);y+=8;
+      doc.setFontSize(9);doc.setTextColor(200);doc.setFont(undefined,'normal');
+      let tc=0;fin.forEach(f=>{doc.text(f.category||'Kos',m,y+3);doc.text('RM '+(f.amount||0).toLocaleString(),210-m,y+3,{align:'r'});y+=5;tc+=(f.amount||0);});
+      if(fin.length===0){doc.text('Tiada data kewangan.',m,y+3);y+=6;}
+      doc.setDrawColor(255,100,100,80);doc.line(m,y,210-m,y);y+=6;
+      doc.setFont(undefined,'bold');doc.text('JUMLAH PERBELANJAAN',m,y+3);doc.text('RM '+(tc||0).toLocaleString(),210-m,y+3,{align:'r'});y+=10;
+      const pft=metrics.revenue-tc;doc.setFontSize(12);doc.setTextColor(pft>=0?34:220);doc.setFont(undefined,'bold');
+      doc.text(pft>=0?'KEUNTUNGAN BERSIH':'KERUGIAN BERSIH',m,y+3);doc.text('RM '+pft.toLocaleString(),210-m,y+3,{align:'r'});y+=10;
+      lbl('Kos/kg','RM '+(tc>0&&metrics.totalHarvest>0?((tc/metrics.totalHarvest)||0).toFixed(2):'—'));lbl('ROI',((pft/(tc||1))*100).toFixed(1)+'%');}
+    if(sections.kpi){doc.addPage();hdr();y=m;sec('9. KPI SUMMARY');
+      tbl(['KPI','Sasaran','Sebenar','Status'],[['Survival Rate','>70%',metrics.survival+'%',metrics.survival>=70?'✅':'❌'],['FCR','<1.5',metrics.fcr.toFixed(2),metrics.fcr<=1.5?'✅':'❌'],['ABW Tuaian','>15g',metrics.abw+'g',metrics.abw>=15?'✅':'❌'],['ROI','>20%',metrics.roi.toFixed(1)+'%',metrics.roi>=20?'✅':'❌']]);}
+    if(sections.review){doc.addPage();hdr();y=m;sec('10. ULASAN & CADANGAN');
+      doc.setFontSize(9);doc.setTextColor(200);doc.text('Rumusan Prestasi:',m,y+4);y+=8;
+      doc.setFontSize(8);doc.setTextColor(150);
+      doc.text('Kitaran ini mencatatkan SR '+metrics.survival+'% dan FCR '+metrics.fcr.toFixed(2)+'.',m,y+3);y+=6;
+      doc.text('Keuntungan bersih RM '+(metrics.profit||0).toLocaleString()+' dengan ROI '+metrics.roi.toFixed(1)+'%.',m,y+3);y+=10;
+      doc.setFontSize(9);doc.setTextColor(200);doc.text('Cadangan:',m,y+4);y+=7;doc.setFontSize(8);doc.setTextColor(150);
+      doc.text('1. Tebar density lebih rendah (60-80 ekor/m\u00B3) untuk SR lebih tinggi.',m,y+3);y+=6;
+      doc.text('2. Guna probiotik rutin untuk kualiti air stabil.',m,y+3);y+=6;
+      doc.text('3. Sampling mingguan konsisten untuk monitor pertumbuhan.',m,y+3);y+=6;y+=6;
+      doc.setFontSize(9);doc.setTextColor(200);doc.text('Disahkan oleh:',m,y+3);y+=8;doc.setTextColor(150);
+      doc.text('_________________________',40,y+2);doc.text(user.name||'—',40,y+8);doc.text('Tarikh: '+today,120,y+2);}
+    ft();setProgress(100);setTimeout(()=>{doc.save('Laporan_'+pondName+'_'+today+'.pdf');setGenerating(false);setShowModal(false);},500);
+  };
+  const generateExcel = (pond) => {
+    setGenerating(true);const metrics=calcMetrics(pond);const wb=XLSX.utils.book_new();
+    const es=[['LAPORAN AKHIR PENTERNAKAN UDANG',''],['Kolam:',pond.id||'—'],['Spesies:',pond.species||'Vannamei'],['Saiz:',metrics.sizeM2+'m\u00B2'],['Density:',metrics.density+'/m\u00B3'],['Tarikh Tebar:',pond.stockDate||'—'],['',''],['RINGKASAN',''],['Hasil (kg)',metrics.totalHarvest],['SR (%)',metrics.survival],['FCR',metrics.fcr.toFixed(2)],['ABW (g)',metrics.abw],['Pendapatan (RM)',metrics.revenue],['Kos (RM)',metrics.costs],['Keuntungan (RM)',metrics.profit],['ROI (%)',metrics.roi.toFixed(1)]];
+    const ws=XLSX.utils.aoa_to_sheet(es);ws['!cols']=[{wch:30},{wch:15}];XLSX.utils.book_append_sheet(wb,ws,'Ringkasan');
+    const gr=pondGrowth(pond.id);if(gr.length>0){const gs=[['Minggu','DOC','ABW(g)','ADG','SR%','Biomass(kg)'],...gr.map(g=>[g.week,g.doc,g.abw,g.adg,g.survival,g.biomass])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(gs),'Pertumbuhan');}
+    const fn=pondFinance(pond.id);if(fn.length>0){const fs=[['Kategori','Penerangan','Jumlah(RM)'],...fn.map(f=>[f.category||'—',f.desc||'—',f.amount||0])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fs),'Kewangan');}
+    XLSX.writeFile(wb,'Laporan_'+pond.id+'_'+today+'.xlsx');setGenerating(false);setShowModal(false);
+  };
+  if(!canExport) return React.createElement('div',{className:'p-6 text-center'},React.createElement('p',{className:'text-sm text-slate-400'},'Anda tiada akses ke laporan akhir.'));
+  return React.createElement('div',{className:'space-y-5'},
+    React.createElement('div',{className:'flex items-center justify-between'},React.createElement('div',null,React.createElement('h1',{className:'text-lg font-extrabold text-white'},'\uD83D\uDCC4 Laporan Akhir Kolam'),React.createElement('p',{className:'text-xs text-slate-400 mt-1'},'Jana laporan prestasi lengkap untuk setiap kolam')),generating&&React.createElement('div',{className:'flex items-center gap-2 text-xs text-accent'},React.createElement('div',{className:'w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin'}),'Menjana... '+progress+'%')),
+    React.createElement('div',{className:'grid grid-cols-1 lg:grid-cols-2 gap-4'},
+      (ponds||[]).map(pond=>{const m=calcMetrics(pond);return React.createElement(Card,{key:pond.id},
+        React.createElement('div',{className:'flex items-start justify-between'},
+          React.createElement('div',null,React.createElement('h3',{className:'font-bold text-white text-sm'},'Kolam '+(pond.id||'—')),React.createElement('p',{className:'text-xs text-slate-400 mt-0.5'},pond.species||'—'),React.createElement('p',{className:'text-[10px] text-slate-500'},pond.sizeM2+'m\u00B2 | DOC '+m.doc+' hari')),
+          React.createElement('button',{onClick:()=>{setSelectedPond(pond);setShowModal(true);},className:'px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition'},'\uD83D\uDCC4 Jana Laporan')),
+        React.createElement('div',{className:'grid grid-cols-3 gap-2 mt-3'},
+          React.createElement('div',{className:'p-2 rounded-lg bg-panel2 border border-edge text-center'},React.createElement('p',{className:'text-[10px] text-slate-400'},'SR'),React.createElement('p',{className:'text-sm font-bold text-emerald-400'},m.survival+'%')),
+          React.createElement('div',{className:'p-2 rounded-lg bg-panel2 border border-edge text-center'},React.createElement('p',{className:'text-[10px] text-slate-400'},'FCR'),React.createElement('p',{className:'text-sm font-bold text-amber-400'},m.fcr.toFixed(2))),
+          React.createElement('div',{className:'p-2 rounded-lg bg-panel2 border border-edge text-center'},React.createElement('p',{className:'text-[10px] text-slate-400'},'ABW'),React.createElement('p',{className:'text-sm font-bold text-cyan-400'},m.abw+'g')))))})
+    ),
+    showModal&&selectedPond&&React.createElement(React.Fragment,null,
+      React.createElement('div',{className:'fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto',onClick:()=>setShowModal(false)},
+        React.createElement('div',{onClick:e=>e.stopPropagation(),className:'w-full max-w-xl mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp'},
+          React.createElement('div',{className:'flex items-center justify-between p-4 border-b border-edge'},
+            React.createElement('h2',{className:'text-sm font-bold text-white'},'\uD83D\uDCC4 Jana Laporan \u2014 Kolam '+(selectedPond.id||'—')),
+            React.createElement('button',{onClick:()=>setShowModal(false),className:'p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition'},'\u2715')),
+          React.createElement('div',{className:'p-4 space-y-4'},
+            React.createElement('div',null,React.createElement('p',{className:'text-[11px] font-semibold text-slate-400 mb-2'},'Format Eksport'),React.createElement('div',{className:'flex gap-2'},['pdf','excel'].map(f=>React.createElement('button',{key:f,onClick:()=>setFormat(f),className:(format===f?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge')+' px-4 py-2 text-xs font-semibold rounded-lg border transition'},f==='pdf'?'\uD83D\uDCD5 PDF':'\uD83D\uDCD7 Excel')))),
+            React.createElement('div',null,React.createElement('p',{className:'text-[11px] font-semibold text-slate-400 mb-2'},'Bahagian Laporan'),React.createElement('div',{className:'grid grid-cols-2 gap-2'},Object.entries(sections).map(([k,v])=>React.createElement('label',{key:k,className:'flex items-center gap-2 px-3 py-2 rounded-lg bg-panel2 border border-edge cursor-pointer text-xs text-slate-300 hover:bg-panel'},React.createElement('input',{type:'checkbox',checked:v,onChange:e=>setSections(u=>({...u,[k]:e.target.checked})),className:'accent-cyan-500'}),({\u2018cover\u2019:'\uD83D\uDCCC Muka Depan',exec:'1\u20E3 Ringkasan',seed:'2\u20E3 Benih',water:'3\u20E3 Air',growth:'4\u20E3 Pertumbuhan',feed:'5\u20E3 Makanan',health:'6\u20E3 Kesihatan',harvest:'7\u20E3 Tuaian',finance:'8\u20E3 Kewangan',kpi:'9\u20E3 KPI',review:'\uD83D\uDD10 Ulasan'})[k]||k)))),
+            React.createElement('div',{className:'bg-panel2 rounded-xl p-3 border border-edge'},React.createElement('p',{className:'text-xs text-slate-400'},'No. Laporan: ',React.createElement('span',{className:'font-semibold text-cyan-300'},rptNum)),React.createElement('p',{className:'text-xs text-slate-400 mt-1'},'Dijana oleh: ',React.createElement('span',{className:'text-slate-200'},user.name)),React.createElement('p',{className:'text-xs text-slate-400 mt-1'},'Tarikh: ',React.createElement('span',{className:'text-slate-200'},today))),
+            React.createElement('div',{className:'flex justify-end gap-2 pt-2 border-t border-edge'},React.createElement('button',{onClick:()=>setShowModal(false),className:'px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition'},'Batal'),React.createElement('button',{onClick:()=>{if(format==='pdf')generatePDF(selectedPond);else generateExcel(selectedPond);},disabled:generating,className:'px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition disabled:opacity-50'},generating?'Menjana... '+progress+'%':'\uD83D\uDCE5 Jana & Muat Turun'))
+          )
+        )
+      )
+    )
+  );
+}
+
+/* ============================================================
    STOCK MODULE — Full CRUD with modals
    ============================================================ */
 function StockModule() {
@@ -4850,6 +5023,8 @@ function MainApp() {
         return /*#__PURE__*/React.createElement(ReportsModule, null);
       case 'stock':
         return /*#__PURE__*/React.createElement(StockModule, null);
+      case 'report':
+        return /*#__PURE__*/React.createElement(FinalReportModule, null);
       case 'settings':
         return /*#__PURE__*/React.createElement(SettingsPage, null);
       default:
