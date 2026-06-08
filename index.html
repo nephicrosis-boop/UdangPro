@@ -4127,6 +4127,7 @@ function StockModule() {
   const canEdit = PERMISSIONS[user.role].edit === true || PERMISSIONS[user.role].edit === 'daily';
   const { stockItems, setStockItems, stockMoves, setStockMoves, suppliers, setSuppliers, ponds } = useData();
   const [tab, setTab] = useState('dashboard');
+  const [filter, setFilter] = React.useState('all');
   const subTabs = [
     { id:'dashboard', label:'📊 Dashboard Stok' },
     { id:'items', label:'📦 Stok Bahan' },
@@ -4232,7 +4233,6 @@ function StockModule() {
   };
   // Pergerakan Stok (B)
   const renderMovements = () => {
-    const [filter, setFilter] = React.useState('all');
     const filtered = filter==='all'?stockMoves:stockMoves.filter(m=>m.type===filter);
     const sorted = [...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     return React.createElement('div', { className:'space-y-3' },
