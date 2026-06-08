@@ -466,7 +466,9 @@ function daysAhead(n) {
   d.setDate(d.getDate() + n);
   return d.toISOString().slice(0, 10);
 }
-const SEED_USERS = [];
+const SEED_USERS = [
+  { id:'u1', email:'admin@udang.com', password:'admin123456@', nama:'Admin', role:'admin', notel:'', createdAt:'2026-01-01' },
+];
 const SPECIES = ['Udang Vannamei (L. vannamei)', 'Udang Harimau (P. monodon)', 'Udang Putih'];
 const PONDS = [
   { id:'KOLAM C', name:'Kolam C', sizeM2:5600, sizeHa:0.56, type:'Tanah', loc:'Blok Utara', gps:'2.4290, 103.8402', status:'Tuaian', stockDate:'2026-03-09', density:107, species:'Udang Vannamei (L. vannamei)', seeded:600000, survival:82.3, harvestEst:daysAhead(0) },
