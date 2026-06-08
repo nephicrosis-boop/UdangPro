@@ -3680,6 +3680,7 @@ function SettingsPage() {
     lang,
     toggle
   } = useLang();
+  const { reset } = useData();
   const [saved, setSaved] = useState(false);
   const handleLang = l => {
     toggle(l);
@@ -3717,6 +3718,15 @@ function SettingsPage() {
     name: "CheckCircle2",
     size: 16
   }), t('lang_saved'))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SectionHeader, {
+    icon: "Trash2",
+    title: "Padam Semua Data",
+    desc: localStorage.length > 20 ? "Reset app, padam semua data tempatan & cloud" : "Tiada data untuk dipadam"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mt-3 text-center"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => { if (confirm('Padam SEMUA data? Tindakan ini tidak boleh dibatalkan!')) { reset(); } },
+    className: "px-6 py-3 text-sm font-bold rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 transition"
+  }, /*#__PURE__*/React.createElement(Icon, { name: "Trash2", size: 16 }), " Padam Semua Data"))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SectionHeader, {
     icon: "Info",
     title: t('about_title')
   }), /*#__PURE__*/React.createElement("div", {
