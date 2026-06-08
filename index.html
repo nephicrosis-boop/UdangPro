@@ -884,6 +884,10 @@ function AuthPage() {
   const [err, setErr] = useState('');
   const [ok, setOk] = useState('');
   const [show, setShow] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotNewPw, setForgotNewPw] = useState('');
+  const [forgotStep, setForgotStep] = useState('ask'); // ask | found | done
+  const [forgotUser, setForgotUser] = useState(null);
   const set = (k, v) => setForm(f => ({
     ...f,
     [k]: v
@@ -974,7 +978,29 @@ function AuthPage() {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "CheckCircle2",
     size: 16
-  }), ok), /*#__PURE__*/React.createElement("form", {
+  }), ok), mode === 'forgot' ? React.createElement('div', { className:'space-y-3' },
+    React.createElement('div', { className:'flex gap-1 p-1 bg-panel2/70 rounded-xl mb-3' },
+      [['signin','Log Masuk'],['signup','Daftar Baru']].map(([m,l]) => React.createElement('button', {
+        key:m, onClick:()=>{setMode(m);setErr('');setOk('');setForgotStep('ask');setForgotNewPw('');setForgotUser(null);},
+        className:`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode===m?'bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-900':'text-slate-400 hover:text-white'}`
+      }, l)),
+      React.createElement('button', { className:'flex-1 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-900' }, 'Reset Kata Laluan')
+    ),
+    forgotStep === 'ask' ? React.createElement(React.Fragment, null,
+      React.createElement('p', { className:'text-sm text-slate-300 mb-3' }, 'Masukkan email untuk reset kata laluan:'),
+      React.createElement(Field, { label:'Email' }, React.createElement('input', { className:inputCls, value:forgotEmail, onChange:e=>setForgotEmail(e.target.value), placeholder:'nama@udang.com' })),
+      React.createElement('button', { onClick:()=>{const u=users.find(x=>x.email.toLowerCase()===forgotEmail.toLowerCase().trim());if(!u){setErr('Email tidak dijumpai.');return;}setErr('');setForgotUser(u);setForgotStep('found');}, className:btnPrimary+' w-full justify-center !py-3 mt-2' }, React.createElement(Icon,{name:'Search',size:16}), ' Cari Email')
+    ) : forgotStep === 'found' ? React.createElement(React.Fragment, null,
+      React.createElement('p', { className:'text-sm text-emerald-300' }, 'Akaun dijumpai: ', React.createElement('span', { className:'font-bold' }, forgotUser?.name)),
+      React.createElement('p', { className:'text-xs text-slate-400 mb-3' }, 'Email: ', forgotUser?.email),
+      React.createElement(Field, { label:'Kata Laluan Baru' }, React.createElement('input', { className:inputCls, type:'text', value:forgotNewPw, onChange:e=>setForgotNewPw(e.target.value), placeholder:'Minimum 6 aksara' })),
+      React.createElement('button', { onClick:()=>{if(forgotNewPw.length<6){setErr('Minimum 6 aksara.');return;}setUsers(us=>us.map(u=>u.id===forgotUser.id?{...u,password:forgotNewPw}:u));localStorage.setItem('upro_users',JSON.stringify(users.map(u=>u.id===forgotUser.id?{...u,password:forgotNewPw}:u)));setForgotStep('done');setErr('');}, className:btnPrimary+' w-full justify-center !py-3 mt-2' }, React.createElement(Icon,{name:'Save',size:16}), ' Simpan Kata Laluan')
+    ) : React.createElement('div', { className:'text-center space-y-3' },
+      React.createElement(Icon, { name:'CheckCircle2', size:40, className:'text-emerald-400 mx-auto' }),
+      React.createElement('p', { className:'text-emerald-300 font-semibold' }, 'Kata laluan berjaya ditukar!'),
+      React.createElement('button', { onClick:()=>setMode('signin'), className:btnPrimary+' !py-2' }, 'Kembali ke Log Masuk')
+    )
+  ) : /*#__PURE__*/React.createElement("form", {
     onSubmit: submit,
     className: "space-y-3.5"
   }, mode === 'signup' && /*#__PURE__*/React.createElement(Field, {
@@ -1008,7 +1034,9 @@ function AuthPage() {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: show ? 'EyeOff' : 'Eye',
     size: 16
-  })))), mode === 'signup' && /*#__PURE__*/React.createElement(Field, {
+  })))), mode === 'signin' && React.createElement('div', { className:'text-right -mt-2' },
+    React.createElement('button', { type:'button', onClick:()=>setMode('forgot'), className:'text-[11px] text-cyan-400 hover:text-cyan-300 transition' }, 'Lupa Kata Laluan?')
+  ), mode === 'signup' && /*#__PURE__*/React.createElement(Field, {
     label: "Peranan (Role)"
   }, /*#__PURE__*/React.createElement("select", {
     className: inputCls,
@@ -3681,7 +3709,11 @@ function SettingsPage() {
     toggle
   } = useLang();
   const { reset } = useData();
+  const { user, users, setUsers } = useAuth();
   const [saved, setSaved] = useState(false);
+  const [pwForm, setPwForm] = useState({ current:'', newPw:'', confirm:'' });
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwOk, setPwOk] = useState('');
   const handleLang = l => {
     toggle(l);
     setSaved(true);
@@ -3718,6 +3750,42 @@ function SettingsPage() {
     name: "CheckCircle2",
     size: 16
   }), t('lang_saved'))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SectionHeader, {
+    icon: "KeyRound",
+    title: user ? "Tukar Kata Laluan" : "Kata Laluan",
+    desc: user ? "Tukar kata laluan akaun anda" : "Log masuk untuk tukar kata laluan"
+  }), user ? React.createElement("div", { className: "space-y-3 mt-3" },
+    pwOk && React.createElement("div", { className: "flex items-center gap-2 text-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl px-3 py-2.5" },
+      React.createElement(Icon, { name: "CheckCircle2", size: 14 }), pwOk
+    ),
+    pwMsg && React.createElement("div", { className: "flex items-center gap-2 text-sm bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl px-3 py-2.5" },
+      React.createElement(Icon, { name: "TriangleAlert", size: 14 }), pwMsg
+    ),
+    React.createElement(Field, { label:"Kata Laluan Semasa" },
+      React.createElement("input", { className:inputCls, type:"password", value:pwForm.current, onChange:e=>setPwForm(f=>({...f,current:e.target.value})), placeholder:"Kata laluan sekarang" })
+    ),
+    React.createElement(Field, { label:"Kata Laluan Baru" },
+      React.createElement("input", { className:inputCls, type:"password", value:pwForm.newPw, onChange:e=>setPwForm(f=>({...f,newPw:e.target.value})), placeholder:"Minimum 6 aksara" })
+    ),
+    React.createElement(Field, { label:"Sahkan Kata Laluan Baru" },
+      React.createElement("input", { className:inputCls, type:"password", value:pwForm.confirm, onChange:e=>setPwForm(f=>({...f,confirm:e.target.value})), placeholder:"Taip semula kata laluan baru" })
+    ),
+    React.createElement("button", {
+      onClick: () => {
+        setPwMsg(''); setPwOk('');
+        const me = users.find(u => u.id === user.id);
+        if (!me) { setPwMsg('Sesi tamat. Sila log masuk semula.'); return; }
+        if (pwForm.current !== me.password) { setPwMsg('Kata laluan semasa tidak tepat.'); return; }
+        if (pwForm.newPw.length < 6) { setPwMsg('Minimum 6 aksara.'); return; }
+        if (pwForm.newPw !== pwForm.confirm) { setPwMsg('Kata laluan baru tidak sepadan.'); return; }
+        const updated = users.map(u => u.id === user.id ? { ...u, password: pwForm.newPw } : u);
+        setUsers(updated);
+        localStorage.setItem('upro_users', JSON.stringify(updated));
+        setPwForm({ current:'', newPw:'', confirm:'' });
+        setPwOk('Kata laluan berjaya ditukar!');
+      },
+      className: btnPrimary + ' w-full justify-center !py-2.5'
+    }, React.createElement(Icon, { name:"Save", size:14 }), " Simpan Kata Laluan")
+  ) : null), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement(SectionHeader, {
     icon: "Trash2",
     title: "Padam Semua Data",
     desc: localStorage.length > 20 ? "Reset app, padam semua data tempatan & cloud" : "Tiada data untuk dipadam"
