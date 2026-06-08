@@ -898,7 +898,7 @@ function AuthProvider({
     // active check removed — single admin user only
     const sess = {
       id: u.id,
-      name: u.name,
+      name: u.name || u.nama,
       email: u.email,
       role: u.role
     };
