@@ -878,6 +878,17 @@ function AuthProvider({
   useEffect(() => {
     localStorage.setItem('upro_users', JSON.stringify(users));
   }, [users]);
+  // Sync users dari Supabase supaya password baru override local
+  useEffect(() => {
+    SB.get('farm_data', { select: 'data', eq: ['id', 'users'], single: true })
+      .then(d => {
+        if (d?.data?.length) {
+          setUsers(d.data);
+          localStorage.setItem('upro_users', JSON.stringify(d.data));
+        }
+      })
+      .catch(() => {});
+  }, []);
   const login = (email, password, remember) => {
     const u = users.find(x => x.email.toLowerCase() === email.toLowerCase().trim() && x.password === password);
     if (!u) return {
