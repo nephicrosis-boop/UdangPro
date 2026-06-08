@@ -1304,7 +1304,12 @@ const NAV = [{
 }, {
   id: 'health',
   labelKey: 'nav_health',
-  icon: 'HeartPulse'
+  icon: 'HeartPulse',
+  children: [{
+    id: 'chemicals',
+    labelKey: 'nav_chemicals',
+    icon: 'FlaskConical'
+  }]
 }, {
   id: 'harvest',
   labelKey: 'nav_harvest',
@@ -1314,14 +1319,6 @@ const NAV = [{
   labelKey: 'nav_finance',
   icon: 'Wallet'
 }, {
-  id: 'users',
-  labelKey: 'nav_users',
-  icon: 'Users'
-}, {
-  id: 'reports',
-  labelKey: 'nav_reports',
-  icon: 'FileBarChart'
-}, {
   id: 'stock',
   labelKey: 'nav_stock',
   icon: 'Warehouse'
@@ -1330,13 +1327,17 @@ const NAV = [{
   labelKey: 'nav_report',
   icon: 'FileText'
 }, {
+  id: 'reports',
+  labelKey: 'nav_reports',
+  icon: 'FileBarChart'
+}, {
+  id: 'users',
+  labelKey: 'nav_users',
+  icon: 'Users'
+}, {
   id: 'settings',
   labelKey: 'nav_settings',
   icon: 'Settings'
-}, {
-  id: 'chemicals',
-  labelKey: 'nav_chemicals',
-  icon: 'FlaskConical'
 }];
 const SHRIMP_SVG = 'icon-192.jpg';
 function ShrimpIcon({ size }) { return React.createElement("img", { src: SHRIMP_SVG, className: "shrimp-icon", style: { width: size + "px", height: size + "px", display: "block", backgroundColor: "transparent" }, alt: "" }); }
@@ -1367,7 +1368,10 @@ function Sidebar({
   const {
     t
   } = useLang();
-  const items = NAV.filter(n => canSee(user.role, n.id));
+  const items = NAV.filter(n => canSee(user.role, n.id)).map(n => ({
+    ...n,
+    children: n.children ? n.children.filter(c => canSee(user.role, c.id)) : undefined
+  }));
   return /*#__PURE__*/React.createElement(React.Fragment, null, open && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 bg-black/50 z-30 lg:hidden",
     onClick: () => setOpen(false)
@@ -1383,17 +1387,26 @@ function Sidebar({
     className: "text-[10px] text-cyan-300/70"
   }, t('appTag')))), /*#__PURE__*/React.createElement("nav", {
     className: "flex-1 overflow-y-auto p-3 space-y-1"
-  }, items.map(n => /*#__PURE__*/React.createElement("button", {
-    key: n.id,
-    onClick: () => {
-      setActive(n.id);
-      setOpen(false);
-    },
-    className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active === n.id ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: n.icon,
-    size: 18
-  }), t(n.labelKey)))), /*#__PURE__*/React.createElement("div", {
+  }, items.map(n => {
+    const isActive = active === n.id || (n.children && n.children.some(c => c.id === active));
+    const isOpen = isActive;
+    return /*#__PURE__*/React.createElement(React.Fragment, {key:n.id},
+      /*#__PURE__*/React.createElement("button", {
+        onClick: () => { setActive(n.id); setOpen(false); },
+        className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active === n.id ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`
+      }, /*#__PURE__*/React.createElement(Icon, {
+        name: n.icon,
+        size: 18
+      }), t(n.labelKey), n.children && /*#__PURE__*/React.createElement(Icon, { name: isOpen ? 'ChevronDown' : 'ChevronRight', size: 14, className: 'ml-auto text-slate-500' })),
+      isOpen && n.children && n.children.map(c =>
+        /*#__PURE__*/React.createElement("button", {
+          key: c.id,
+          onClick: () => { setActive(c.id); setOpen(false); },
+          className: `w-full flex items-center gap-3 pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition ${active === c.id ? 'bg-gradient-to-r from-cyan-500/15 to-teal-500/8 text-cyan-300 border-l-2 border-cyan-400' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300 border-l-2 border-transparent'}`
+        }, /*#__PURE__*/React.createElement(Icon, { name: c.icon, size: 15 }), t(c.labelKey))
+      )
+    );
+  })), /*#__PURE__*/React.createElement("div", {
     className: "p-3 border-t border-edge"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 px-2 py-2 rounded-xl bg-panel2/60"
