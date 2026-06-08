@@ -3689,7 +3689,7 @@ function UsersModule() {
       alert('Tak boleh padam akaun sendiri');
       return;
     }
-    if (confirm(`Padam ${u.name}?`)) setUsers(us => us.filter(x => x.id !== u.id));
+    if (confirm(`Padam ${u.name || u.nama}?`)) setUsers(us => us.filter(x => x.id !== u.id));
   };
   const cols = [{
     key: 'name',
