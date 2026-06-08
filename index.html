@@ -18,7 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin></script>
-<!-- Supabase REST client — no CDN dependency -->
+<!-- Supabase REST client -- no CDN dependency -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script>
@@ -709,6 +709,19 @@ const CHEMICAL_USAGE = [
     kos:7.60, status:'Selesai' },
 ];
 const CHEM_PIE_COLORS = ['#22d3ee','#2dd4bf','#34d399','#fbbf24','#f472b6','#a78bfa','#fb923c','#818cf8','#f87171','#94a3b8'];
+
+/* Monthly cost data for analytics */
+const CHEM_KOS_BULANAN = [
+  { bulan:'Jan', kimia:820, ubatan:450, jumlah:1270 },
+  { bulan:'Feb', kimia:960, ubatan:380, jumlah:1340 },
+  { bulan:'Mac', kimia:740, ubatan:520, jumlah:1260 },
+  { bulan:'Apr', kimia:1100, ubatan:610, jumlah:1710 },
+  { bulan:'Mei', kimia:890, ubatan:490, jumlah:1380 },
+  { bulan:'Jun', kimia:480, ubatan:320, jumlah:800 },
+];
+const CHEM_KOS_PER_KOLAM = [
+  { kolam:'KOLAM C', rawatan:4, kos:189 },
+];
 
 /* Daily mortality (14 hari) untuk graf */
 function genMort(pondId, base) {
@@ -4802,124 +4815,390 @@ function ChemicalModule() {
   const { t } = useLang();
   const canEdit = PERMISSIONS[user.role].edit === true || PERMISSIONS[user.role].edit === 'daily';
   const activePonds = ponds.filter(p => p.status === 'Aktif' || p.status === 'Tuaian');
+  const [tab, setTab] = useState('log');
+  const [search, setSearch] = useState('');
   const [pond, setPond] = useState('Semua');
   const [catFilter, setCatFilter] = useState('all');
-  const filtered = pond === 'Semua' ? chemUsage : chemUsage.filter(c => c.pond === pond);
-  const catFiltered = catFilter === 'all' ? filtered : filtered.filter(c => {
-    const item = chemItems.find(i => i.id === c.chemId);
-    return item && item.kategori === catFilter;
-  });
-  const totalKos = catFiltered.reduce((s, c) => s + (c.kos || 0), 0);
-  const totalQty = catFiltered.reduce((s, c) => s + (c.qty || 0), 0);
-  // Daily usage chart
-  const daily = {};
-  catFiltered.forEach(c => { daily[c.date] = (daily[c.date] || 0) + (c.qty || 0); });
-  const dailyChart = Object.entries(daily).sort().slice(-7).map(([d, q]) => ({ date: d.slice(5), kg: q }));
-  // Per-chemical pie
-  const chemPie = {};
-  catFiltered.forEach(c => { const nm = chemItems.find(i => i.id === c.chemId); const k = nm ? nm.name : c.chemId; chemPie[k] = (chemPie[k] || 0) + (c.qty || 0); });
-  const pieData = Object.entries(chemPie).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, q], i) => ({ name: n.split(' ')[0], qty: q, fill: CHEM_PIE_COLORS[i] }));
-  // Cost trend last 7
-  const costDaily = {};
-  catFiltered.forEach(c => { costDaily[c.date] = (costDaily[c.date] || 0) + (c.kos || 0); });
-  const costChart = Object.entries(costDaily).sort().slice(-7).map(([d, k]) => ({ date: d.slice(5), kos: +k.toFixed(0) }));
-  // inventory alerts
+  const [statFilter, setStatFilter] = useState('all');
+  const [sortField, setSortField] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+  const [viewRecord, setViewRecord] = useState(null);
+  const [delConfirm, setDelConfirm] = useState(null);
+  const [form, setForm] = useState({}); const [showForm, setShowForm] = useState(false); const [formStep, setFormStep] = useState(1);
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const openNew = () => { setForm({date:todayISO,pond:'',chemId:'',qty:'',unit:'kg',sebab:'',catatan:'',pengusaha:'',kos:'',status:'Dijadual'}); setFormStep(1); setShowForm(true); };
+  const openEdit = (r) => { setForm({...r}); setFormStep(1); setShowForm(true); };
   const lowStock = chemItems.filter(i => i.stok <= i.minStok);
   const cats = [...new Set(chemItems.map(i => i.kategori))];
-  const chemOpts = chemItems.map(i => ({ value: i.id, label: i.name + ' (' + i.unit + ')' }));
-  const fmtRM = n => 'RM ' + (n || 0).toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  const fmtNum = n => (n || 0).toLocaleString('en-MY');
-  const RC = window.Recharts || {};
-  const { ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = RC;
-  const cols = [
-    { key:'date', label:'Tarikh' },
-    { key:'pond', label:'Kolam' },
-    { key:'chem', label:'Bahan Kimia', render: r => { const ci = chemItems.find(i => i.id === r.chemId); return /*#__PURE__*/React.createElement("span", { className:"text-cyan-300" }, ci ? ci.name : r.chemId); } },
-    { key:'qty', label:'Kuantiti', render: r => r.qty + ' ' + r.unit },
-    { key:'sebab', label:'Sebab' },
-    { key:'kos', label:'Kos (RM)', render: r => fmtRM(r.kos) },
-    { key:'status', label:'Status', render: r => /*#__PURE__*/React.createElement("span", { className: r.status === 'Selesai' ? 'text-emerald-400' : 'text-amber-400' }, r.status) }
-  ];
-  const fields = [
-    { key:'date', label:'Tarikh', type:'date', required:true, def:todayISO },
-    { key:'pond', label:'Kolam', type:'select', options:activePonds.map(p => p.id), required:true },
-    { key:'chemId', label:'Bahan Kimia', type:'select', options:chemOpts, required:true },
-    { key:'qty', label:'Kuantiti', type:'number', required:true },
-    { key:'unit', label:'Unit', type:'select', options:['kg','liter','botol','paket'] },
-    { key:'sebab', label:'Sebab Rawatan', type:'select', options:CHEM_REASONS },
-    { key:'catatan', label:'Catatan' },
-    { key:'pengusaha', label:'Pengusaha' },
-    { key:'kos', label:'Kos (RM)', type:'number' },
-    { key:'status', label:'Status', type:'select', options:['Selesai','Dalam Proses','Menunggu'] }
-  ];
-  return /*#__PURE__*/React.createElement("div", { className:"space-y-5" },
-    /*#__PURE__*/React.createElement(SectionHeader, { icon:"FlaskConical", title:"Penggunaan Kimia & Ubatan", desc:"Rekod rawatan, kos & stok kimia per kolam" }),
-    /* KPI row */
-    /*#__PURE__*/React.createElement("div", { className:"grid grid-cols-2 lg:grid-cols-4 gap-4" },
-      /*#__PURE__*/React.createElement(KpiCard, { icon:"Beaker", label:"Jumlah Gunaan", value:fmtNum(totalQty)+' kg/L', tone:"accent" }),
-      /*#__PURE__*/React.createElement(KpiCard, { icon:"DollarSign", label:"Jumlah Kos", value:fmtRM(totalKos), tone:"violet" }),
-      /*#__PURE__*/React.createElement(KpiCard, { icon:"Package", label:"Bahan Kimia", value:chemItems.length, tone:"green" }),
-      /*#__PURE__*/React.createElement(KpiCard, { icon:"AlertTriangle", label:"Stok Rendah", value:lowStock.length, tone:"rose" })
+  const filtered = chemUsage.filter(c => {
+    if (pond !== 'Semua' && c.pond !== pond) return false;
+    if (catFilter !== 'all') { const item = chemItems.find(i => i.id === c.chemId); if (!item || item.kategori !== catFilter) return false; }
+    if (statFilter !== 'all' && c.status !== statFilter) return false;
+    if (search) { const q = search.toLowerCase(); const nm = chemItems.find(i => i.id === c.chemId)?.name||''; if (!nm.toLowerCase().includes(q) && !c.catatan?.toLowerCase().includes(q) && !c.sebab?.toLowerCase().includes(q) && !c.pengusaha?.toLowerCase().includes(q)) return false; }
+    return true;
+  }).sort((a,b) => { const x = a[sortField]||'', y = b[sortField]||''; return sortDir === 'asc' ? (x>y?1:-1) : (x<y?1:-1); });
+  const totalKos = filtered.reduce((s,c) => s+(c.kos||0), 0);
+  const totalQty = filtered.reduce((s,c) => s+(c.qty||0), 0);
+  const followUps = chemUsage.filter(c => c.status === 'Dalam Proses').length;
+  const daily = {}; filtered.forEach(c => { daily[c.date] = (daily[c.date]||0) + (c.qty||0); });
+  const dailyChart = Object.entries(daily).sort().slice(-7).map(([d,q]) => ({date:d.slice(5), kg:q}));
+  const chemPie = {}; filtered.forEach(c => { const nm = chemItems.find(i=>i.id===c.chemId); const k = nm ? nm.name : c.chemId; chemPie[k] = (chemPie[k]||0) + (c.kos||0); });
+  const pieData = Object.entries(chemPie).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([n,q],i) => ({name:n.split(' ')[0], kos:q, fill:CHEM_PIE_COLORS[i]}));
+  const sortIcon = (f) => sortField === f ? (sortDir === 'asc' ? '▲' : '▼') : '';
+  const toggleSort = (f) => { if(sortField===f) setSortDir(d=>d==='asc'?'desc':'asc'); else { setSortField(f); setSortDir('desc'); } };
+  const fmtRM = n => 'RM ' + (n||0).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const fmtNum = n => (n||0).toLocaleString('en-MY');
+  const ciFind = (id) => chemItems.find(i=>i.id===id);
+  const RC = window.Recharts||{};
+  const {ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line} = RC;
+  const stBadge = (s) => { const m={Selesai:'bg-emerald-500/20 text-emerald-400','Dalam Proses':'bg-amber-500/20 text-amber-400',Dijadual:'bg-blue-500/20 text-blue-400',Menunggu:'bg-slate-500/20 text-slate-400'}; return m[s]||'bg-slate-500/20 text-slate-400'; };
+  // Form validation
+  const saveForm = () => {
+    if(!form.date||!form.pond||!form.chemId||!form.qty){alert('Sila isi ruangan wajib (Tarikh, Kolam, Bahan, Kuantiti)');return;}
+    const nr = {...form, _id:'n'+Date.now()+'-'+Math.random().toString(36).slice(2,6), qty:Number(form.qty), kos:Number(form.kos||0)};
+    setChemUsage(rs => [nr, ...rs]); setShowForm(false);
+  };
+  const delRecord = () => { setChemUsage(rs => rs.filter(x=>x._id!==delConfirm._id)); setDelConfirm(null); };
+  // Tab buttons
+  const tabs = React.createElement('div', {className:'flex gap-1 mb-5 bg-panel2/50 p-1 rounded-lg w-fit border border-edge'},
+    [{id:'log',label:'Log Rawatan',icon:'FileText'},{id:'analytics',label:'Analitik Kos',icon:'BarChart2'}].map(tb =>
+      React.createElement('button', {key:tb.id, onClick:()=>setTab(tb.id),
+        className:'flex items-center gap-2 px-4 py-2 rounded-md text-xs font-semibold transition-all '+(tab===tb.id?'bg-accent/20 text-accent shadow-sm':'text-slate-400 hover:text-slate-200')},
+        React.createElement(Icon,{name:tb.icon,size:13}), tb.label)
+    )
+  );
+
+  return React.createElement('div', {className:'space-y-5'},
+    // Header
+    React.createElement(SectionHeader, {icon:'FlaskConical',title:'Rawatan Kimia & Ubatan',desc:'Rekod penggunaan, dos & kos rawatan setiap kolam'}),
+    // KPI
+    React.createElement('div', {className:'grid grid-cols-2 lg:grid-cols-5 gap-4'},
+      React.createElement(KpiCard, {icon:'Beaker', label:'Jumlah Rekod', value:fmtNum(filtered.length)+(pond!=='Semua'?'':'/aktif'), tone:'accent'}),
+      React.createElement(KpiCard, {icon:'DollarSign', label:'Jumlah Kos', value:fmtRM(totalKos), tone:'violet'}),
+      React.createElement(KpiCard, {icon:'FlaskConical', label:'Kos Kimia', value:fmtRM(filtered.filter(c=>{const i=ciFind(c.chemId); return i&&i.kategori==='Kimia';}).reduce((s,c)=>s+(c.kos||0),0)), tone:'teal'}),
+      React.createElement(KpiCard, {icon:'Activity', label:'Kos Ubatan', value:fmtRM(filtered.filter(c=>{const i=ciFind(c.chemId); return i&&i.kategori==='Probiotik';}).reduce((s,c)=>s+(c.kos||0),0)), tone:'amber'}),
+      React.createElement(KpiCard, {icon:'AlertCircle', label:'Perlu Perhatian', value:followUps, tone:followUps>0?'rose':'green'})
     ),
-    /* Charts row */
-    /*#__PURE__*/React.createElement("div", { className:"grid lg:grid-cols-2 gap-5" },
-      /*#__PURE__*/React.createElement(Card, null,
-        /*#__PURE__*/React.createElement("h3", { className:"font-bold text-white mb-3" }, "Penggunaan Harian (7 hari)"),
-        /*#__PURE__*/React.createElement(ResponsiveContainer, { width:"100%", height:200 },
-          /*#__PURE__*/React.createElement(BarChart, { data:dailyChart },
-            /*#__PURE__*/React.createElement(CartesianGrid, { strokeDasharray:"3 3", stroke:"#1c2740" }),
-            /*#__PURE__*/React.createElement(XAxis, { dataKey:"date", stroke:"#64748b", fontSize:11 }),
-            /*#__PURE__*/React.createElement(YAxis, { stroke:"#64748b", fontSize:11 }),
-            /*#__PURE__*/React.createElement(Tooltip, { contentStyle:{ background:'#0d1424', border:'1px solid #1c2740', borderRadius:12 } }),
-            /*#__PURE__*/React.createElement(Bar, { dataKey:"kg", fill:"#22d3ee", radius:[5,5,0,0] })
+    // Tabs
+    tabs,
+    // TAB: LOG
+    tab==='log' && React.createElement(React.Fragment, null,
+      // Follow-up alert
+      followUps > 0 && React.createElement('div', {className:'flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4'},
+        React.createElement(Icon, {name:'AlertTriangle', size:18, className:'text-amber-400 mt-0.5 shrink-0'}),
+        React.createElement('div', null,
+          React.createElement('p', {className:'text-amber-400 font-semibold text-sm'}, followUps+' rawatan perlukan follow-up'),
+          React.createElement('p', {className:'text-slate-400 text-xs mt-0.5'}, 'Semak status rawatan "Dalam Proses" dan rekod perkembangan terkini.')
+        )
+      ),
+      // Search + Filters
+      React.createElement('div', {className:'flex flex-wrap gap-3 items-center'},
+        React.createElement('div', {className:'relative flex-1 max-w-xs'},
+          React.createElement(Icon, {name:'Search', size:14, className:'absolute left-3 top-1/2 -translate-y-1/2 text-slate-500'}),
+          React.createElement('input', {value:search, onChange:e=>setSearch(e.target.value),
+            placeholder:'Cari bahan, kolam, sebab...',
+            className:'w-full bg-panel2 border border-edge rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-accent/50 focus:ring-1 focus:ring-accent/30 outline-none'})
+        ),
+        React.createElement('select', {className:'bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white', value:pond, onChange:e=>setPond(e.target.value)},
+          React.createElement('option', {value:'Semua'}, 'Semua Kolam'),
+          activePonds.map(p => React.createElement('option', {key:p.id, value:p.id}, p.id))
+        ),
+        React.createElement('select', {className:'bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white', value:catFilter, onChange:e=>setCatFilter(e.target.value)},
+          React.createElement('option', {value:'all'}, 'Semua Kategori'),
+          cats.map(c => React.createElement('option', {key:c, value:c}, c))
+        ),
+        React.createElement('select', {className:'bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white', value:statFilter, onChange:e=>setStatFilter(e.target.value)},
+          React.createElement('option', {value:'all'}, 'Semua Status'),
+          ['Selesai','Dalam Proses','Dijadual','Menunggu'].map(s => React.createElement('option', {key:s, value:s}, s))
+        ),
+        React.createElement('button', {onClick:openNew, className:'px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition'},
+          React.createElement(Icon, {name:'Plus', size:14}), ' Rekod Baru'
+        )
+      ),
+      // Table
+      filtered.length === 0 ? React.createElement('div', {className:'text-center py-12 text-slate-500'},
+        React.createElement(Icon, {name:'FlaskConical', size:32, className:'mx-auto mb-2 opacity-30'}),
+        React.createElement('p', null, 'Tiada rekod rawatan ditemui')
+      ) : React.createElement('div', {className:'overflow-x-auto rounded-xl border border-edge'},
+        React.createElement('table', {className:'w-full text-sm'},
+          React.createElement('thead', null,
+            React.createElement('tr', {className:'bg-panel2 text-slate-400 text-left'},
+              ['Tarikh','Kolam','Bahan','Kuantiti','Kos','Sebab','Status',''].map((h,i) => {
+                const f = ['date','pond','chem','qty','kos','sebab','status',null][i];
+                return React.createElement('th', {key:i, onClick:()=>f && f!=='chem' && toggleSort(f), className:'px-3 py-2.5 text-xs font-semibold whitespace-nowrap'+(f?' cursor-pointer hover:text-cyan-300 select-none':'')},
+                  React.createElement('span', {className:'inline-flex items-center gap-1'}, h, f && f!=='chem' && React.createElement('span', {className:'text-[9px]'}, sortIcon(f)))
+                );
+              })
+            )
+          ),
+          React.createElement('tbody', null,
+            filtered.map((r,i) => {
+              const ci = ciFind(r.chemId);
+              return React.createElement('tr', {key:r._id||i, className:'border-t border-edge/60 hover:bg-white/[.03] transition'+(i%2===0?' bg-white/[.01]':'')},
+                React.createElement('td', {className:'px-3 py-2.5 whitespace-nowrap'}, r.date),
+                React.createElement('td', {className:'px-3 py-2.5'}, React.createElement('span', {className:'text-cyan-300 font-medium'}, r.pond)),
+                React.createElement('td', {className:'px-3 py-2.5'},
+                  React.createElement('div', null, ci ? ci.name : r.chemId),
+                  React.createElement('span', {className:'text-[10px] px-1.5 py-0.5 rounded-full '+(ci&&ci.kategori==='Kimia'?'bg-teal-500/20 text-teal-400':'bg-purple-500/20 text-purple-400')}, ci?ci.kategori:'—')
+                ),
+                React.createElement('td', {className:'px-3 py-2.5'}, r.qty+' '+r.unit),
+                React.createElement('td', {className:'px-3 py-2.5 font-semibold text-cyan-300'}, fmtRM(r.kos)),
+                React.createElement('td', {className:'px-3 py-2.5 max-w-[120px]'}, React.createElement('span', {className:'truncate block text-xs text-slate-400', title:r.sebab}, r.sebab)),
+                React.createElement('td', {className:'px-3 py-2.5'},
+                  React.createElement('span', {className:'px-2 py-1 rounded-full text-[10px] font-medium '+stBadge(r.status)}, r.status)
+                ),
+                React.createElement('td', {className:'px-3 py-2.5'},
+                  React.createElement('div', {className:'flex items-center gap-1'},
+                    React.createElement('button', {onClick:()=>setViewRecord(r), className:'p-1.5 rounded-lg hover:bg-panel2 text-slate-500 hover:text-cyan-300'},
+                      React.createElement(Icon, {name:'Eye', size:13})
+                    ),
+                    canEdit && React.createElement('button', {onClick:()=>openEdit(r), className:'p-1.5 rounded-lg hover:bg-panel2 text-slate-500 hover:text-cyan-300'},
+                      React.createElement(Icon, {name:'Pencil', size:13})
+                    ),
+                    canEdit && React.createElement('button', {onClick:()=>setDelConfirm(r), className:'p-1.5 rounded-lg hover:bg-panel2 text-slate-500 hover:text-rose-400'},
+                      React.createElement(Icon, {name:'Trash2', size:13})
+                    )
+                  )
+                )
+              );
+            })
           )
         )
       ),
-      /*#__PURE__*/React.createElement(Card, null,
-        /*#__PURE__*/React.createElement("h3", { className:"font-bold text-white mb-3" }, "Bahan Paling Banyak Diguna"),
-        pieData.length > 0 ?
-        /*#__PURE__*/React.createElement(ResponsiveContainer, { width:"100%", height:200 },
-          /*#__PURE__*/React.createElement(PieChart, null,
-            /*#__PURE__*/React.createElement(Pie, { data:pieData, dataKey:"qty", nameKey:"name", cx:"50%", cy:"50%", outerRadius:70, label:function(e){return e.name} },
-              pieData.map((e,i) => /*#__PURE__*/React.createElement(Cell, { key:i, fill:e.fill }))
-            ),
-            /*#__PURE__*/React.createElement(Tooltip, { contentStyle:{ background:'#0d1424', border:'1px solid #1c2740', borderRadius:12 } })
-          )
-        ) :
-        /*#__PURE__*/React.createElement("p", { className:"text-slate-500 text-xs text-center py-8" }, "Tiada data")
+      // Footer with record count
+      React.createElement('div', {className:'flex items-center justify-between text-xs text-slate-500'},
+        React.createElement('span', null, filtered.length+' rekod'),
+        React.createElement('span', {className:'text-cyan-300 font-semibold'}, 'Jumlah Kos: '+fmtRM(totalKos))
       )
     ),
-    /* Filter bar */
-    /*#__PURE__*/React.createElement("div", { className:"flex flex-wrap gap-3 items-center" },
-      /*#__PURE__*/React.createElement("select", { className:"bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs", value:pond, onChange:e=>setPond(e.target.value) },
-        /*#__PURE__*/React.createElement("option", { value:"Semua" }, "Semua Kolam"),
-        activePonds.map(p => /*#__PURE__*/React.createElement("option", { key:p.id, value:p.id }, p.id))
+    // TAB: ANALYTICS
+    tab==='analytics' && React.createElement('div', {className:'space-y-5'},
+      // Monthly cost trend
+      React.createElement(Card, null,
+        React.createElement('h3', {className:'font-bold text-white mb-3 flex items-center gap-2'},
+          React.createElement(Icon, {name:'TrendingUp', size:16, className:'text-cyan-400'}), 'Trend Kos Rawatan Bulanan (RM)'),
+        React.createElement(ResponsiveContainer, {width:'100%', height:220},
+          React.createElement(BarChart, {data:CHEM_KOS_BULANAN, barGap:4},
+            React.createElement(CartesianGrid, {strokeDasharray:'3 3', stroke:'#1c2740', vertical:false}),
+            React.createElement(XAxis, {dataKey:'bulan', stroke:'#64748b', fontSize:11}),
+            React.createElement(YAxis, {stroke:'#64748b', fontSize:11}),
+            React.createElement(Tooltip, {contentStyle:{background:'#0d1424', border:'1px solid #1c2740', borderRadius:12}, formatter:v=>['RM '+v]}),
+            React.createElement(Legend, {wrapperStyle:{fontSize:'11px', color:'#94a3b8'}}),
+            React.createElement(Bar, {dataKey:'kimia', name:'Kimia', fill:'#0D9488', radius:[4,4,0,0]}),
+            React.createElement(Bar, {dataKey:'ubatan', name:'Ubatan', fill:'#6366F1', radius:[4,4,0,0]})
+          )
+        )
       ),
-      /*#__PURE__*/React.createElement("select", { className:"bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs", value:catFilter, onChange:e=>setCatFilter(e.target.value) },
-        /*#__PURE__*/React.createElement("option", { value:"all" }, "Semua Kategori"),
-        cats.map(c => /*#__PURE__*/React.createElement("option", { key:c, value:c }, c))
+      // Per-pond cost + pie
+      React.createElement('div', {className:'grid lg:grid-cols-2 gap-5'},
+        React.createElement(Card, null,
+          React.createElement('h3', {className:'font-bold text-white mb-3 flex items-center gap-2'},
+            React.createElement(Icon, {name:'Droplets', size:16, className:'text-cyan-400'}), 'Kos & Frekuensi per Kolam'),
+          React.createElement(ResponsiveContainer, {width:'100%', height:200},
+            React.createElement(BarChart, {data:CHEM_KOS_PER_KOLAM, layout:'vertical'},
+              React.createElement(CartesianGrid, {strokeDasharray:'3 3', stroke:'#1c2740', horizontal:false}),
+              React.createElement(XAxis, {type:'number', stroke:'#64748b', fontSize:11}),
+              React.createElement(YAxis, {dataKey:'kolam', type:'category', stroke:'#64748b', fontSize:11, width:70}),
+              React.createElement(Tooltip, {contentStyle:{background:'#0d1424', border:'1px solid #1c2740', borderRadius:12}}),
+              React.createElement(Bar, {dataKey:'kos', name:'Kos (RM)', fill:'#22d3ee', radius:[0,4,4,0]})
+            )
+          )
+        ),
+        React.createElement(Card, null,
+          React.createElement('h3', {className:'font-bold text-white mb-3 flex items-center gap-2'},
+            React.createElement(Icon, {name:'Package', size:16, className:'text-cyan-400'}), 'Pecahan Kos per Bahan'),
+          pieData.length > 0 ? React.createElement(ResponsiveContainer, {width:'100%', height:200},
+            React.createElement(PieChart, null,
+              React.createElement(Pie, {data:pieData, dataKey:'kos', nameKey:'name', cx:'50%', cy:'50%', outerRadius:75, innerRadius:40},
+                pieData.map((e,i) => React.createElement(Cell, {key:i, fill:e.fill}))
+              ),
+              React.createElement(Tooltip, {contentStyle:{background:'#0d1424', border:'1px solid #1c2740', borderRadius:12}}),
+              React.createElement(Legend, {wrapperStyle:{fontSize:'10px', color:'#94a3b8'}})
+            )
+          ) : React.createElement('p', {className:'text-slate-500 text-xs text-center py-8'}, 'Tiada data')
+        )
       ),
-      /*#__PURE__*/React.createElement("span", { className:"text-xs text-slate-500" }, catFiltered.length, " rekod")
+      // KPI per-bahan table
+      React.createElement(Card, null,
+        React.createElement('h3', {className:'font-bold text-white mb-3 flex items-center gap-2'},
+          React.createElement(Icon, {name:'CheckCircle', size:16, className:'text-cyan-400'}), 'KPI Penggunaan Bahan'),
+        React.createElement('div', {className:'overflow-x-auto'},
+          React.createElement('table', {className:'w-full text-sm'},
+            React.createElement('thead', null,
+              React.createElement('tr', {className:'bg-panel2 text-slate-400'},
+                ['Bahan','Kategori','Jum. Rawatan','Kuantiti','Kos','% dari Total'].map(h =>
+                  React.createElement('th', {key:h, className:'px-3 py-2.5 text-left text-xs font-semibold'}, h)
+                )
+              )
+            ),
+            React.createElement('tbody', null,
+              chemItems.filter(item => chemUsage.some(c => c.chemId===item.id)).map(item => {
+                const rows = chemUsage.filter(c => c.chemId===item.id);
+                const jKos = rows.reduce((s,c)=>s+(c.kos||0),0);
+                const jQty = rows.reduce((s,c)=>s+(c.qty||0),0);
+                const pct = totalKos ? ((jKos/totalKos)*100).toFixed(1) : 0;
+                return React.createElement('tr', {key:item.id, className:'border-t border-edge/40 hover:bg-white/[.03]'},
+                  React.createElement('td', {className:'px-3 py-2.5'}, React.createElement('span', {className:'text-white font-medium'}, item.name)),
+                  React.createElement('td', {className:'px-3 py-2.5'},
+                    React.createElement('span', {className:'text-[10px] px-2 py-0.5 rounded-full '+(item.kategori==='Kimia'?'bg-teal-500/20 text-teal-400':'bg-purple-500/20 text-purple-400')}, item.kategori)),
+                  React.createElement('td', {className:'px-3 py-2.5 text-slate-300'}, rows.length+'x'),
+                  React.createElement('td', {className:'px-3 py-2.5 text-slate-300'}, jQty.toFixed(1)+' '+item.unit),
+                  React.createElement('td', {className:'px-3 py-2.5 text-cyan-300 font-semibold'}, fmtRM(jKos)),
+                  React.createElement('td', {className:'px-3 py-2.5'},
+                    React.createElement('div', {className:'flex items-center gap-2'},
+                      React.createElement('div', {className:'flex-1 bg-slate-700 rounded-full h-1.5 max-w-[60px]'},
+                        React.createElement('div', {className:'h-full bg-cyan-500 rounded-full', style:{width:pct+'%'}})
+                      ),
+                      React.createElement('span', {className:'text-slate-400 text-[10px]'}, pct+'%')
+                    )
+                  )
+                );
+              })
+            )
+          )
+        )
+      )
     ),
-    /* CrudPanel for usage records */
-    /*#__PURE__*/React.createElement(CrudPanel, {
-      title:"Rekod Penggunaan Kimia",
-      icon:"FlaskConical",
-      columns:cols,
-      rows:[...catFiltered].reverse(),
-      setRows:setChemUsage,
-      canEdit:canEdit,
-      fields:fields
-    }),
-    /* Low stock inventory card */
-    lowStock.length > 0 && /*#__PURE__*/React.createElement(Card, null,
-      /*#__PURE__*/React.createElement("h3", { className:"font-bold text-rose-300 flex items-center gap-2 mb-3" },
-        /*#__PURE__*/React.createElement(Icon, { name:"AlertTriangle", size:16 }), "Stok Kimia Rendah / Perlu Perhatian"
-      ),
-      /*#__PURE__*/React.createElement("div", { className:"grid grid-cols-2 md:grid-cols-4 gap-3" },
-        lowStock.map(i => /*#__PURE__*/React.createElement("div", { key:i.id, className:"p-3 rounded-xl bg-panel2/60 border border-edge" },
-          /*#__PURE__*/React.createElement("div", { className:"font-semibold text-white text-xs" }, i.name),
-          /*#__PURE__*/React.createElement("div", { className:"text-rose-400 text-xs mt-1" }, "Stok: ", i.stok, " ", i.unit, " (min: ", i.minStok, ")")
+    // Detail modal
+    viewRecord && React.createElement('div', {className:'fixed inset-0 z-50 flex items-start justify-end', onClick:()=>setViewRecord(null)},
+      React.createElement('div', {className:'absolute inset-0 bg-black/60 backdrop-blur-sm'}),
+      React.createElement('div', {className:'relative w-full max-w-md bg-panel border-l border-edge flex flex-col shadow-2xl max-h-full overflow-y-auto', onClick:e=>e.stopPropagation()},
+        React.createElement('div', {className:'flex items-center justify-between p-4 border-b border-edge'},
+          React.createElement('h2', {className:'text-sm font-bold text-white'}, React.createElement(Icon, {name:'FlaskConical', size:14, className:'inline mr-2 text-cyan-300'}), 'Detail Rawatan'),
+          React.createElement('button', {onClick:()=>setViewRecord(null), className:'p-1 rounded-lg hover:bg-white/10 text-slate-400'}, '✕')
+        ),
+        React.createElement('div', {className:'p-4 space-y-3'},
+          (()=>{ const r=viewRecord; const ci = ciFind(r.chemId); const statM={Selesai:'✅ Selesai','Dalam Proses':'⚠️ Dalam Proses',Dijadual:'📅 Dijadual',Menunggu:'⏳ Menunggu'}; return [
+            ['📅 Tarikh', r.date],
+            ['🏊 Kolam', r.pond],
+            ['🧪 Bahan', ci?ci.name+' ('+ci.kategori+')':r.chemId],
+            ['📦 Kuantiti', r.qty+' '+r.unit],
+            ['💰 Kos', fmtRM(r.kos)],
+            ['⚠️ Sebab', r.sebab||'—'],
+            ['📝 Catatan', r.catatan||'—'],
+            ['👤 Pengusaha', r.pengusaha||'—'],
+            ['📊 Status', statM[r.status]||r.status],
+          ].map(([l,v]) => React.createElement('div', {key:l, className:'bg-panel2/50 border border-edge/50 rounded-lg p-3'},
+            React.createElement('p', {className:'text-slate-500 text-[10px] mb-0.5'}, l),
+            React.createElement('p', {className:'text-slate-200 text-xs font-medium'}, v)
+          )); })()
+        )
+      )
+    ),
+    // Add/Edit modal
+    showForm && React.createElement('div', {className:'fixed inset-0 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto', onClick:()=>setShowForm(false)},
+      React.createElement('div', {className:'absolute inset-0 bg-black/60 backdrop-blur-sm'}),
+      React.createElement('div', {onClick:e=>e.stopPropagation(), className:'w-full max-w-lg mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp'},
+        React.createElement('div', {className:'flex items-center justify-between p-4 border-b border-edge'},
+          React.createElement('h2', {className:'text-sm font-bold text-white flex items-center gap-2'},
+            React.createElement(Icon, {name:'FlaskConical', size:14}), form._id?'Edit Rawatan':'Rekod Rawatan Baru'),
+          React.createElement('button', {onClick:()=>setShowForm(false), className:'p-1 rounded-lg hover:bg-white/10 text-slate-400'}, '✕')
+        ),
+        // Step indicator
+        React.createElement('div', {className:'flex px-4 pt-3 gap-2'},
+          [1,2].map(s => React.createElement('div', {key:s, className:'flex-1 h-1 rounded-full transition-all '+(formStep>=s?'bg-accent':'bg-edge')}))
+        ),
+        React.createElement('div', {className:'p-4 space-y-3'},
+          formStep===1 ? [
+            React.createElement('div', {key:'d1', className:'grid grid-cols-2 gap-3'},
+              React.createElement('div', null,
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📅 Tarikh *'),
+                React.createElement('input', {type:'date', value:form.date, onChange:e=>set('date',e.target.value), className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
+              ),
+              React.createElement('div', null,
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '🏊 Kolam *'),
+                React.createElement('select', {value:form.pond, onChange:e=>set('pond',e.target.value), className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+                  React.createElement('option', {value:''}, '— Pilih —'),
+                  activePonds.map(p => React.createElement('option', {key:p.id, value:p.id}, p.id))
+                )
+              )
+            ),
+            React.createElement('div', {key:'d2'},
+              React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '🧪 Bahan Kimia *'),
+              React.createElement('select', {value:form.chemId, onChange:e=>{ const ci=chemItems.find(i=>i.id===e.target.value); set('chemId',e.target.value); set('unit',ci?ci.unit:'kg'); if(ci && form.qty) set('kos',(Number(form.qty)*ci.harga).toFixed(2)); }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+                React.createElement('option', {value:''}, '— Pilih —'),
+                chemItems.map(i => React.createElement('option', {key:i.id, value:i.id}, '['+i.kategori+'] '+i.name+' — Stok: '+i.stok+' '+i.unit))
+              )
+            ),
+            React.createElement('div', {key:'d3', className:'grid grid-cols-3 gap-3'},
+              React.createElement('div', {className:'col-span-2'},
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📦 Kuantiti *'),
+                React.createElement('input', {type:'number', step:'any', value:form.qty, onChange:e=>{ const q=+e.target.value; const ci=chemItems.find(i=>i.id===form.chemId); set('qty',q); if(ci && q) set('kos',(q*ci.harga).toFixed(2)); }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
+              ),
+              React.createElement('div', null,
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, 'Unit'),
+                React.createElement('input', {readOnly:true, value:form.unit||'kg', className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white opacity-60'})
+              )
+            ),
+            (form.qty && form.chemId) && React.createElement('div', {key:'d4', className:'bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3 text-xs'},
+              React.createElement('p', {className:'text-cyan-400 font-semibold mb-1'}, '💰 Info Kos'),
+              React.createElement('p', {className:'text-slate-300'}, 'Auto: '+(form.qty||0)+' × RM'+(ciFind(form.chemId)?.harga||0)+' = ',
+                React.createElement('strong', {className:'text-white'}, fmtRM((form.qty||0)*(ciFind(form.chemId)?.harga||0))))
+            )
+          ] : [
+            React.createElement('div', {key:'s1'},
+              React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '⚠️ Sebab Rawatan'),
+              React.createElement('select', {value:form.sebab, onChange:e=>set('sebab',e.target.value), className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+                React.createElement('option', {value:''}, '— Pilih —'),
+                CHEM_REASONS.map(s => React.createElement('option', {key:s, value:s}, s))
+              )
+            ),
+            React.createElement('div', {key:'s2'},
+              React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📝 Catatan'),
+              React.createElement('textarea', {value:form.catatan, onChange:e=>set('catatan',e.target.value), rows:2, placeholder:'Rekod tanda-tanda, bacaan parameter...', className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 resize-none'})
+            ),
+            React.createElement('div', {key:'s3'},
+              React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '💰 Kos (RM) — auto-kira atau manual'),
+              React.createElement('input', {type:'number', step:'any', value:form.kos, onChange:e=>set('kos',e.target.value), placeholder:'Auto atau masukkan manual', className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
+            ),
+            React.createElement('div', {key:'s4', className:'grid grid-cols-2 gap-3'},
+              React.createElement('div', null,
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '👤 Pengusaha'),
+                React.createElement('input', {type:'text', value:form.pengusaha, onChange:e=>set('pengusaha',e.target.value), placeholder:'Nama pegawai', className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
+              ),
+              React.createElement('div', null,
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📊 Status'),
+                React.createElement('select', {value:form.status, onChange:e=>set('status',e.target.value), className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+                  ['Dijadual','Selesai','Dalam Proses','Menunggu'].map(s => React.createElement('option', {key:s, value:s}, s))
+                )
+              )
+            )
+          ]
+        ),
+        React.createElement('div', {className:'flex justify-end gap-2 p-4 border-t border-edge'},
+          React.createElement('button', {onClick:()=>setShowForm(false), className:'px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition'}, 'Batal'),
+          formStep===1 ?
+            React.createElement('button', {onClick:()=>setFormStep(2), disabled:!form.date||!form.pond||!form.chemId||!form.qty,
+              className:'px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition disabled:opacity-40'}, 'Seterusnya →')
+          : React.createElement('button', {onClick:saveForm,
+            className:'px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition'},
+            React.createElement(Icon, {name:'Save', size:14}), ' Simpan')
+        )
+      )
+    ),
+    // Delete confirmation
+    delConfirm && React.createElement('div', {className:'fixed inset-0 z-50 flex items-center justify-center'},
+      React.createElement('div', {className:'absolute inset-0 bg-black/60 backdrop-blur-sm', onClick:()=>setDelConfirm(null)}),
+      React.createElement('div', {className:'relative bg-panel border border-edge rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl'},
+        React.createElement('div', {className:'flex items-center gap-3 mb-4'},
+          React.createElement('div', {className:'p-2 bg-rose-500/20 rounded-lg'}, React.createElement(Icon, {name:'Trash2', size:18, className:'text-rose-400'})),
+          React.createElement('h3', {className:'text-sm font-bold text-white'}, 'Padam Rekod?')
+        ),
+        React.createElement('p', {className:'text-slate-400 text-xs mb-5'}, 'Rekod rawatan ini akan dipadam secara kekal. Tindakan ini tidak boleh dibuat asal.'),
+        React.createElement('div', {className:'flex gap-3'},
+          React.createElement('button', {onClick:()=>setDelConfirm(null), className:'flex-1 px-4 py-2.5 bg-panel2 hover:bg-edge text-slate-300 rounded-xl text-xs transition-all'}, 'Batal'),
+          React.createElement('button', {onClick:delRecord, className:'flex-1 px-4 py-2.5 bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 rounded-xl text-xs font-semibold transition-all'}, 'Ya, Padam')
+        )
+      )
+    ),
+    // Low stock alert card
+    lowStock.length > 0 && React.createElement(Card, null,
+      React.createElement('h3', {className:'font-bold text-rose-300 flex items-center gap-2 mb-3'},
+        React.createElement(Icon, {name:'AlertTriangle', size:16}), 'Stok Kimia Rendah / Perlu Perhatian'),
+      React.createElement('div', {className:'grid grid-cols-2 md:grid-cols-4 gap-3'},
+        lowStock.map(i => React.createElement('div', {key:i.id, className:'p-3 rounded-xl bg-panel2/60 border border-edge'},
+          React.createElement('div', {className:'font-semibold text-white text-xs'}, i.name),
+          React.createElement('div', {className:'text-rose-400 text-xs mt-1'}, 'Stok: ', i.stok, ' ', i.unit, ' (min: ', i.minStok, ')')
         ))
       )
     )
