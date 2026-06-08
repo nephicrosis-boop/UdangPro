@@ -508,33 +508,87 @@ const SEED_RECORDS = [];
 /* Feed records — 14 hari, kolam aktif */
 const FEED_TYPES = [{
   name: '5001',
-  stage: 'Starter 40%',
-  pricePerKg: 5.60,
+  stage: 'Starter 40% — Tiger',
+  pricePerKg: 5.64,
+  pricePerBag: 140.99,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5002',
-  stage: 'Starter 40%',
-  pricePerKg: 5.60,
+  stage: 'Starter 40% — Tiger',
+  pricePerKg: 5.61,
+  pricePerBag: 140.13,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5003',
-  stage: 'Grower 40%',
-  pricePerKg: 5.70,
+  stage: 'Grower 40% — Tiger',
+  pricePerKg: 5.57,
+  pricePerBag: 139.28,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '5004',
+  stage: 'Grower — Tiger',
+  pricePerKg: 5.54,
+  pricePerBag: 138.42,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '5005',
+  stage: 'Finisher — Tiger',
+  pricePerKg: 5.50,
+  pricePerBag: 137.57,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '5006',
+  stage: 'Finisher — Tiger',
+  pricePerKg: 5.47,
+  pricePerBag: 136.71,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '5007',
+  stage: 'Finisher — Tiger',
+  pricePerKg: 5.43,
+  pricePerBag: 135.86,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '7701',
+  stage: 'Starter — Putih',
+  pricePerKg: 5.13,
+  pricePerBag: 128.16,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '7702',
+  stage: 'Starter — Putih',
+  pricePerKg: 5.09,
+  pricePerBag: 127.31,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '7703',
+  stage: 'Grower — Putih',
+  pricePerKg: 5.06,
+  pricePerBag: 126.45,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7704',
-  stage: 'Finisher 36%',
-  pricePerKg: 5.00,
+  stage: 'Finisher 36% — Putih',
+  pricePerKg: 5.02,
+  pricePerBag: 125.60,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7705',
-  stage: 'Finisher 36%',
-  pricePerKg: 5.00,
+  stage: 'Finisher 36% — Putih',
+  pricePerKg: 4.99,
+  pricePerBag: 124.74,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7706',
-  stage: 'Finisher 36%',
-  pricePerKg: 4.90,
+  stage: 'Finisher 36% — Putih',
+  pricePerKg: 4.96,
+  pricePerBag: 123.89,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
+}, {
+  name: '7707',
+  stage: 'Finisher — Putih',
+  pricePerKg: 4.92,
+  pricePerBag: 123.03,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }];
 function genFeed(pondId, base) {
@@ -2529,7 +2583,7 @@ function FeedModule() {
     className: "flex justify-between text-xs text-slate-400 mt-1"
   }, /*#__PURE__*/React.createElement("span", null, "Saiz: ", f.stage), /*#__PURE__*/React.createElement("span", {
     className: "text-cyan-300"
-  }, "RM ", f.pricePerKg, "/kg"))))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("h3", {
+  }, "RM ", f.pricePerBag, "/beg"))))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("h3", {
     className: "font-bold text-white mb-3 flex items-center gap-2"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "Warehouse",
@@ -2586,8 +2640,7 @@ function FeedModule() {
               const kg = (feedForm.packQty||0) * 25;
               const kos = kg * (ft?ft.pricePerKg:0);
               return React.createElement(React.Fragment, null,
-                feedForm.packQty+' beg × 25kg = ', React.createElement('strong',{className:'text-white'},kg+' kg'),
-                ' × RM'+(ft?ft.pricePerKg:0)+' = ', React.createElement('strong',{className:'text-emerald-300'},fmtRM(kos))
+                feedForm.packQty+' beg × RM'+(ft?ft.pricePerBag:0)+' = ', React.createElement('strong',{className:'text-emerald-300'},fmtRM(kos))
               );
             })()
           )
