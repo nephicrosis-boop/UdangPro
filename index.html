@@ -4990,8 +4990,8 @@ function CrudPanel({
   }, f.options.map(o => /*#__PURE__*/React.createElement("option", {
     key: typeof o === 'string' ? o : o.value,
         value: typeof o === 'string' ? o : o.value
-      }, typeof o === 'string' ? o : o.label)))
-        type: f.type || 'text',
+      }, typeof o === 'string' ? o : o.label))) : /*#__PURE__*/React.createElement("input", {
+    type: f.type || 'text',
     step: "any",
     className: inputCls,
     value: form[f.key] ?? '',
