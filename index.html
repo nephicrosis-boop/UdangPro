@@ -942,46 +942,45 @@ const fmtNum = n => (n || 0).toLocaleString('en-MY');
    STOCK SEED DATA
    ============================================================ */
 const STOCK_ITEMS = [
-  // PL (Benih)
-  { id:'stk001', name:'PL Udang Putih (Vaname)', category:'PL', brand:'CP Hatchery', qty:0, unit:'ekor', minStock:50000, price:35, supplier:'CP Feedmill', notes:'Harga per 1000 ekor' },
-  { id:'stk002', name:'PL Udang Harimau', category:'PL', brand:'Grobest Hatchery', qty:0, unit:'ekor', minStock:20000, price:45, supplier:'Grobest', notes:'Harga per 1000 ekor' },
+  // Benih
+  { id:'stk001', name:'PL Vannamei', category:'Benih', subCategory:'Udang Putih', brand:'CP Hatchery', qty:50000, unit:'ekor', minStock:10000, price:35, supplier:'CP Feedmill', location:'Gudang B', expiry:'2026-12-31', notes:'Harga per 1000 ekor, SPF Vannamei' },
   // Feed
-  { id:'stk003', name:'Feed Starter 0', category:'Feed', brand:'CP', qty:120, unit:'beg', minStock:50, price:85, supplier:'CP Feedmill', notes:'30kg/bag - 0mm' },
-  { id:'stk004', name:'Feed Starter 1', category:'Feed', brand:'CP', qty:150, unit:'beg', minStock:50, price:82, supplier:'CP Feedmill', notes:'30kg/bag - 1mm' },
-  { id:'stk005', name:'Feed Grower 2', category:'Feed', brand:'Grobest', qty:200, unit:'beg', minStock:50, price:78, supplier:'Grobest', notes:'30kg/bag - 2mm' },
-  { id:'stk006', name:'Feed Grower 3', category:'Feed', brand:'SyAqua', qty:80, unit:'beg', minStock:40, price:76, supplier:'SyAqua', notes:'30kg/bag - 3mm' },
-  { id:'stk007', name:'Feed Finisher 4', category:'Feed', brand:'Cargill', qty:60, unit:'beg', minStock:30, price:74, supplier:'Cargill', notes:'30kg/bag - 4mm' },
-  // Ubatan & Kimia
-  { id:'stk008', name:'Hydrated Lime', category:'Kimia', brand:'Kimia', qty:25, unit:'beg', minStock:10, price:18, supplier:'Pertanian Mersing', notes:'25kg/beg' },
-  { id:'stk009', name:'Probiotik Super MS', category:'Kimia', brand:'BioGuard', qty:12, unit:'botol', minStock:5, price:55, supplier:'BioGuard Sdn Bhd', notes:'1L/botol' },
-  { id:'stk010', name:'Klorin', category:'Kimia', brand:'Kimia', qty:8, unit:'botol', minStock:3, price:25, supplier:'Pertanian Mersing', notes:'4L/botol' },
-  { id:'stk011', name:'Zeolite', category:'Kimia', brand:'Kimia', qty:15, unit:'beg', minStock:5, price:22, supplier:'Pertanian Mersing', notes:'25kg/beg' },
-  { id:'stk012', name:'Dolomite', category:'Kimia', brand:'Kimia', qty:10, unit:'beg', minStock:5, price:20, supplier:'Pertanian Mersing', notes:'25kg/beg' },
-  { id:'stk013', name:'Molases', category:'Kimia', brand:'Gula Borneo', qty:20, unit:'botol', minStock:5, price:15, supplier:'Gula Borneo Sdn Bhd', notes:'1L/botol' },
-  { id:'stk014', name:'Calcium Carbonate', category:'Kimia', brand:'Kimia', qty:10, unit:'beg', minStock:3, price:28, supplier:'Pertanian Mersing', notes:'25kg/beg' },
-  { id:'stk015', name:'Sodium Bicarbonate', category:'Kimia', brand:'Kimia', qty:6, unit:'beg', minStock:2, price:35, supplier:'Pertanian Mersing', notes:'25kg/beg' },
+  { id:'stk002', name:'CP Prima S1', category:'Feed', subCategory:'Starter', brand:'CP Feedmill', qty:150, unit:'beg', minStock:30, price:85, supplier:'CP Feedmill', location:'Gudang A', expiry:'2026-09-15', notes:'30kg/beg - Starter 1mm' },
+  { id:'stk003', name:'Grobest Grower', category:'Feed', subCategory:'Grower', brand:'Grobest', qty:120, unit:'beg', minStock:30, price:78, supplier:'Grobest', location:'Gudang A', expiry:'2026-08-20', notes:'30kg/beg - Grower 2mm' },
+  { id:'stk004', name:'SyAqua Finisher', category:'Feed', subCategory:'Finisher', brand:'SyAqua', qty:60, unit:'beg', minStock:20, price:74, supplier:'SyAqua', location:'Gudang A', expiry:'2026-10-01', notes:'30kg/beg - Finisher 4mm' },
+  // Ubatan
+  { id:'stk005', name:'Antibiotik Oksitetrasiklin', category:'Ubatan', subCategory:'Antibiotik', brand:'VetPharma', qty:8, unit:'botol', minStock:3, price:120, supplier:'BioGuard Sdn Bhd', location:'Peti Sejuk', expiry:'2026-11-30', notes:'500g/botol - Antibiotik spektrum luas' },
+  { id:'stk006', name:'Probiotik Super MS', category:'Ubatan', subCategory:'Probiotik', brand:'BioGuard', qty:12, unit:'botol', minStock:5, price:55, supplier:'BioGuard Sdn Bhd', location:'Peti Sejuk', expiry:'2026-07-15', notes:'1L/botol - Campuran probiotik' },
+  { id:'stk007', name:'Vitamin C Stress Guard', category:'Ubatan', subCategory:'Vitamin', brand:'AquaHealth', qty:15, unit:'kg', minStock:5, price:45, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'2027-01-20', notes:'Serbuk - Campuran dalam makanan' },
+  // Kimia
+  { id:'stk008', name:'Kapur Dolomite', category:'Kimia', subCategory:'Pengapuran', brand:'Kimia', qty:25, unit:'beg', minStock:10, price:20, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'', notes:'25kg/beg - Dolomit' },
+  { id:'stk009', name:'Zeolite', category:'Kimia', subCategory:'Penyerap', brand:'Kimia', qty:15, unit:'beg', minStock:5, price:22, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'', notes:'25kg/beg - Penyerap ammonia' },
+  { id:'stk010', name:'Klorin Kalsium', category:'Kimia', subCategory:'Disinfektan', brand:'Kimia', qty:8, unit:'botol', minStock:3, price:25, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'2026-08-05', notes:'4L/botol - Pembasmian kuman' },
   // Peralatan
-  { id:'stk016', name:'Aerator 1HP', category:'Peralatan', brand:'Tsunami', qty:4, unit:'unit', minStock:1, price:850, supplier:'Pertanian Mersing', notes:'Servis setiap 3 bulan' },
-  { id:'stk017', name:'Kincir Air 2HP', category:'Peralatan', brand:'AquaJet', qty:3, unit:'unit', minStock:1, price:1200, supplier:'AquaJet Sdn Bhd', notes:'Servis setiap 6 bulan' },
-  { id:'stk018', name:'Pam Air 3HP', category:'Peralatan', brand:'Grundfos', qty:2, unit:'unit', minStock:1, price:1800, supplier:'Grundfos Malaysia', notes:'Servis setiap 6 bulan' },
-  { id:'stk019', name:'Jaring Sampling', category:'Peralatan', brand:'Lokal', qty:5, unit:'unit', minStock:2, price:45, supplier:'Pertanian Mersing', notes:'Saiz 1m x 1.5m' }
+  { id:'stk011', name:'Aerator Kincir 1HP', category:'Peralatan', subCategory:'Aerasi', brand:'Tsunami', qty:4, unit:'unit', minStock:1, price:850, supplier:'Pertanian Mersing', location:'Gudang A', expiry:'', notes:'Servis setiap 3 bulan' },
+  { id:'stk012', name:'Jaring Sampling', category:'Peralatan', subCategory:'Alat Sampling', brand:'Lokal', qty:5, unit:'unit', minStock:2, price:45, supplier:'Pertanian Mersing', location:'Gudang A', expiry:'', notes:'Saiz 1m x 1.5m - Jaring halus' }
 ];
 const STOCK_MOVEMENTS = [
-  { id:'mv001', date:daysAgo(14), itemId:'stk003', type:'in', qty:50, supplier:'CP Feedmill', by:'Manager Azlan', reason:'Pesanan baru', invoice:'INV-CP-2026-001' },
-  { id:'mv002', date:daysAgo(12), itemId:'stk008', type:'in', qty:10, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan baru', invoice:'INV-PM-2026-001' },
-  { id:'mv003', date:daysAgo(10), itemId:'stk003', type:'out', qty:5, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penggunaan harian' },
-  { id:'mv004', date:daysAgo(10), itemId:'stk004', type:'out', qty:3, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Penggunaan harian' },
-  { id:'mv005', date:daysAgo(9), itemId:'stk008', type:'out', qty:2, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Pengapuran kolam' },
-  { id:'mv006', date:daysAgo(8), itemId:'stk009', type:'in', qty:6, supplier:'BioGuard Sdn Bhd', by:'Manager Azlan', reason:'Pesanan baru', invoice:'INV-BG-2026-001' },
-  { id:'mv007', date:daysAgo(7), itemId:'stk016', type:'out', qty:1, pond:'—', by:'Manager Azlan', reason:'Servis berkala - hantar servis' },
-  { id:'mv008', date:daysAgo(5), itemId:'stk005', type:'out', qty:4, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Penggunaan harian' },
-  { id:'mv009', date:daysAgo(4), itemId:'stk013', type:'out', qty:2, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Campuran probiotik' },
-  { id:'mv010', date:daysAgo(3), itemId:'stk009', type:'out', qty:1, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Rawatan probiotik' },
-  { id:'mv011', date:daysAgo(2), itemId:'stk010', type:'out', qty:1, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Sterilisasi air' },
-  { id:'mv012', date:daysAgo(1), itemId:'stk006', type:'in', qty:40, supplier:'SyAqua', by:'Manager Azlan', reason:'Pesanan baru', invoice:'INV-SA-2026-001' },
-  { id:'mv013', date:daysAgo(1), itemId:'stk007', type:'out', qty:2, pond:'KOLAM 2', by:'Pekerja Bulat', reason:'Penggunaan harian' },
-  { id:'mv014', date:daysAgo(0), itemId:'stk011', type:'in', qty:10, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan baru', invoice:'INV-PM-2026-002' },
-  { id:'mv015', date:daysAgo(0), itemId:'stk005', type:'out', qty:3, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Penggunaan harian' }
+  { id:'mv001', date:daysAgo(30), itemId:'stk001', type:'in', qty:50000, supplier:'CP Hatchery', by:'Manager Azlan', reason:'Pesanan PL baru', invoice:'INV-CP-001' },
+  { id:'mv002', date:daysAgo(28), itemId:'stk002', type:'in', qty:100, supplier:'CP Feedmill', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-CP-002' },
+  { id:'mv003', date:daysAgo(25), itemId:'stk003', type:'in', qty:80, supplier:'Grobest', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-GB-001' },
+  { id:'mv004', date:daysAgo(22), itemId:'stk004', type:'in', qty:50, supplier:'SyAqua', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-SA-001' },
+  { id:'mv005', date:daysAgo(20), itemId:'stk005', type:'in', qty:10, supplier:'BioGuard Sdn Bhd', by:'Manager Azlan', reason:'Pesanan ubatan', invoice:'INV-BG-001' },
+  { id:'mv006', date:daysAgo(18), itemId:'stk006', type:'in', qty:15, supplier:'BioGuard Sdn Bhd', by:'Manager Azlan', reason:'Pesanan probiotik', invoice:'INV-BG-002' },
+  { id:'mv007', date:daysAgo(15), itemId:'stk008', type:'in', qty:20, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan kimia', invoice:'INV-PM-001' },
+  { id:'mv008', date:daysAgo(14), itemId:'stk009', type:'in', qty:15, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan zeolite', invoice:'INV-PM-002' },
+  { id:'mv009', date:daysAgo(12), itemId:'stk001', type:'out', qty:10000, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Tebar benih Kolam C' },
+  { id:'mv010', date:daysAgo(10), itemId:'stk002', type:'out', qty:20, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penggunaan harian - Starter' },
+  { id:'mv011', date:daysAgo(8), itemId:'stk003', type:'out', qty:15, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Penggunaan harian - Grower' },
+  { id:'mv012', date:daysAgo(7), itemId:'stk006', type:'out', qty:2, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Rawatan probiotik' },
+  { id:'mv013', date:daysAgo(6), itemId:'stk008', type:'out', qty:5, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Pengapuran kolam' },
+  { id:'mv014', date:daysAgo(5), itemId:'stk009', type:'out', qty:3, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penyerap ammonia' },
+  { id:'mv015', date:daysAgo(4), itemId:'stk007', type:'in', qty:15, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan vitamin C', invoice:'INV-PM-003' },
+  { id:'mv016', date:daysAgo(3), itemId:'stk001', type:'out', qty:8000, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Tebar benih Kolam B' },
+  { id:'mv017', date:daysAgo(2), itemId:'stk010', type:'out', qty:2, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Sterilisasi air kolam' },
+  { id:'mv018', date:daysAgo(1), itemId:'stk003', type:'out', qty:10, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Penggunaan harian' },
+  { id:'mv019', date:daysAgo(0), itemId:'stk002', type:'out', qty:15, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penggunaan harian - Starter' },
+  { id:'mv020', date:daysAgo(0), itemId:'stk011', type:'out', qty:1, pond:'—', by:'Manager Azlan', reason:'Servis berkala - hantar servis' }
 ];
 const SUPPLIERS = [
   { id:'sup001', name:'CP Feedmill (M) Sdn Bhd', category:'Feed', contact:'Encik Lim', phone:'019-7654321', email:'lim@cpfeed.my', address:'Lot 123, Kawasan Perindustrian Pasir Gudang, Johor', rating:5, terms:'30 hari' },
@@ -4119,15 +4118,33 @@ function SettingsPage() {
 }
 
 /* ============================================================
-   STOCK MODULE — Sub-tabs for Stock Management A-E
+   STOCK MODULE — Full CRUD with modals
    ============================================================ */
 function StockModule() {
   const { t } = useLang();
   const { user } = useAuth();
-  const canEdit = PERMISSIONS[user.role].edit === true || PERMISSIONS[user.role].edit === 'daily';
+  const role = user.role;
+  const canEdit = PERMISSIONS[role].edit === true;
+  const canManage = role === 'Admin' || role === 'Manager';
+  const canDelete = role === 'Admin';
   const { stockItems, setStockItems, stockMoves, setStockMoves, suppliers, setSuppliers, ponds } = useData();
   const [tab, setTab] = useState('dashboard');
   const [filter, setFilter] = React.useState('all');
+  const [search, setSearch] = React.useState('');
+  const [catFilter, setCatFilter] = React.useState('all');
+  const [statusFilter, setStatusFilter] = React.useState('all');
+  const [sortBy, setSortBy] = React.useState('name');
+  const [modal, setModal] = useState(null);
+  const [modalItem, setModalItem] = useState(null);
+  const [form, setForm] = useState({});
+  const [toast, setToast] = useState(null);
+  const [selected, setSelected] = useState([]);
+  const [workers] = React.useState(['Pekerja Bulat','Pekerja Johan','Pekerja Rizal','Manager Azlan']);
+  const inputCls = 'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-accent/50 focus:ring-1 focus:ring-accent/30 outline-none transition';
+  const inputClsRo = inputCls + ' opacity-60 cursor-not-allowed';
+  const btnPrimary = 'px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition';
+  const btnDanger = 'px-4 py-2 text-xs font-bold rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 transition';
+  const btnGhost = 'px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition';
   const subTabs = [
     { id:'dashboard', label:'📊 Dashboard Stok' },
     { id:'items', label:'📦 Stok Bahan' },
@@ -4137,21 +4154,138 @@ function StockModule() {
   ];
   const itemName = id => { const i = stockItems.find(x => x.id === id); return i ? i.name : id; };
   const stkStatus = item => {
-    if (item.qty <= 0) return { color:'bg-red-500', label:'Habis' };
-    if (item.qty <= item.minStock) return { color:'bg-amber-500', label:'Rendah' };
-    return { color:'bg-emerald-500', label:'Mencukupi' };
+    if (!item.qty || item.qty <= 0) return { color:'bg-red-500', label:'Habis', text:'text-red-400', bg:'bg-red-500/20' };
+    if (item.expiry && item.expiry < new Date().toISOString().slice(0,10)) return { color:'bg-red-500', label:'Luput', text:'text-red-400', bg:'bg-red-500/20' };
+    if (item.qty <= item.minStock * 0.5) return { color:'bg-red-500', label:'Kritikal', text:'text-red-400', bg:'bg-red-500/20' };
+    if (item.qty <= item.minStock) return { color:'bg-amber-500', label:'Rendah', text:'text-amber-400', bg:'bg-amber-500/20' };
+    return { color:'bg-emerald-500', label:'Mencukupi', text:'text-emerald-400', bg:'bg-emerald-500/20' };
   };
-  const tabs = React.createElement('div', { className:'flex flex-wrap gap-2 mb-5 border-b border-edge pb-3' },
-    subTabs.map(st => React.createElement('button', {
-      key:st.id, onClick:() => setTab(st.id),
-      className:(tab===st.id?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge hover:border-accent/30')+' px-3 py-1.5 text-xs font-semibold rounded-xl border transition'
-    }, st.label))
+  const showToast = (msg, type) => { setToast({msg,type}); setTimeout(()=>setToast(null), 3000); };
+  const cats = ['Benih','Feed','Ubatan','Kimia','Peralatan'];
+  const catOpts = cats.map(c=>({value:c,label:c}));
+  const unitOpts = [{value:'kg',label:'kg'},{value:'g',label:'g'},{value:'liter',label:'liter'},{value:'ml',label:'ml'},{value:'beg',label:'beg'},{value:'botol',label:'botol'},{value:'kotak',label:'kotak'},{value:'unit',label:'unit'},{value:'ekor',label:'ekor'}];
+  const locOpts = [{value:'',label:'—'},{value:'Gudang A',label:'Gudang A'},{value:'Gudang B',label:'Gudang B'},{value:'Peti Sejuk',label:'Peti Sejuk'}];
+  const purposeOpts = [{value:'Penggunaan Kolam',label:'Penggunaan Kolam'},{value:'Rosak',label:'Rosak'},{value:'Luput',label:'Luput'},{value:'Dipulangkan',label:'Dipulangkan'},{value:'Pindah Lokasi',label:'Pindah Lokasi'},{value:'Lain-lain',label:'Lain-lain'}];
+  const getSorted = (items) => {
+    const sorted = [...items];
+    if (sortBy === 'name') sorted.sort((a,b) => a.name.localeCompare(b.name));
+    else if (sortBy === 'qty') sorted.sort((a,b) => (b.qty||0) - (a.qty||0));
+    else if (sortBy === 'expiry') sorted.sort((a,b) => (a.expiry||'z').localeCompare(b.expiry||'z'));
+    else if (sortBy === 'value') sorted.sort((a,b) => ((b.qty||0)*(b.price||0)) - ((a.qty||0)*(a.price||0)));
+    return sorted;
+  };
+  const getFiltered = () => {
+    let items = [...stockItems];
+    if (catFilter !== 'all') items = items.filter(i => i.category === catFilter);
+    if (statusFilter !== 'all') {
+      items = items.filter(i => {
+        const s = stkStatus(i);
+        if (statusFilter === 'ok') return s.label === 'Mencukupi';
+        if (statusFilter === 'low') return s.label === 'Rendah' || s.label === 'Kritikal';
+        if (statusFilter === 'expired') return s.label === 'Luput' || s.label === 'Habis';
+        return true;
+      });
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      items = items.filter(i => i.name.toLowerCase().includes(q) || (i.category||'').toLowerCase().includes(q) || (i.brand||'').toLowerCase().includes(q));
+    }
+    return getSorted(items);
+  };
+  const validateForm = (fields) => {
+    for (const f of fields) {
+      if (f.required && (form[f.key]==='' || form[f.key]==null || form[f.key]===undefined)) {
+        showToast('Sila isi '+f.label, 'error');
+        return false;
+      }
+    }
+    return true;
+  };
+  const set = (k, v) => setForm(f => ({...f, [k]: v}));
+  const openModal = (type, item) => {
+    setModalItem(item || null);
+    if (type === 'add') {
+      setForm({ name:'', category:'Feed', subCategory:'', brand:'', unit:'kg', qty:0, minStock:1, price:0, dateIn:new Date().toISOString().slice(0,10), expiry:'', location:'', notes:'', supplier:'' });
+    } else if (type === 'edit' && item) {
+      setForm({...item});
+    } else if (type === 'restock' && item) {
+      setForm({ itemId:item.id, qtyIn:0, price:item.price, supplier:'', invoice:'', dateIn:new Date().toISOString().slice(0,10), expiryBatch:'', location:item.location||'', notes:'' });
+    } else if (type === 'issue' && item) {
+      setForm({ itemId:item.id, qtyOut:0, purpose:'Penggunaan Kolam', pond:'', by:user.name, dateOut:new Date().toISOString().slice(0,10), notes:'' });
+    }
+    setModal(type);
+  };
+  const handleAdd = () => {
+    if (!validateForm([{key:'name',label:'Nama Item',required:true},{key:'category',label:'Kategori',required:true},{key:'unit',label:'Unit',required:true},{key:'dateIn',label:'Tarikh Masuk',required:true}])) return;
+    if (stockItems.find(i => i.name.toLowerCase() === form.name.toLowerCase())) {
+      showToast('Nama item sudah wujud!', 'error'); return;
+    }
+    const id = 'stk' + String(stockItems.length + 1).padStart(3,'0');
+    const newItem = { id, name:form.name, category:form.category, subCategory:form.subCategory||'', brand:form.brand||'', qty:Number(form.qty)||0, unit:form.unit, minStock:Number(form.minStock)||1, price:Number(form.price)||0, supplier:form.supplier||'', location:form.location||'', expiry:form.expiry||'', notes:form.notes||'' };
+    setStockItems(prev => [newItem, ...prev]);
+    const mv = { id:'mv'+Date.now(), date:form.dateIn, itemId:id, type:'in', qty:Number(form.qty)||0, supplier:form.supplier||'—', by:user.name, reason:'Stok baru ditambah', invoice:'' };
+    setStockMoves(prev => [mv, ...prev]);
+    setModal(null); showToast('Item '+form.name+' berjaya ditambah!', 'success');
+  };
+  const handleEdit = () => {
+    if (!validateForm([{key:'name',label:'Nama Item',required:true}])) return;
+    setStockItems(prev => prev.map(i => i.id === modalItem.id ? {...i, name:form.name, category:form.category, subCategory:form.subCategory, brand:form.brand, unit:form.unit, minStock:Number(form.minStock), price:Number(form.price), supplier:form.supplier, location:form.location, expiry:form.expiry, notes:form.notes } : i));
+    setModal(null); showToast('Item '+form.name+' dikemaskini!', 'success');
+  };
+  const handleRestock = () => {
+    if (!validateForm([{key:'qtyIn',label:'Kuantiti Masuk',required:true},{key:'supplier',label:'Pembekal',required:true}])) return;
+    const qty = Number(form.qtyIn);
+    if (qty <= 0) { showToast('Kuantiti mesti lebih dari 0', 'error'); return; }
+    const item = stockItems.find(i => i.id === form.itemId);
+    if (!item) return;
+    setStockItems(prev => prev.map(i => i.id === form.itemId ? {...i, qty:(i.qty||0)+qty, price: Number(form.price) || i.price } : i));
+    const mv = { id:'mv'+Date.now(), date:form.dateIn, itemId:form.itemId, type:'in', qty, supplier:form.supplier, by:user.name, reason:'Restock - '+form.notes, invoice:form.invoice||'' };
+    setStockMoves(prev => [mv, ...prev]);
+    setModal(null); showToast('Stok '+item.name+' ditambah: '+qty+' '+item.unit, 'success');
+  };
+  const handleIssue = () => {
+    if (!validateForm([{key:'qtyOut',label:'Kuantiti Keluar',required:true},{key:'purpose',label:'Tujuan',required:true}])) return;
+    const qty = Number(form.qtyOut);
+    if (qty <= 0) { showToast('Kuantiti mesti lebih dari 0', 'error'); return; }
+    const item = stockItems.find(i => i.id === form.itemId);
+    if (!item) return;
+    if (qty > (item.qty||0)) { showToast('Kuantiti keluar melebihi stok semasa ('+item.qty+' '+item.unit+')', 'error'); return; }
+    setStockItems(prev => prev.map(i => i.id === form.itemId ? {...i, qty: (i.qty||0)-qty } : i));
+    const mv = { id:'mv'+Date.now(), date:form.dateOut, itemId:form.itemId, type:'out', qty, pond:form.pond||'', supplier:'', by:form.by, reason:form.purpose+(form.notes?' - '+form.notes:'') };
+    setStockMoves(prev => [mv, ...prev]);
+    setModal(null); showToast('Stok '+item.name+' dikeluarkan: '+qty+' '+item.unit, 'success');
+  };
+  const handleDelete = () => {
+    if (!modalItem) return;
+    setStockItems(prev => prev.filter(i => i.id !== modalItem.id));
+    setStockMoves(prev => prev.filter(m => m.itemId !== modalItem.id));
+    setModal(null); setModalItem(null);
+    showToast('Item '+modalItem.name+' telah dipadam', 'success');
+  };
+  const Toast = toast ? React.createElement('div', { className:'fixed top-4 right-4 z-[9999] px-5 py-3 rounded-xl text-xs font-semibold shadow-xl border fadeUp '+(toast.type==='success'?'bg-emerald-500/20 border-emerald-500/30 text-emerald-300':'bg-rose-500/20 border-rose-500/30 text-rose-300') }, toast.type==='success'?'✅ ':'❌ ', toast.msg) : null;
+  const ModalWrap = (title, children) => {
+    if (!modal) return null;
+    return React.createElement(React.Fragment, null,
+      React.createElement('div', { className:'fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto', onClick:()=>setModal(null) },
+        React.createElement('div', { onClick:e=>e.stopPropagation(), className:'w-full max-w-lg mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp' },
+          React.createElement('div', { className:'flex items-center justify-between p-4 border-b border-edge' },
+            React.createElement('h2', { className:'text-sm font-bold text-white' }, title),
+            React.createElement('button', { onClick:()=>setModal(null), className:'p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition' }, '✕')
+          ),
+          React.createElement('div', { className:'p-4 space-y-3' }, children)
+        )
+      )
+    );
+  };
+  const Field = ({label, required, children}) => React.createElement('div', null,
+    React.createElement('label', { className:'block text-[11px] font-medium text-slate-400 mb-1' }, label, required && React.createElement('span', { className:'text-rose-400 ml-0.5' }, '*')),
+    children
   );
-  // Dashboard Stok (D)
+  // ------ Dashboard Stok ------
   const renderDashboard = () => {
     const totalItems = stockItems.length;
-    const totalValue = stockItems.reduce((s,i) => s + i.qty*i.price, 0);
-    const critical = stockItems.filter(i => i.qty <= i.minStock);
+    const totalValue = stockItems.reduce((s,i) => s + (i.qty||0)*(i.price||0), 0);
+    const critical = stockItems.filter(i => { const s = stkStatus(i); return s.label==='Kritikal'||s.label==='Habis'||s.label==='Rendah'; });
     const usage = {};
     stockMoves.filter(m => m.type==='out').forEach(m => { usage[m.itemId] = (usage[m.itemId]||0) + m.qty; });
     const top5 = Object.entries(usage).sort((a,b) => b[1]-a[1]).slice(0,5);
@@ -4159,20 +4293,20 @@ function StockModule() {
       React.createElement('div', { className:'grid grid-cols-2 lg:grid-cols-4 gap-3' },
         React.createElement(KpiCard, { icon:'Package', label:'Jumlah Item', value:totalItems, color:'cyan' }),
         React.createElement(KpiCard, { icon:'Wallet', label:'Nilai Stok', value:'RM '+(totalValue||0).toLocaleString('en-MY'), color:'teal' }),
-        React.createElement(KpiCard, { icon:'AlertTriangle', label:'Item Kritikal', value:critical.length, color:critical.length?'rose':'emerald' }),
+        React.createElement(KpiCard, { icon:'AlertTriangle', label:'Perlu Perhatian', value:critical.length, color:critical.length?'rose':'emerald' }),
         React.createElement(KpiCard, { icon:'RefreshCw', label:'Pergerakan', value:stockMoves.length, color:'cyan' })
       ),
       critical.length > 0 && React.createElement(Card, null,
-        React.createElement(SectionHeader, { icon:'AlertTriangle', title:'Item Stok Rendah / Habis' }),
+        React.createElement(SectionHeader, { icon:'AlertTriangle', title:'Item Stok Rendah / Kritikal' }),
         React.createElement('div', { className:'space-y-2 mt-3' },
-          critical.map(i => {
+          critical.slice(0,8).map(i => {
             const s = stkStatus(i);
             return React.createElement('div', { key:i.id, className:'flex items-center justify-between p-2.5 rounded-xl bg-panel2 border border-edge' },
               React.createElement('div', { className:'flex items-center gap-2' },
                 React.createElement('span', { className:'w-2 h-2 rounded-full '+s.color }),
                 React.createElement('span', { className:'text-sm text-slate-200' }, i.name)
               ),
-              React.createElement('span', { className:'text-xs font-semibold '+(i.qty<=0?'text-red-400':'text-amber-400') }, i.qty+' '+i.unit+' — '+s.label)
+              React.createElement('span', { className:'text-xs font-semibold '+s.text }, (i.qty||0)+' '+i.unit+' — '+s.label)
             );
           })
         )
@@ -4187,56 +4321,295 @@ function StockModule() {
               React.createElement('span', { className:'text-sm text-slate-200' }, itemName(id))
             ),
             React.createElement('span', { className:'text-xs text-slate-400' }, qty+' unit')
-          )))
+          ))
+        )
       )
     );
   };
-  // Stok Bahan (A)
+
+  // ------ Stok Bahan with full CRUD ------
   const renderItems = () => {
-    const cats = ['PL','Feed','Kimia','Peralatan'];
-    return React.createElement('div', { className:'space-y-4' },
-      cats.map(cat => {
-        const items = stockItems.filter(i => i.category === cat);
-        return React.createElement(Card, { key:cat },
-          React.createElement(SectionHeader, { icon:'Package', title:cat }),
-          React.createElement('div', { className:'overflow-x-auto mt-3' },
-            React.createElement('table', { className:'w-full text-xs' },
-              React.createElement('thead', null, React.createElement('tr', { className:'text-left text-slate-400' },
-                React.createElement('th', { className:'p-2' }, 'Nama'), React.createElement('th', { className:'p-2' }, 'Jenama'),
-                React.createElement('th', { className:'p-2 text-right' }, 'Kuantiti'), React.createElement('th', { className:'p-2 text-right' }, 'Stok Min'),
-                React.createElement('th', { className:'p-2 text-right' }, 'Harga'), React.createElement('th', { className:'p-2 text-center' }, 'Status')
-              )),
-              React.createElement('tbody', null,
-                items.map(i => {
-                  const s = stkStatus(i);
-                  return React.createElement('tr', { key:i.id, className:'border-t border-edge hover:bg-panel2' },
-                    React.createElement('td', { className:'p-2 font-medium text-slate-200' }, i.name),
-                    React.createElement('td', { className:'p-2 text-slate-400' }, i.brand),
-                    React.createElement('td', { className:'p-2 text-right text-slate-200' }, i.qty+' '+i.unit),
-                    React.createElement('td', { className:'p-2 text-right text-slate-400' }, i.minStock),
-                    React.createElement('td', { className:'p-2 text-right text-slate-200' }, 'RM '+i.price),
-                    React.createElement('td', { className:'p-2 text-center' },
-                      React.createElement('span', { className:'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold '+
-                        (i.qty<=0?'bg-red-500/20 text-red-400':i.qty<=i.minStock?'bg-amber-500/20 text-amber-400':'bg-emerald-500/20 text-emerald-400') },
-                        React.createElement('span', { className:'w-1.5 h-1.5 rounded-full '+(i.qty<=0?'bg-red-500':i.qty<=i.minStock?'bg-amber-500':'bg-emerald-500') }),
-                        i.qty<=0?'Habis':i.qty<=i.minStock?'Rendah':'OK'
-                      )
-                    )
-                  );
-                })
-              )
-            )
+    const filtered = getFiltered();
+    return React.createElement('div', { className:'space-y-3' },
+      React.createElement('div', { className:'flex flex-wrap gap-2 items-center' },
+        React.createElement('div', { className:'flex-1 min-w-[150px]' },
+          React.createElement('input', { type:'text', placeholder:'Cari nama / kategori...', value:search, onChange:e=>setSearch(e.target.value), className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white placeholder:text-slate-500 focus:border-accent/50 outline-none' })
+        ),
+        React.createElement('select', { value:catFilter, onChange:e=>setCatFilter(e.target.value), className:'bg-panel2 border border-edge rounded-lg px-2 py-2 text-xs text-slate-200 outline-none' },
+          React.createElement('option', { value:'all' }, 'Kategori: Semua'),
+          catOpts.map(o => React.createElement('option', { key:o.value, value:o.value }, o.label))
+        ),
+        React.createElement('select', { value:statusFilter, onChange:e=>setStatusFilter(e.target.value), className:'bg-panel2 border border-edge rounded-lg px-2 py-2 text-xs text-slate-200 outline-none' },
+          React.createElement('option', { value:'all' }, 'Status: Semua'),
+          React.createElement('option', { value:'ok' }, '🟢 Mencukupi'),
+          React.createElement('option', { value:'low' }, '🟡 Rendah/Kritikal'),
+          React.createElement('option', { value:'expired' }, '🔴 Habis/Luput')
+        ),
+        React.createElement('select', { value:sortBy, onChange:e=>setSortBy(e.target.value), className:'bg-panel2 border border-edge rounded-lg px-2 py-2 text-xs text-slate-200 outline-none' },
+          React.createElement('option', { value:'name' }, 'Susun: Nama'),
+          React.createElement('option', { value:'qty' }, 'Susun: Kuantiti'),
+          React.createElement('option', { value:'expiry' }, 'Susun: Tarikh Luput'),
+          React.createElement('option', { value:'value' }, 'Susun: Nilai')
+        ),
+        canEdit && React.createElement('button', { onClick:()=>openModal('add',null), className:btnPrimary }, '+ Tambah Item')
+      ),
+      React.createElement('p', { className:'text-[11px] text-slate-500' }, filtered.length+'/'+stockItems.length+' item dipaparkan'),
+      React.createElement('div', { className:'overflow-x-auto rounded-xl border border-edge' },
+        React.createElement('table', { className:'w-full text-xs' },
+          React.createElement('thead', null, React.createElement('tr', { className:'bg-panel2 text-left text-slate-400 text-[11px]' },
+            React.createElement('th', { className:'p-2 w-8' }, 
+              React.createElement('input', { type:'checkbox', onChange:e=>{if(e.target.checked)setSelected(filtered.map(i=>i.id));else setSelected([]);}, checked:selected.length===filtered.length&&filtered.length>0, className:'accent-cyan-500' })
+            ),
+            React.createElement('th', { className:'p-2' }, 'Bil'),
+            React.createElement('th', { className:'p-2' }, 'Nama Item'),
+            React.createElement('th', { className:'p-2' }, 'Kategori'),
+            React.createElement('th', { className:'p-2 text-right' }, 'Kuantiti'),
+            React.createElement('th', { className:'p-2 text-right' }, 'Stok Min'),
+            React.createElement('th', { className:'p-2 text-center' }, 'Status'),
+            React.createElement('th', { className:'p-2' }, 'Tarikh Luput'),
+            React.createElement('th', { className:'p-2 text-right' }, 'Harga/Unit'),
+            React.createElement('th', { className:'p-2 text-right' }, 'Nilai Stok'),
+            React.createElement('th', { className:'p-2 text-center' }, 'Tindakan')
+          )),
+          React.createElement('tbody', null,
+            filtered.length === 0 ? React.createElement('tr', null,
+              React.createElement('td', { colSpan:11, className:'p-6 text-center text-slate-500' }, 'Tiada item dijumpai')
+            ) :
+            filtered.map((item,idx) => {
+              const s = stkStatus(item);
+              const value = (item.qty||0)*(item.price||0);
+              return React.createElement('tr', { key:item.id, className:'border-t border-edge hover:bg-panel2/50 transition' },
+                React.createElement('td', { className:'p-2' },
+                  React.createElement('input', { type:'checkbox', checked:selected.includes(item.id), onChange:e=>{setSelected(prev=>e.target.checked?[...prev,item.id]:prev.filter(x=>x!==item.id));}, className:'accent-cyan-500' })
+                ),
+                React.createElement('td', { className:'p-2 text-slate-500' }, idx+1),
+                React.createElement('td', { className:'p-2 font-medium text-slate-200 whitespace-nowrap' },
+                  item.name,
+                  item.brand && React.createElement('span', { className:'text-slate-500 ml-1' }, '('+item.brand+')')
+                ),
+                React.createElement('td', { className:'p-2' },
+                  React.createElement('span', { className:'px-2 py-0.5 rounded-full text-[10px] font-medium '+
+                    (item.category==='Feed'?'bg-amber-500/20 text-amber-400':
+                    item.category==='Ubatan'?'bg-purple-500/20 text-purple-400':
+                    item.category==='Kimia'?'bg-cyan-500/20 text-cyan-400':
+                    item.category==='Peralatan'?'bg-slate-500/20 text-slate-300':
+                    'bg-emerald-500/20 text-emerald-400') }, item.category)
+                ),
+                React.createElement('td', { className:'p-2 text-right text-slate-200 font-semibold' }, (item.qty||0)+' '+item.unit),
+                React.createElement('td', { className:'p-2 text-right text-slate-400' }, item.minStock),
+                React.createElement('td', { className:'p-2 text-center' },
+                  React.createElement('span', { className:'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold '+s.bg+' '+s.text },
+                    React.createElement('span', { className:'w-1.5 h-1.5 rounded-full '+s.color }),
+                    s.label
+                  )
+                ),
+                React.createElement('td', { className:'p-2 text-slate-400' }, item.expiry || '—'),
+                React.createElement('td', { className:'p-2 text-right text-slate-200' }, 'RM '+(item.price||0)),
+                React.createElement('td', { className:'p-2 text-right text-slate-200 font-medium' }, 'RM '+(value||0).toLocaleString('en-MY')),
+                React.createElement('td', { className:'p-2 text-center' },
+                  React.createElement('div', { className:'flex items-center justify-center gap-1' },
+                    canEdit && React.createElement('button', { onClick:()=>openModal('edit',item), className:'p-1.5 rounded-lg hover:bg-cyan-500/20 text-cyan-400 transition', title:'Edit' }, '✏️'),
+                    canEdit && React.createElement('button', { onClick:()=>openModal('restock',item), className:'p-1.5 rounded-lg hover:bg-emerald-500/20 text-emerald-400 transition', title:'Tambah Stok' }, '➕'),
+                    canEdit && React.createElement('button', { onClick:()=>openModal('issue',item), className:'p-1.5 rounded-lg hover:bg-rose-500/20 text-rose-400 transition', title:'Keluarkan Stok' }, '➖'),
+                    canDelete && React.createElement('button', { onClick:()=>{setModalItem(item);setModal('delete');}, className:'p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition', title:'Padam' }, '🗑️')
+                  )
+                )
+              );
+            })
           )
-        );
-      })
+        )
+      ),
+      selected.length > 0 && React.createElement('div', { className:'flex items-center gap-2 p-2 bg-panel2 rounded-xl border border-edge' },
+        React.createElement('span', { className:'text-xs text-slate-400' }, selected.length+' dipilih'),
+        React.createElement('button', { onClick:()=>{const csv = 'Item,Kategori,Kuantiti,Unit,Harga,Nilai\n'+stockItems.filter(i=>selected.includes(i.id)).map(i=>i.name+','+i.category+','+(i.qty||0)+','+i.unit+','+(i.price||0)+','+((i.qty||0)*(i.price||0))).join('\n'); navigator.clipboard.writeText(csv); showToast('Data disalin ke clipboard (CSV)','success');}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30 transition' }, '📋 Export CSV'),
+        canDelete && React.createElement('button', { onClick:()=>{if(confirm('Padam '+selected.length+' item terpilih? Semua history akan turut dipadam.')){setStockItems(prev=>prev.filter(i=>!selected.includes(i.id)));setStockMoves(prev=>prev.filter(m=>!selected.includes(m.itemId)));setSelected([]);showToast(selected.length+' item dipadam','success');}}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition' }, '🗑️ Padam')
+      )
     );
   };
+
+  // ------ Add Item Modal ------
+  const renderAddModal = ModalWrap('➕ Tambah Item Baru',
+    Field({label:'Nama Item',required:true}, React.createElement('input', { type:'text', value:form.name||'', onChange:e=>set('name',e.target.value), placeholder:'cth: CP Prima S1', className:inputCls })),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Kategori',required:true}, React.createElement('select', { value:form.category, onChange:e=>set('category',e.target.value), className:inputCls }, catOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
+      Field({label:'Sub-kategori'}, React.createElement('input', { type:'text', value:form.subCategory||'', onChange:e=>set('subCategory',e.target.value), placeholder:'cth: Starter', className:inputCls }))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Brand / Pembekal'}, React.createElement('input', { type:'text', value:form.brand||'', onChange:e=>set('brand',e.target.value), placeholder:'cth: CP Feedmill', className:inputCls })),
+      Field({label:'Unit',required:true}, React.createElement('select', { value:form.unit, onChange:e=>set('unit',e.target.value), className:inputCls }, unitOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label))))
+    ),
+    React.createElement('div', { className:'grid grid-cols-3 gap-3' },
+      Field({label:'Kuantiti Semasa',required:true}, React.createElement('input', { type:'number', value:form.qty, onChange:e=>set('qty',e.target.value), min:0, className:inputCls })),
+      Field({label:'Stok Minimum',required:true}, React.createElement('input', { type:'number', value:form.minStock, onChange:e=>set('minStock',e.target.value), min:1, className:inputCls })),
+      Field({label:'Harga/Unit (RM)'}, React.createElement('input', { type:'number', value:form.price, onChange:e=>set('price',e.target.value), min:0, step:0.01, className:inputCls }))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Tarikh Masuk',required:true}, React.createElement('input', { type:'date', value:form.dateIn, onChange:e=>set('dateIn',e.target.value), className:inputCls })),
+      Field({label:'Tarikh Luput'}, React.createElement('input', { type:'date', value:form.expiry, onChange:e=>set('expiry',e.target.value), className:inputCls }))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Lokasi Simpan'}, React.createElement('select', { value:form.location, onChange:e=>set('location',e.target.value), className:inputCls }, locOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
+      Field({label:'Pembekal'}, React.createElement('input', { type:'text', value:form.supplier||'', onChange:e=>set('supplier',e.target.value), placeholder:'Nama pembekal', className:inputCls }))
+    ),
+    Field({label:'Nota'}, React.createElement('textarea', { value:form.notes||'', onChange:e=>set('notes',e.target.value), placeholder:'Penerangan tambahan...', rows:2, className:inputCls })),
+    React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
+      React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
+      React.createElement('button', { onClick:handleAdd, className:btnPrimary }, '💾 Simpan')
+    )
+  );
+
+  // ------ Edit Item Modal ------
+  const renderEditModal = !modalItem ? null : ModalWrap('✏️ Edit Item: '+modalItem.name,
+    Field({label:'Nama Item',required:true}, React.createElement('input', { type:'text', value:form.name||'', onChange:e=>set('name',e.target.value), className:inputCls })),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Kategori',required:true}, React.createElement('select', { value:form.category, onChange:e=>set('category',e.target.value), className:inputCls }, catOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
+      Field({label:'Sub-kategori'}, React.createElement('input', { type:'text', value:form.subCategory||'', onChange:e=>set('subCategory',e.target.value), className:inputCls }))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Brand'}, React.createElement('input', { type:'text', value:form.brand||'', onChange:e=>set('brand',e.target.value), className:inputCls })),
+      Field({label:'Unit',required:true}, React.createElement('select', { value:form.unit, onChange:e=>set('unit',e.target.value), className:inputCls }, unitOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label))))
+    ),
+    React.createElement('div', { className:'grid grid-cols-3 gap-3' },
+      Field({label:'Stok Minimum'}, React.createElement('input', { type:'number', value:form.minStock, onChange:e=>set('minStock',e.target.value), min:1, className:inputCls })),
+      Field({label:'Harga/Unit (RM)'}, React.createElement('input', { type:'number', value:form.price, onChange:e=>set('price',e.target.value), min:0, step:0.01, className:inputCls })),
+      Field({label:'Kuantiti Semasa'}, React.createElement('div', null,
+        React.createElement('input', { type:'number', value:form.qty, disabled:true, className:inputClsRo }),
+        React.createElement('p', { className:'text-[10px] text-amber-400 mt-0.5' }, '⚠️ Guna Tambah/Keluarkan Stok untuk ubah kuantiti')
+      ))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Tarikh Luput'}, React.createElement('input', { type:'date', value:form.expiry||'', onChange:e=>set('expiry',e.target.value), className:inputCls })),
+      Field({label:'Lokasi Simpan'}, React.createElement('select', { value:form.location||'', onChange:e=>set('location',e.target.value), className:inputCls }, locOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label))))
+    ),
+    Field({label:'Nota'}, React.createElement('textarea', { value:form.notes||'', onChange:e=>set('notes',e.target.value), rows:2, className:inputCls })),
+    React.createElement('div', { className:'bg-panel2 rounded-xl p-3 border border-edge' },
+      React.createElement('p', { className:'text-[11px] font-semibold text-slate-400 mb-2' }, '📜 5 Transaksi Terbaru'),
+      stockMoves.filter(m=>m.itemId===modalItem.id).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5).map(m =>
+        React.createElement('div', { key:m.id, className:'flex items-center justify-between py-1.5 border-b border-edge/50 last:border-0 text-[11px]' },
+          React.createElement('span', { className:'text-slate-400' }, m.date ? m.date.slice(0,10) : '—'),
+          React.createElement('span', { className:(m.type==='in'?'text-emerald-400':'text-rose-400')+' font-semibold' }, m.type==='in'?'+'+m.qty:'-'+m.qty),
+          React.createElement('span', { className:'text-slate-500' }, m.reason || '—')
+        )
+      ),
+      stockMoves.filter(m=>m.itemId===modalItem.id).length===0 && React.createElement('p', { className:'text-[11px] text-slate-500' }, 'Tiada transaksi lagi')
+    ),
+    React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
+      React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
+      React.createElement('button', { onClick:handleEdit, className:btnPrimary }, '💾 Kemaskini')
+    )
+  );
+
+  // ------ Restock Modal ------
+  const renderRestockModal = !modalItem ? null : ModalWrap('➕ Tambah Stok: '+modalItem.name,
+    React.createElement('div', { className:'bg-panel2 rounded-xl p-3 border border-edge text-center' },
+      React.createElement('p', { className:'text-xs text-slate-400' }, 'Stok Semasa'),
+      React.createElement('p', { className:'text-2xl font-bold text-white' }, (modalItem.qty||0)+' '+modalItem.unit),
+      form.qtyIn > 0 && React.createElement('p', { className:'text-sm text-emerald-400 mt-1' },
+        '→ '+(Number(modalItem.qty||0)+Number(form.qtyIn))+' '+modalItem.unit, ' (Selepas)')
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Kuantiti Masuk',required:true}, React.createElement('input', { type:'number', value:form.qtyIn, onChange:e=>set('qtyIn',e.target.value), min:1, className:inputCls+' text-lg font-bold text-emerald-400' })),
+      Field({label:'Harga/Unit (RM)'}, React.createElement('input', { type:'number', value:form.price, onChange:e=>set('price',e.target.value), min:0, step:0.01, className:inputCls }))
+    ),
+    Field({label:'Nama Pembekal',required:true}, React.createElement('select', { value:form.supplier, onChange:e=>set('supplier',e.target.value), className:inputCls },
+      React.createElement('option', { value:'' }, '— Pilih Pembekal —'),
+      suppliers.map(s => React.createElement('option', { key:s.id, value:s.name }, s.name)),
+      React.createElement('option', { value:'Lain-lain' }, 'Lain-lain')
+    )),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'No. Invois / Rujukan'}, React.createElement('input', { type:'text', value:form.invoice||'', onChange:e=>set('invoice',e.target.value), placeholder:'INV-XXX-001', className:inputCls })),
+      Field({label:'Tarikh Masuk',required:true}, React.createElement('input', { type:'date', value:form.dateIn, onChange:e=>set('dateIn',e.target.value), className:inputCls }))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Tarikh Luput Batch'}, React.createElement('input', { type:'date', value:form.expiryBatch||'', onChange:e=>set('expiryBatch',e.target.value), className:inputCls })),
+      Field({label:'Lokasi Simpan'}, React.createElement('select', { value:form.location, onChange:e=>set('location',e.target.value), className:inputCls }, locOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label))))
+    ),
+    Field({label:'Nota'}, React.createElement('textarea', { value:form.notes||'', onChange:e=>set('notes',e.target.value), placeholder:'Catatan...', rows:2, className:inputCls })),
+    React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
+      React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
+      React.createElement('button', { onClick:handleRestock, className:btnPrimary }, '📥 Rekod Masuk')
+    )
+  );
+
+  // ------ Issue Stock Modal ------
+  const renderIssueModal = !modalItem ? null : ModalWrap('➖ Keluarkan Stok: '+modalItem.name,
+    React.createElement('div', { className:'bg-panel2 rounded-xl p-3 border border-edge text-center' },
+      React.createElement('p', { className:'text-xs text-slate-400' }, 'Stok Semasa'),
+      React.createElement('p', { className:'text-2xl font-bold text-white' }, (modalItem.qty||0)+' '+modalItem.unit),
+      form.qtyOut > 0 && React.createElement(React.Fragment, null,
+        React.createElement('p', { className:'text-sm text-rose-400 mt-1' },
+          '→ '+Math.max(0, Number(modalItem.qty||0)-Number(form.qtyOut))+' '+modalItem.unit, ' (Selepas)'),
+        Number(form.qtyOut) > (modalItem.qty||0) && React.createElement('p', { className:'text-[10px] text-rose-400 mt-1' }, '⚠️ Kuantiti melebihi stok semasa!'),
+        (modalItem.qty||0) - Number(form.qtyOut) <= (modalItem.minStock||0) && Number(form.qtyOut) > 0 &&
+          React.createElement('p', { className:'text-[10px] text-amber-400 mt-1' }, '⚠️ Stok akan jatuh bawah minimum!')
+      )
+    ),
+    Field({label:'Kuantiti Keluar',required:true}, React.createElement('input', { type:'number', value:form.qtyOut, onChange:e=>set('qtyOut',e.target.value), min:1, max:modalItem.qty||0, className:inputCls+' text-lg font-bold text-rose-400' })),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Tujuan Penggunaan',required:true}, React.createElement('select', { value:form.purpose, onChange:e=>set('purpose',e.target.value), className:inputCls }, purposeOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
+      form.purpose === 'Penggunaan Kolam' && Field({label:'Kolam Berkaitan'}, React.createElement('select', { value:form.pond, onChange:e=>set('pond',e.target.value), className:inputCls },
+        React.createElement('option', { value:'' }, '— Pilih Kolam —'),
+        ponds.map(p => React.createElement('option', { key:p.id, value:p.id }, p.id))
+      ))
+    ),
+    React.createElement('div', { className:'grid grid-cols-2 gap-3' },
+      Field({label:'Dikeluarkan Oleh',required:true}, React.createElement('select', { value:form.by, onChange:e=>set('by',e.target.value), className:inputCls },
+        workers.map(w => React.createElement('option', { key:w, value:w }, w))
+      )),
+      Field({label:'Tarikh Keluar',required:true}, React.createElement('input', { type:'date', value:form.dateOut, onChange:e=>set('dateOut',e.target.value), className:inputCls }))
+    ),
+    Field({label:'Nota'}, React.createElement('textarea', { value:form.notes||'', onChange:e=>set('notes',e.target.value), placeholder:'Catatan...', rows:2, className:inputCls })),
+    (modalItem.qty||0) - Number(form.qtyOut||0) <= (modalItem.minStock||0) && Number(form.qtyOut||0) > 0 &&
+      React.createElement('div', { className:'p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px]' },
+        '⚠️ Awas: Selepas pengeluaran ini, stok akan ', (modalItem.qty||0) - Number(form.qtyOut) <= 0 ? 'HABIS' : 'berada bawah paras minimum ('+modalItem.minStock+' '+modalItem.unit+')'
+      ),
+    React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
+      React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
+      React.createElement('button', { onClick:handleIssue, className:btnDanger }, '📤 Rekod Keluar')
+    )
+  );
+
+  // ------ Delete Confirmation ------
+  const renderDeleteModal = !modalItem ? null : React.createElement(React.Fragment, null,
+    React.createElement('div', { className:'fixed inset-0 bg-black/60 z-50 flex items-center justify-center', onClick:()=>{setModal(null);setModalItem(null);} },
+      React.createElement('div', { onClick:e=>e.stopPropagation(), className:'w-full max-w-sm mx-4 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp p-6 text-center' },
+        React.createElement('div', { className:'text-4xl mb-3' }, '🗑️'),
+        React.createElement('h2', { className:'text-sm font-bold text-white mb-2' }, 'Padam Item?'),
+        React.createElement('p', { className:'text-xs text-slate-400 mb-1' }, 'Adakah anda pasti mahu padam ',
+          React.createElement('span', { className:'font-semibold text-rose-400' }, modalItem.name), '?'),
+        React.createElement('p', { className:'text-xs text-slate-500 mb-5' }, 'Semua rekod history item ini akan turut dipadam. Tindakan ini tidak boleh dibatalkan.'),
+        React.createElement('div', { className:'flex justify-center gap-3' },
+          React.createElement('button', { onClick:()=>{setModal(null);setModalItem(null);}, className:btnGhost }, 'Batal'),
+          React.createElement('button', { onClick:handleDelete, className:btnDanger+' px-6' }, 'Ya, Padam')
+        )
+      )
+    )
+  );
+
+  // Render modals based on type
+  const renderModals = () => {
+    if (modal === 'add') return renderAddModal;
+    if (modal === 'edit') return renderEditModal;
+    if (modal === 'restock') return renderRestockModal;
+    if (modal === 'issue') return renderIssueModal;
+    if (modal === 'delete') return renderDeleteModal;
+    return null;
+  };
+
+  // Tabs
+  const tabs = React.createElement('div', { className:'flex flex-wrap gap-2 mb-5 border-b border-edge pb-3' },
+    subTabs.map(st => React.createElement('button', {
+      key:st.id, onClick:() => setTab(st.id),
+      className:(tab===st.id?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge hover:border-accent/30')+' px-3 py-1.5 text-xs font-semibold rounded-xl border transition'
+    }, st.label))
+  );
+
   // Pergerakan Stok (B)
   const renderMovements = () => {
     const filtered = filter==='all'?stockMoves:stockMoves.filter(m=>m.type===filter);
     const sorted = [...filtered].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
     return React.createElement('div', { className:'space-y-3' },
-      React.createElement('div', { className:'flex gap-2' },
+      React.createElement('div', { className:'flex gap-2 flex-wrap' },
         ['all','in','out'].map(f => React.createElement('button', {
           key:f, onClick:()=>setFilter(f),
           className:(filter===f?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge')+' px-3 py-1 text-xs font-semibold rounded-lg border transition'
@@ -4267,10 +4640,11 @@ function StockModule() {
       })
     );
   };
+
   // Pembekal (C)
   const renderSuppliers = () => {
     return React.createElement('div', { className:'space-y-4' },
-      ['Feed','Kimia','Ubatan','Peralatan','PL'].map(cat => {
+      ['Feed','Kimia','Ubatan','Peralatan','Benih'].map(cat => {
         const s = suppliers.filter(x=>x.category===cat);
         if (!s.length) return null;
         return React.createElement(Card, { key:cat },
@@ -4290,11 +4664,12 @@ function StockModule() {
       })
     );
   };
+
   // Laporan (E)
   const renderReports = () => {
     const totalIn = stockMoves.filter(m=>m.type==='in').reduce((s,m)=>s+m.qty,0);
     const totalOut = stockMoves.filter(m=>m.type==='out').reduce((s,m)=>s+m.qty,0);
-    const totalValue = stockItems.reduce((s,i)=>s+i.qty*i.price,0);
+    const totalValue = stockItems.reduce((s,i)=>s+(i.qty||0)*(i.price||0),0);
     return React.createElement('div', { className:'space-y-5' },
       React.createElement('div', { className:'grid grid-cols-3 gap-3' },
         React.createElement(KpiCard, { icon:'ArrowDown', label:'Jumlah Masuk', value:totalIn, color:'emerald' }),
@@ -4310,10 +4685,10 @@ function StockModule() {
               React.createElement('th', { className:'p-2 text-right' }, 'Jumlah'), React.createElement('th', { className:'p-2 text-right' }, 'Nilai (RM)')
             )),
             React.createElement('tbody', null,
-              ['PL','Feed','Kimia','Peralatan'].map(cat => {
+              ['Benih','Feed','Ubatan','Kimia','Peralatan'].map(cat => {
                 const items = stockItems.filter(i=>i.category===cat);
-                const qty = items.reduce((s,i)=>s+i.qty,0);
-                const val = items.reduce((s,i)=>s+i.qty*i.price,0);
+                const qty = items.reduce((s,i)=>s+(i.qty||0),0);
+                const val = items.reduce((s,i)=>s+(i.qty||0)*(i.price||0),0);
                 return React.createElement('tr', { key:cat, className:'border-t border-edge' },
                   React.createElement('td', { className:'p-2 font-medium text-slate-200' }, cat),
                   React.createElement('td', { className:'p-2 text-right text-slate-400' }, items.length),
@@ -4324,8 +4699,8 @@ function StockModule() {
               React.createElement('tr', { className:'border-t-2 border-accent/30 font-bold' },
                 React.createElement('td', { className:'p-2 text-slate-200' }, 'JUMLAH'),
                 React.createElement('td', { className:'p-2 text-right text-slate-400' }, stockItems.length),
-                React.createElement('td', { className:'p-2 text-right text-accent' }, stockItems.reduce((s,i)=>s+i.qty,0)),
-                React.createElement('td', { className:'p-2 text-right text-accent' }, stockItems.reduce((s,i)=>s+i.qty*i.price,0).toLocaleString('en-MY'))
+                React.createElement('td', { className:'p-2 text-right text-accent' }, stockItems.reduce((s,i)=>s+(i.qty||0),0)),
+                React.createElement('td', { className:'p-2 text-right text-accent' }, totalValue.toLocaleString('en-MY'))
               )
             )
           )
@@ -4333,9 +4708,16 @@ function StockModule() {
       )
     );
   };
+
   return React.createElement('div', { className:'space-y-4' },
-    tabs, tab==='dashboard'&&renderDashboard(), tab==='items'&&renderItems(),
-    tab==='movements'&&renderMovements(), tab==='suppliers'&&renderSuppliers(), tab==='reports'&&renderReports()
+    Toast,
+    tabs,
+    tab==='dashboard'&&renderDashboard(),
+    tab==='items'&&renderItems(),
+    tab==='movements'&&renderMovements(),
+    tab==='suppliers'&&renderSuppliers(),
+    tab==='reports'&&renderReports(),
+    modal && renderModals()
   );
 }
 
