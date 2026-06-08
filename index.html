@@ -808,7 +808,7 @@ const TR = {
     nav_users: 'User Management',
     nav_reports: 'Reports & Analytics',
     nav_stock: 'Stock & Inventory',
-    nav_report: '📄 Final Report',
+    nav_report: 'Final Report',
     nav_settings: 'Settings',
     lang_label: 'Language',
     lang_ms: 'Bahasa Melayu',
@@ -4164,9 +4164,9 @@ function StockModule() {
         ),
         React.createElement('select', { value:statusFilter, onChange:e=>setStatusFilter(e.target.value), className:'bg-panel2 border border-edge rounded-lg px-2 py-2 text-xs text-slate-200 outline-none' },
           React.createElement('option', { value:'all' }, 'Status: Semua'),
-          React.createElement('option', { value:'ok' }, '🟢 Mencukupi'),
-          React.createElement('option', { value:'low' }, '🟡 Rendah/Kritikal'),
-          React.createElement('option', { value:'expired' }, '🔴 Habis/Luput')
+          React.createElement('option', { value:'ok' }, 'Mencukupi'),
+          React.createElement('option', { value:'low' }, 'Rendah / Kritikal'),
+          React.createElement('option', { value:'expired' }, 'Habis / Luput')
         ),
         React.createElement('select', { value:sortBy, onChange:e=>setSortBy(e.target.value), className:'bg-panel2 border border-edge rounded-lg px-2 py-2 text-xs text-slate-200 outline-none' },
           React.createElement('option', { value:'name' }, 'Susun: Nama'),
