@@ -895,10 +895,7 @@ function AuthProvider({
       ok: false,
       msg: 'Email atau kata laluan salah.'
     };
-    if (u.active === false) return {
-      ok: false,
-      msg: 'Akaun tidak aktif. Hubungi admin.'
-    };
+    // active check removed — single admin user only
     const sess = {
       id: u.id,
       name: u.name,
