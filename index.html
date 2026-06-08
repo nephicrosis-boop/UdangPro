@@ -4231,10 +4231,10 @@ function StockModule() {
                 React.createElement('td', { className:'p-2 text-right text-slate-200 font-medium' }, 'RM '+(value||0).toLocaleString('en-MY')),
                 React.createElement('td', { className:'p-2 text-center' },
                   React.createElement('div', { className:'flex items-center justify-center gap-1' },
-                    canEdit && React.createElement('button', { onClick:()=>openModal('edit',item), className:'p-1.5 rounded-lg hover:bg-cyan-500/20 text-cyan-400 transition', title:'Edit' }, '✏️'),
-                    canEdit && React.createElement('button', { onClick:()=>openModal('restock',item), className:'p-1.5 rounded-lg hover:bg-emerald-500/20 text-emerald-400 transition', title:'Tambah Stok' }, '➕'),
-                    canEdit && React.createElement('button', { onClick:()=>openModal('issue',item), className:'p-1.5 rounded-lg hover:bg-rose-500/20 text-rose-400 transition', title:'Keluarkan Stok' }, '➖'),
-                    canDelete && React.createElement('button', { onClick:()=>{setModalItem(item);setModal('delete');}, className:'p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition', title:'Padam' }, '🗑️')
+                    canEdit && React.createElement('button', { onClick:()=>openModal('edit',item), className:'p-1.5 rounded-lg hover:bg-cyan-500/20 text-cyan-400 transition', title:'Edit' }, React.createElement(Icon,{name:'Pencil',size:14})),
+                    canEdit && React.createElement('button', { onClick:()=>openModal('restock',item), className:'p-1.5 rounded-lg hover:bg-emerald-500/20 text-emerald-400 transition', title:'Tambah Stok' }, React.createElement(Icon,{name:'PackagePlus',size:14})),
+                    canEdit && React.createElement('button', { onClick:()=>openModal('issue',item), className:'p-1.5 rounded-lg hover:bg-rose-500/20 text-rose-400 transition', title:'Keluarkan Stok' }, React.createElement(Icon,{name:'PackageMinus',size:14})),
+                    canDelete && React.createElement('button', { onClick:()=>{setModalItem(item);setModal('delete');}, className:'p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition', title:'Padam' }, React.createElement(Icon,{name:'Trash2',size:14}))
                   )
                 )
               );
@@ -4396,7 +4396,7 @@ function StockModule() {
   const renderDeleteModal = !modalItem ? null : React.createElement(React.Fragment, null,
     React.createElement('div', { className:'fixed inset-0 bg-black/60 z-50 flex items-center justify-center', onClick:()=>{setModal(null);setModalItem(null);} },
       React.createElement('div', { onClick:e=>e.stopPropagation(), className:'w-full max-w-sm mx-4 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp p-6 text-center' },
-        React.createElement('div', { className:'text-4xl mb-3' }, '🗑️'),
+        React.createElement('div', { className:'text-4xl mb-3' }, React.createElement(Icon,{name:'Trash2',size:36})),
         React.createElement('h2', { className:'text-sm font-bold text-white mb-2' }, 'Padam Item?'),
         React.createElement('p', { className:'text-xs text-slate-400 mb-1' }, 'Adakah anda pasti mahu padam ',
           React.createElement('span', { className:'font-semibold text-rose-400' }, modalItem.name), '?'),
@@ -4479,8 +4479,8 @@ function StockModule() {
           React.createElement('div', { className:'grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3' },
             s.map(sup => React.createElement('div', { key:sup.id, className:'p-3 rounded-xl bg-panel2 border border-edge relative group' },
               canEdit && React.createElement('div', { className:'absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition' },
-                React.createElement('button', { onClick:()=>openSupModal('edit',sup), className:'p-1 rounded-lg hover:bg-cyan-500/20 text-cyan-400 transition', title:'Edit' }, '✏️'),
-                React.createElement('button', { onClick:()=>deleteSupplier(sup.id), className:'p-1 rounded-lg hover:bg-red-500/20 text-red-400 transition', title:'Padam' }, '🗑️')
+                React.createElement('button', { onClick:()=>openSupModal('edit',sup), className:'p-1 rounded-lg hover:bg-cyan-500/20 text-cyan-400 transition', title:'Edit' }, React.createElement(Icon,{name:'Pencil',size:14})),
+                React.createElement('button', { onClick:()=>deleteSupplier(sup.id), className:'p-1 rounded-lg hover:bg-red-500/20 text-red-400 transition', title:'Padam' }, React.createElement(Icon,{name:'Trash2',size:14}))
               ),
               React.createElement('div', { className:'font-semibold text-sm text-slate-200 pr-14' }, sup.name),
               React.createElement('div', { className:'flex items-center gap-2 mt-1 text-xs' },
