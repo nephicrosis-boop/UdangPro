@@ -4261,12 +4261,12 @@ function FinalReportModule() {
   };
   if(!canExport) return React.createElement('div',{className:'p-6 text-center'},React.createElement('p',{className:'text-sm text-slate-400'},'Anda tiada akses ke laporan akhir.'));
   return React.createElement('div',{className:'space-y-5'},
-    React.createElement('div',{className:'flex items-center justify-between'},React.createElement('div',null,React.createElement('h1',{className:'text-lg font-extrabold text-white'},'\uD83D\uDCC4 Laporan Akhir Kolam'),React.createElement('p',{className:'text-xs text-slate-400 mt-1'},'Jana laporan prestasi lengkap untuk setiap kolam')),generating&&React.createElement('div',{className:'flex items-center gap-2 text-xs text-accent'},React.createElement('div',{className:'w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin'}),'Menjana... '+progress+'%')),
+    React.createElement(SectionHeader,{icon:'FileText',title:'Laporan Akhir Kolam',desc:'Jana laporan prestasi lengkap untuk setiap kolam',action:generating?React.createElement('div',{className:'flex items-center gap-2 text-xs text-accent'},React.createElement('div',{className:'w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin'}),'Menjana... '+progress+'%'):null}),
     React.createElement('div',{className:'grid grid-cols-1 lg:grid-cols-2 gap-4'},
       (ponds||[]).map(pond=>{const m=calcMetrics(pond);return React.createElement(Card,{key:pond.id},
         React.createElement('div',{className:'flex items-start justify-between'},
           React.createElement('div',null,React.createElement('h3',{className:'font-bold text-white text-sm'},'Kolam '+(pond.id||'—')),React.createElement('p',{className:'text-xs text-slate-400 mt-0.5'},pond.species||'—'),React.createElement('p',{className:'text-[10px] text-slate-500'},pond.sizeM2+'m\u00B2 | DOC '+m.doc+' hari')),
-          React.createElement('button',{onClick:()=>{setSelectedPond(pond);setShowModal(true);},className:'px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition'},'\uD83D\uDCC4 Jana Laporan')),
+          React.createElement('button',{onClick:()=>{setSelectedPond(pond);setShowModal(true);},className:'px-3 py-1.5 text-xs font-semibold rounded-lg bg-accent/20 text-accent border border-accent/30 hover:bg-accent/30 transition'},React.createElement(Icon,{name:'FileText',size:14}),' Jana Laporan')),
         React.createElement('div',{className:'grid grid-cols-3 gap-2 mt-3'},
           React.createElement('div',{className:'p-2 rounded-lg bg-panel2 border border-edge text-center'},React.createElement('p',{className:'text-[10px] text-slate-400'},'SR'),React.createElement('p',{className:'text-sm font-bold text-emerald-400'},m.survival+'%')),
           React.createElement('div',{className:'p-2 rounded-lg bg-panel2 border border-edge text-center'},React.createElement('p',{className:'text-[10px] text-slate-400'},'FCR'),React.createElement('p',{className:'text-sm font-bold text-amber-400'},m.fcr.toFixed(2))),
@@ -4276,7 +4276,7 @@ function FinalReportModule() {
       React.createElement('div',{className:'fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto',onClick:()=>setShowModal(false)},
         React.createElement('div',{onClick:e=>e.stopPropagation(),className:'w-full max-w-xl mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp'},
           React.createElement('div',{className:'flex items-center justify-between p-4 border-b border-edge'},
-            React.createElement('h2',{className:'text-sm font-bold text-white'},'\uD83D\uDCC4 Jana Laporan \u2014 Kolam '+(selectedPond.id||'—')),
+            React.createElement('h2',{className:'text-sm font-bold text-white'},'Jana Laporan \u2014 Kolam '+(selectedPond.id||'—')),
             React.createElement('button',{onClick:()=>setShowModal(false),className:'p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition'},'\u2715')),
           React.createElement('div',{className:'p-4 space-y-4'},
             React.createElement('div',null,React.createElement('p',{className:'text-[11px] font-semibold text-slate-400 mb-2'},'Format Eksport'),React.createElement('div',{className:'flex gap-2'},['pdf','excel'].map(f=>React.createElement('button',{key:f,onClick:()=>setFormat(f),className:(format===f?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge')+' px-4 py-2 text-xs font-semibold rounded-lg border transition'},f==='pdf'?'\uD83D\uDCD5 PDF':'\uD83D\uDCD7 Excel')))),
