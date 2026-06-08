@@ -4133,7 +4133,7 @@ function SettingsPage() {
 function FinalReportModule() {
   const { t } = useLang();
   const { user } = useAuth();
-  const { ponds, pondData, waterData, growthData, feedData, healthData, harvestData, financeData } = useData();
+  const { ponds, water, growth, feed, health, harvest } = useData();
   const [selectedPond, setSelectedPond] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -4144,12 +4144,12 @@ function FinalReportModule() {
   const canExport = user.role === 'Admin' || user.role === 'Manager';
   const today = new Date().toISOString().slice(0,10);
   const rptNum = 'LP' + today.replace(/-/g,'') + '-' + String(Date.now()).slice(-4);
-  const pondGrowth = (pid) => (growthData||[]).filter(g => g.pondId === pid).sort((a,b) => (a.week||0)-(b.week||0));
-  const pondWater = (pid) => (waterData||[]).filter(w => w.pondId === pid).sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  const pondFeed = (pid) => (feedData||[]).filter(f => f.pondId === pid);
-  const pondHealth = (pid) => (healthData||[]).filter(h => h.pondId === pid);
-  const pondHarvest = (pid) => (harvestData||[]).filter(h => h.pondId === pid);
-  const pondFinance = (pid) => (financeData||[]).filter(f => f.pondId === pid);
+  const pondGrowth = (pid) => (growth||[]).filter(g => g.pondId === pid).sort((a,b) => (a.week||0)-(b.week||0));
+  const pondWater = (pid) => (water||[]).filter(w => w.pondId === pid).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const pondFeed = (pid) => (feed||[]).filter(f => f.pondId === pid);
+  const pondHealth = (pid) => (health||[]).filter(h => h.pondId === pid);
+  const pondHarvest = (pid) => (harvest||[]).filter(h => h.pondId === pid);
+  const pondFinance = (pid) => (health||[]).filter(f => f.pondId === pid);
   const calcMetrics = (pond) => {
     if (!pond) return {};
     const gr = pondGrowth(pond.id); const hrv = pondHarvest(pond.id); const fd = pondFeed(pond.id);
