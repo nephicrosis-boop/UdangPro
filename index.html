@@ -4133,7 +4133,7 @@ function SettingsPage() {
 function FinalReportModule() {
   const { t } = useLang();
   const { user } = useAuth();
-  const { ponds, water, growth, feed, health, harvest } = useData();
+  const { ponds, water, growth, feed, health, harvest, seed } = useData();
   const [selectedPond, setSelectedPond] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -4160,7 +4160,7 @@ function FinalReportModule() {
     const doc = pond.stockDate ? Math.max(0, Math.round((new Date(today) - new Date(pond.stockDate)) / 864e5)) : 0;
     const fcr = totalHarvest > 0 ? (totalFeed / totalHarvest) : 0;
     const countKg = abw > 0 ? Math.round(1000 / abw) : 0;
-    const price = hrv.length > 0 ? (hrv[0].price||0) : 0;
+    const price = hrv.length > 0 ? (hrv[0].pricePerKg||0) : 0;
     const revenue = totalHarvest * price;
     const costs = pondFinance(pond.id).reduce((s,f) => s + (f.amount||0), 0);
     const profit = revenue - costs;
@@ -4211,17 +4211,17 @@ function FinalReportModule() {
     chk(10);doc.setFontSize(14);doc.setTextColor(metrics.profit>=0?34:220);
     doc.text(metrics.profit>=0?'\u2705 UNTUNG':'❌ RUGI',105,y+4,{align:'center'});y+=10;
     if(sections.seed){doc.addPage();hdr();y=m;sec('2. DATA BENIH');
-      lbl('Pembekal Hatchery',pond.supplier||'—');lbl('Spesies & Strain',species);
-      lbl('Kepadatan Tebar',density+' ekor/m\u00B3');lbl('Keputusan PCR',pond.pcrResult||'Negatif');
-      lbl('Kos Benih','RM '+(((totalStocked/1000)*(pond.plPrice||35))||0).toLocaleString());}
+      const sd=(seed||[]).find(s=>s.pond===pond.id);lbl('Pembekal Hatchery',sd?.supplier||'—');
+      lbl('Spesies & Strain',species);lbl('Kepadatan Tebar',density+' ekor/m\u00B3');
+      lbl('Keputusan PCR',sd?.pcr||'Negatif');lbl('Kos Benih','RM '+(((totalStocked/1000)*(sd?.price||35))||0).toLocaleString());}
     if(sections.water){doc.addPage();hdr();y=m;sec('3. KUALITI AIR');
       const wd = pondWater(pond.id);if(wd.length>0){const avg=f=>((wd.reduce((s,r)=>s+(Number(r[f])||0),0)/wd.length)||0).toFixed(1);
-      tbl(['Parameter','Min','Max','Purata','Unit'],[['pH',Math.min(...wd.map(r=>r.ph||0)),Math.max(...wd.map(r=>r.ph||0)),avg('ph'),''],['DO',Math.min(...wd.map(r=>r.do||0)),Math.max(...wd.map(r=>r.do||0)),avg('do'),'mg/L'],['Suhu',Math.min(...wd.map(r=>r.temp||0)),Math.max(...wd.map(r=>r.temp||0)),avg('temp'),'\u00B0C'],['Saliniti',Math.min(...wd.map(r=>r.sal||0)),Math.max(...wd.map(r=>r.sal||0)),avg('sal'),'ppt'],['Ammonia',Math.min(...wd.map(r=>r.nh3||0)),Math.max(...wd.map(r=>r.nh3||0)),avg('nh3'),'mg/L']]);}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+      tbl(['Parameter','Min','Max','Purata','Unit'],[['pH',Math.min(...wd.map(r=>r.ph||0)),Math.max(...wd.map(r=>r.ph||0)),avg('ph'),''],['DO',Math.min(...wd.map(r=>r.do||0)),Math.max(...wd.map(r=>r.do||0)),avg('do'),'mg/L'],['Suhu',Math.min(...wd.map(r=>r.temp||0)),Math.max(...wd.map(r=>r.temp||0)),avg('temp'),'\u00B0C'],['Saliniti',Math.min(...wd.map(r=>r.salinity||0)),Math.max(...wd.map(r=>r.salinity||0)),avg('salinity'),'ppt'],['Ammonia',Math.min(...wd.map(r=>r.ammonia||0)),Math.max(...wd.map(r=>r.ammonia||0)),avg('ammonia'),'mg/L']]);}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
     if(sections.growth){doc.addPage();hdr();y=m;sec('4. PERTUMBUHAN');
-      const gr=pondGrowth(pond.id);if(gr.length>0){tbl(['Minggu','DOC','ABW(g)','ADG(g/h)','SR%','Biomass(kg)'],gr.map(g=>[g.week||'—',g.doc||'—',(g.abw||0).toFixed(1),(g.adg||0).toFixed(2),(g.survival||0).toFixed(0),(g.biomass||0).toFixed(1)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
-    if(sections.feed){doc.addPage();hdr();y=m;sec('5. MAKANAN & FCR');const fd=pondFeed(pond.id);if(fd.length>0){const tf=fd.reduce((s,f)=>s+(f.kg||0),0);lbl('Jumlah Feed',tf+' kg');lbl('FCR',metrics.fcr.toFixed(2));tbl(['Minggu','Feed(kg)','FCR'],fd.map(f=>[f.week||'—',(f.kg||0).toFixed(1),(f.fcr||0).toFixed(2)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
-    if(sections.health){doc.addPage();hdr();y=m;sec('6. KESIHATAN & RAWATAN');const hl=pondHealth(pond.id);if(hl.length>0){tbl(['Tarikh','Masalah','Rawatan','Kos(RM)'],hl.map(h=>[h.date||'—',h.issue||'—',h.treatment||'—',(h.cost||0).toFixed(2)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
-    if(sections.harvest){doc.addPage();hdr();y=m;sec('7. TUAIAN');const hrv=pondHarvest(pond.id);if(hrv.length>0){tbl(['Tarikh','Kuantiti(kg)','Saiz','Harga(RM/kg)','Pembeli'],hrv.map(h=>[h.date||'—',(h.kg||0).toFixed(1),h.size||'—',(h.price||0).toFixed(2),h.buyer||'—']));lbl('Jumlah Hasil',metrics.totalHarvest+' kg');lbl('Pendapatan','RM '+(metrics.revenue||0).toLocaleString());}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
+      const gr=pondGrowth(pond.id);if(gr.length>0){tbl(['Minggu','DOC','ABW(g)','ADG(g/h)','SR%','Biomass(kg)'],gr.map(g=>[g.week||'—',(g.week*7)||'—',(g.abw||0).toFixed(1),(g.adg||0).toFixed(2),'-','-']));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+    if(sections.feed){doc.addPage();hdr();y=m;sec('5. MAKANAN & FCR');const fd=pondFeed(pond.id);if(fd.length>0){const tf=fd.reduce((s,f)=>s+(f.kg||0),0);lbl('Jumlah Feed',tf+' kg');lbl('FCR',metrics.fcr.toFixed(2));tbl(['Tarikh','Feed(kg)','Feed Type','FCR'],fd.map(f=>[f.date||'—',(f.kg||0).toFixed(1),f.feedType||'—',metrics.fcr.toFixed(2)]));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada data.',m,y+6);y+=8;}}
+    if(sections.health){doc.addPage();hdr();y=m;sec('6. KESIHATAN & RAWATAN');const hl=pondHealth(pond.id);if(hl.length>0){tbl(['Tarikh','Masalah','Rawatan','Kos(RM)'],hl.map(h=>[h.date||'—',h.issue||'—',h.treatment||'—','—']));}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
+    if(sections.harvest){doc.addPage();hdr();y=m;sec('7. TUAIAN');const hrv=pondHarvest(pond.id);if(hrv.length>0){tbl(['Tarikh','Kuantiti(kg)','Gred','Harga(RM/kg)','Pembeli'],hrv.map(h=>[h.date||'—',(h.kg||0).toFixed(1),h.grade||'—',(h.pricePerKg||0).toFixed(2),h.buyer||'—']));lbl('Jumlah Hasil',metrics.totalHarvest+' kg');lbl('Pendapatan','RM '+(metrics.revenue||0).toLocaleString());}else{doc.setFontSize(9);doc.setTextColor(150);doc.text('Tiada rekod.',m,y+6);y+=8;}}
     if(sections.finance){doc.addPage();hdr();y=m;sec('8. ANALISIS KEWANGAN');
       doc.setFontSize(10);doc.setTextColor(34,211,238);doc.setFont(undefined,'bold');doc.text('PENDAPATAN',m,y+4);y+=8;
       doc.setFontSize(9);doc.setTextColor(200);doc.text('Hasil Tuaian Udang',m,y+3);doc.text('RM '+(metrics.revenue||0).toLocaleString(),210-m,y+3,{align:'r'});y+=6;
@@ -4255,7 +4255,7 @@ function FinalReportModule() {
     setGenerating(true);const metrics=calcMetrics(pond);const wb=XLSX.utils.book_new();
     const es=[['LAPORAN AKHIR PENTERNAKAN UDANG',''],['Kolam:',pond.id||'—'],['Spesies:',pond.species||'Vannamei'],['Saiz:',metrics.sizeM2+'m\u00B2'],['Density:',metrics.density+'/m\u00B3'],['Tarikh Tebar:',pond.stockDate||'—'],['',''],['RINGKASAN',''],['Hasil (kg)',metrics.totalHarvest],['SR (%)',metrics.survival],['FCR',metrics.fcr.toFixed(2)],['ABW (g)',metrics.abw],['Pendapatan (RM)',metrics.revenue],['Kos (RM)',metrics.costs],['Keuntungan (RM)',metrics.profit],['ROI (%)',metrics.roi.toFixed(1)]];
     const ws=XLSX.utils.aoa_to_sheet(es);ws['!cols']=[{wch:30},{wch:15}];XLSX.utils.book_append_sheet(wb,ws,'Ringkasan');
-    const gr=pondGrowth(pond.id);if(gr.length>0){const gs=[['Minggu','DOC','ABW(g)','ADG','SR%','Biomass(kg)'],...gr.map(g=>[g.week,g.doc,g.abw,g.adg,g.survival,g.biomass])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(gs),'Pertumbuhan');}
+    const gr=pondGrowth(pond.id);if(gr.length>0){const gs=[['Minggu','DOC','ABW(g)','ADG','SR%','Biomass(kg)'],...gr.map(g=>[g.week,g.week*7,g.abw,g.adg,'-','-'])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(gs),'Pertumbuhan');}
     const fn=pondFinance(pond.id);if(fn.length>0){const fs=[['Kategori','Penerangan','Jumlah(RM)'],...fn.map(f=>[f.category||'—',f.desc||'—',f.amount||0])];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(fs),'Kewangan');}
     XLSX.writeFile(wb,'Laporan_'+pond.id+'_'+today+'.xlsx');setGenerating(false);setShowModal(false);
   };
