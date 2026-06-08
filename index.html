@@ -833,17 +833,17 @@ const STOCK_ITEM_CATEGORIES = [
 const AuthCtx = createContext(null);
 const useAuth = () => useContext(AuthCtx);
 const PERMISSIONS = {
-  Admin: {
+  admin: {
     modules: 'all',
     manageUsers: true,
     edit: true
   },
-  Manager: {
+  manager: {
     modules: 'all',
     manageUsers: false,
     edit: true
   },
-  Pekerja: {
+  pekerja: {
     modules: ['dashboard', 'water', 'feed', 'growth', 'health', 'chemicals', 'stock', 'settings'],
     manageUsers: false,
     edit: 'daily'
