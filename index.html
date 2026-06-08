@@ -3945,11 +3945,11 @@ function StockModule() {
   const btnDanger = 'px-4 py-2 text-xs font-bold rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 transition';
   const btnGhost = 'px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition';
   const subTabs = [
-    { id:'dashboard', label:'📊 Dashboard Stok' },
-    { id:'items', label:'📦 Stok Bahan' },
-    { id:'movements', label:'🔄 Pergerakan Stok' },
-    { id:'suppliers', label:'🏢 Pembekal' },
-    { id:'reports', label:'📋 Laporan' }
+    { id:'dashboard', label:'Dashboard Stok', icon:'LayoutDashboard' },
+    { id:'items', label:'Stok Bahan', icon:'Package' },
+    { id:'movements', label:'Pergerakan Stok', icon:'ArrowRightLeft' },
+    { id:'suppliers', label:'Pembekal', icon:'Building2' },
+    { id:'reports', label:'Laporan', icon:'FileText' }
   ];
   const itemName = id => { const i = stockItems.find(x => x.id === id); return i ? i.name : id; };
   const stkStatus = item => {
@@ -4086,13 +4086,13 @@ function StockModule() {
     showToast('Pembekal dipadam', 'success');
   };
   const Toast = toast ? React.createElement('div', { className:'fixed top-4 right-4 z-[9999] px-5 py-3 rounded-xl text-xs font-semibold shadow-xl border fadeUp '+(toast.type==='success'?'bg-emerald-500/20 border-emerald-500/30 text-emerald-300':'bg-rose-500/20 border-rose-500/30 text-rose-300') }, toast.type==='success'?'✅ ':'❌ ', toast.msg) : null;
-  const ModalWrap = (title, children) => {
+  const ModalWrap = (icon, title, children) => {
     if (!modal) return null;
     return React.createElement(React.Fragment, null,
       React.createElement('div', { className:'fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto', onClick:()=>setModal(null) },
         React.createElement('div', { onClick:e=>e.stopPropagation(), className:'w-full max-w-lg mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp' },
           React.createElement('div', { className:'flex items-center justify-between p-4 border-b border-edge' },
-            React.createElement('h2', { className:'text-sm font-bold text-white' }, title),
+            React.createElement('h2', { className:'text-sm font-bold text-white flex items-center gap-2' }, React.createElement(Icon, {name:icon, size:14}), title),
             React.createElement('button', { onClick:()=>setModal(null), className:'p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition' }, '✕')
           ),
           React.createElement('div', { className:'p-4 space-y-3' }, children)
@@ -4244,14 +4244,14 @@ function StockModule() {
       ),
       selected.length > 0 && React.createElement('div', { className:'flex items-center gap-2 p-2 bg-panel2 rounded-xl border border-edge' },
         React.createElement('span', { className:'text-xs text-slate-400' }, selected.length+' dipilih'),
-        React.createElement('button', { onClick:()=>{const csv = 'Item,Kategori,Kuantiti,Unit,Harga,Nilai\n'+stockItems.filter(i=>selected.includes(i.id)).map(i=>i.name+','+i.category+','+(i.qty||0)+','+i.unit+','+(i.price||0)+','+((i.qty||0)*(i.price||0))).join('\n'); navigator.clipboard.writeText(csv); showToast('Data disalin ke clipboard (CSV)','success');}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30 transition' }, '📋 Export CSV'),
-        canDelete && React.createElement('button', { onClick:()=>{if(confirm('Padam '+selected.length+' item terpilih? Semua history akan turut dipadam.')){setStockItems(prev=>prev.filter(i=>!selected.includes(i.id)));setStockMoves(prev=>prev.filter(m=>!selected.includes(m.itemId)));setSelected([]);showToast(selected.length+' item dipadam','success');}}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition' }, '🗑️ Padam')
+        React.createElement('button', { onClick:()=>{const csv = 'Item,Kategori,Kuantiti,Unit,Harga,Nilai\n'+stockItems.filter(i=>selected.includes(i.id)).map(i=>i.name+','+i.category+','+(i.qty||0)+','+i.unit+','+(i.price||0)+','+((i.qty||0)*(i.price||0))).join('\n'); navigator.clipboard.writeText(csv); showToast('Data disalin ke clipboard (CSV)','success');}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/30 transition' }, React.createElement(Icon, {name:'ClipboardList', size:13}), ' Export CSV'),
+        canDelete && React.createElement('button', { onClick:()=>{if(confirm('Padam '+selected.length+' item terpilih? Semua history akan turut dipadam.')){setStockItems(prev=>prev.filter(i=>!selected.includes(i.id)));setStockMoves(prev=>prev.filter(m=>!selected.includes(m.itemId)));setSelected([]);showToast(selected.length+' item dipadam','success');}}, className:'px-3 py-1 text-xs font-semibold rounded-lg bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition' }, React.createElement(Icon, {name:'Trash2', size:13}), ' Padam')
       )
     );
   };
 
   // ------ Add Item Modal ------
-  const renderAddModal = ModalWrap('➕ Tambah Item Baru',
+  const renderAddModal = ModalWrap('PackagePlus', 'Tambah Item Baru',
     Field({label:'Nama Item',required:true}, React.createElement('input', { type:'text', value:form.name||'', onChange:e=>set('name',e.target.value), placeholder:'cth: CP Prima S1', className:inputCls })),
     React.createElement('div', { className:'grid grid-cols-2 gap-3' },
       Field({label:'Kategori',required:true}, React.createElement('select', { value:form.category, onChange:e=>set('category',e.target.value), className:inputCls }, catOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
@@ -4282,7 +4282,7 @@ function StockModule() {
   );
 
   // ------ Edit Item Modal ------
-  const renderEditModal = !modalItem ? null : ModalWrap('✏️ Edit Item: '+modalItem.name,
+  const renderEditModal = !modalItem ? null : ModalWrap('Pencil', 'Edit Item: '+modalItem.name,
     Field({label:'Nama Item',required:true}, React.createElement('input', { type:'text', value:form.name||'', onChange:e=>set('name',e.target.value), className:inputCls })),
     React.createElement('div', { className:'grid grid-cols-2 gap-3' },
       Field({label:'Kategori',required:true}, React.createElement('select', { value:form.category, onChange:e=>set('category',e.target.value), className:inputCls }, catOpts.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)))),
@@ -4323,7 +4323,7 @@ function StockModule() {
   );
 
   // ------ Restock Modal ------
-  const renderRestockModal = !modalItem ? null : ModalWrap('➕ Tambah Stok: '+modalItem.name,
+  const renderRestockModal = !modalItem ? null : ModalWrap('PackagePlus', 'Tambah Stok: '+modalItem.name,
     React.createElement('div', { className:'bg-panel2 rounded-xl p-3 border border-edge text-center' },
       React.createElement('p', { className:'text-xs text-slate-400' }, 'Stok Semasa'),
       React.createElement('p', { className:'text-2xl font-bold text-white' }, (modalItem.qty||0)+' '+modalItem.unit),
@@ -4350,12 +4350,12 @@ function StockModule() {
     Field({label:'Nota'}, React.createElement('textarea', { value:form.notes||'', onChange:e=>set('notes',e.target.value), placeholder:'Catatan...', rows:2, className:inputCls })),
     React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
       React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
-      React.createElement('button', { onClick:handleRestock, className:btnPrimary }, '📥 Rekod Masuk')
+      React.createElement('button', { onClick:handleRestock, className:btnPrimary }, React.createElement(Icon, {name:'ArrowDownToLine', size:14}), ' Rekod Masuk')
     )
   );
 
   // ------ Issue Stock Modal ------
-  const renderIssueModal = !modalItem ? null : ModalWrap('➖ Keluarkan Stok: '+modalItem.name,
+  const renderIssueModal = !modalItem ? null : ModalWrap('PackageMinus', 'Keluarkan Stok: '+modalItem.name,
     React.createElement('div', { className:'bg-panel2 rounded-xl p-3 border border-edge text-center' },
       React.createElement('p', { className:'text-xs text-slate-400' }, 'Stok Semasa'),
       React.createElement('p', { className:'text-2xl font-bold text-white' }, (modalItem.qty||0)+' '+modalItem.unit),
@@ -4388,7 +4388,7 @@ function StockModule() {
       ),
     React.createElement('div', { className:'flex justify-end gap-2 pt-2 border-t border-edge' },
       React.createElement('button', { onClick:()=>setModal(null), className:btnGhost }, 'Batal'),
-      React.createElement('button', { onClick:handleIssue, className:btnDanger }, '📤 Rekod Keluar')
+      React.createElement('button', { onClick:handleIssue, className:btnDanger }, React.createElement(Icon, {name:'ArrowUpFromLine', size:14}), ' Rekod Keluar')
     )
   );
 
@@ -4424,7 +4424,7 @@ function StockModule() {
     subTabs.map(st => React.createElement('button', {
       key:st.id, onClick:() => setTab(st.id),
       className:(tab===st.id?'bg-accent/20 text-accent border-accent/40':'bg-panel2 text-slate-400 border-edge hover:border-accent/30')+' px-3 py-1.5 text-xs font-semibold rounded-xl border transition'
-    }, st.label))
+    }, React.createElement(Icon, {name:st.icon, size:14}), ' ', st.label))
   );
 
   // Pergerakan Stok (B)
@@ -4502,7 +4502,7 @@ function StockModule() {
         React.createElement('div', { className:'fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto', onClick:()=>{setSupplierModal(null);setSupEditItem(null);} },
           React.createElement('div', { onClick:e=>e.stopPropagation(), className:'w-full max-w-lg mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp' },
             React.createElement('div', { className:'flex items-center justify-between p-4 border-b border-edge' },
-              React.createElement('h2', { className:'text-sm font-bold text-white' }, supplierModal==='add'?'➕ Tambah Pembekal':'✏️ Edit Pembekal'),
+              React.createElement('h2', { className:'text-sm font-bold text-white flex items-center gap-2' }, React.createElement(Icon, {name:supplierModal==='add'?'UserPlus':'Pencil', size:14}), supplierModal==='add'?' Tambah Pembekal':' Edit Pembekal'),
               React.createElement('button', { onClick:()=>{setSupplierModal(null);setSupEditItem(null);}, className:'p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition' }, '✕')
             ),
             React.createElement('div', { className:'p-4 space-y-3' },
