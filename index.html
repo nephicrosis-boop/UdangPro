@@ -2488,7 +2488,7 @@ function GrowthModule() {
   } = useAuth();
   const canEdit = PERMISSIONS[user.role].edit === true || PERMISSIONS[user.role].edit === 'daily';
   const activePonds = ponds.filter(p => p.status === 'Aktif' || p.status === 'Tuaian');
-  const [pond, setPond] = useState(activePonds[0]?.id || 'KOLAM C');
+  const [pond, setPond] = useState('');
   const data = GR.filter(g => g.pond === pond).sort((a, b) => a.week - b.week);
   const pondObj = ponds.find(p => p.id === pond);
   const latest = data[data.length - 1] || {};
@@ -2558,7 +2558,9 @@ function GrowthModule() {
       className: inputCls + ' !w-auto',
       value: pond,
       onChange: e => setPond(e.target.value)
-    }, activePonds.map(p => /*#__PURE__*/React.createElement("option", {
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, "— Pilih Kolam —"), activePonds.map(p => /*#__PURE__*/React.createElement("option", {
       key: p.id,
       value: p.id
     }, p.name)))
