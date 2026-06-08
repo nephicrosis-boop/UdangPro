@@ -5020,7 +5020,7 @@ function CrudPanel({
         ...form,
         [idKey]: 'n' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)
       };
-      setRows(rs => [nr, ...rs]);
+      setRows(rs => [...rs, nr]);
     } else setRows(rs => rs.map(r => r[idKey] === modal[idKey] ? {
       ...r,
       ...form
