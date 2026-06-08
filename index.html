@@ -1473,7 +1473,7 @@ const NAV = [{
   icon: 'Warehouse'
 }];
 const SHRIMP_SVG = 'icon-192.jpg';
-function ShrimpIcon
+function ShrimpIcon({ size }) { return React.createElement("img", { src: SHRIMP_SVG, className: "shrimp-icon", style: { width: size + "px", height: size + "px", display: "block", backgroundColor: "transparent" }, alt: "" }); }
 function Avatar({
   name,
   size = 38
