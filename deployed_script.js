@@ -1,74 +1,4 @@
-<!DOCTYPE html>
-<html lang="ms">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>UdangPro — Sistem Pengurusan Ladang Udang</title>
-<link rel="icon" type="image/jpeg" href="icon-192.jpg">
-<link rel="apple-touch-icon" href="icon-192.jpg">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#070b16">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
-<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js" crossorigin></script>
-<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.3/jspdf.plugin.autotable.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin></script>
-<!-- Supabase JS SDK for Auth (Google Sign-In) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin></script>
-<!-- Supabase REST client -- no CDN dependency -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        fontFamily: { sans: ['Inter','sans-serif'] },
-        colors: {
-          ink: '#070b16', panel: '#0d1424', panel2: '#111a2e',
-          edge: '#1c2740', accent: '#22d3ee', accent2: '#2dd4bf',
-        },
-        boxShadow: { glow: '0 0 24px rgba(34,211,238,.25)' }
-      }
-    }
-  }
-</script>
-<style>
-  html,body,#root{height:100%}
-  body{background:#070b16;font-family:'Inter',sans-serif;color:#e2e8f0}
-  ::-webkit-scrollbar{width:9px;height:9px}
-  ::-webkit-scrollbar-track{background:#0d1424}
-  ::-webkit-scrollbar-thumb{background:#1c2740;border-radius:8px}
-  ::-webkit-scrollbar-thumb:hover{background:#22d3ee}
-  .glass{background:rgba(13,20,36,.72);backdrop-filter:blur(14px);border:1px solid rgba(34,211,238,.12)}
-  .ocean-bg{background:
-     radial-gradient(900px 500px at 15% 10%, rgba(34,211,238,.18), transparent 60%),
-     radial-gradient(900px 600px at 85% 90%, rgba(45,212,191,.16), transparent 55%),
-     linear-gradient(160deg,#04070f 0%,#071226 45%,#04101c 100%)}
-  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-  .floaty{animation:floaty 6s ease-in-out infinite}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .fadeUp{animation:fadeUp .45s ease both}
-  @keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(34,211,238,.5)}70%{box-shadow:0 0 0 12px rgba(34,211,238,0)}100%{box-shadow:0 0 0 0 rgba(34,211,238,0)}}
-  .pulseRing{animation:pulseRing 2s infinite}
-  .wave{position:absolute;left:0;right:0;bottom:0;height:140px;opacity:.35}
-  input,select,textarea{color-scheme:dark}
-  .shrimp-icon{mix-blend-mode:multiply;object-fit:contain}
-</style>
-</head>
-<body>
-<div id="root"></div>
-<div id="splash" style="position:fixed;inset:0;background:#070b16;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:sans-serif">
-  <div style="font-size:40px;margin-bottom:12px">🦐</div>
-  <div style="color:#22d3ee;font-size:16px;font-weight:700">UdangPro</div>
-  <div style="color:#475569;font-size:12px;margin-top:6px">Sedang muat...</div>
-</div>
-<script>window.onerror=function(m,s,l,c,e){try{document.getElementById('root').innerHTML='<div style="color:#fbbf24;padding:24px;font-family:sans-serif;background:#070b16;min-height:100vh"><h2 style="font-size:18px;margin-bottom:8px">❌ Error</h2><p style="font-size:14px;color:#e2e8f0">'+m+'</p><pre style="font-size:12px;color:#94a3b8;margin-top:12px">'+(e&&e.stack?e.stack.slice(0,1500):'')+'</pre></div>'}catch(e){}}</script>
-<script>const {
+const {
   useState,
   useEffect,
   useMemo,
@@ -159,34 +89,6 @@ let sbOnline = false;
     console.warn('Supabase offline:', e.message);
   }
 })();
-
-/* ---------- Supabase Auth client (Google Sign-In) ---------- */
-let supabaseAuth = null;
-try {
-  if (typeof supabase !== 'undefined') {
-    supabaseAuth = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-      auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
-    });
-  }
-} catch (e) { console.warn('Supabase Auth init failed:', e); }
-
-/* ---------- Google Sign-In handler ---------- */
-async function signInWithGoogle() {
-  if (!supabaseAuth) { console.warn('Supabase Auth not available'); return; }
-  try {
-    const { data, error } = await supabaseAuth.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname,
-      }
-    });
-    if (error) throw error;
-    // Browser will redirect to Google — no further action needed
-  } catch (e) {
-    console.error('Google Sign-In error:', e);
-    alert('Gagal log masuk dengan Google. Sila cuba lagi.');
-  }
-}
 
 /* Sync context */
 const SyncCtx = React.createContext({
@@ -496,9 +398,7 @@ function daysAhead(n) {
   d.setDate(d.getDate() + n);
   return d.toISOString().slice(0, 10);
 }
-const SEED_USERS = [
-  { id:'u1', email:'admin@udang.com', password:'admin123456@', nama:'Admin', role:'admin', notel:'', createdAt:'2026-01-01', active:true },
-];
+const SEED_USERS = [];
 const SPECIES = ['Udang Vannamei (L. vannamei)', 'Udang Harimau (P. monodon)', 'Udang Putih'];
 const PONDS = [
   { id:'KOLAM C', name:'Kolam C', sizeM2:5600, sizeHa:0.56, type:'Tanah', loc:'Blok Utara', gps:'2.4290, 103.8402', status:'Tuaian', stockDate:'2026-03-09', density:107, species:'Udang Vannamei (L. vannamei)', seeded:600000, survival:82.3, harvestEst:daysAhead(0) },
@@ -540,87 +440,33 @@ const SEED_RECORDS = [];
 /* Feed records — 14 hari, kolam aktif */
 const FEED_TYPES = [{
   name: '5001',
-  stage: 'Starter 40% — Tiger',
-  pricePerKg: 5.64,
-  pricePerBag: 140.99,
+  stage: 'Starter 40%',
+  pricePerKg: 5.60,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5002',
-  stage: 'Starter 40% — Tiger',
-  pricePerKg: 5.61,
-  pricePerBag: 140.13,
+  stage: 'Starter 40%',
+  pricePerKg: 5.60,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5003',
-  stage: 'Grower 40% — Tiger',
-  pricePerKg: 5.57,
-  pricePerBag: 139.28,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '5004',
-  stage: 'Grower — Tiger',
-  pricePerKg: 5.54,
-  pricePerBag: 138.42,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '5005',
-  stage: 'Finisher — Tiger',
-  pricePerKg: 5.50,
-  pricePerBag: 137.57,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '5006',
-  stage: 'Finisher — Tiger',
-  pricePerKg: 5.47,
-  pricePerBag: 136.71,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '5007',
-  stage: 'Finisher — Tiger',
-  pricePerKg: 5.43,
-  pricePerBag: 135.86,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '7701',
-  stage: 'Starter — Putih',
-  pricePerKg: 5.13,
-  pricePerBag: 128.16,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '7702',
-  stage: 'Starter — Putih',
-  pricePerKg: 5.09,
-  pricePerBag: 127.31,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '7703',
-  stage: 'Grower — Putih',
-  pricePerKg: 5.06,
-  pricePerBag: 126.45,
+  stage: 'Grower 40%',
+  pricePerKg: 5.70,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7704',
-  stage: 'Finisher 36% — Putih',
-  pricePerKg: 5.02,
-  pricePerBag: 125.60,
+  stage: 'Finisher 36%',
+  pricePerKg: 5.00,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7705',
-  stage: 'Finisher 36% — Putih',
-  pricePerKg: 4.99,
-  pricePerBag: 124.74,
+  stage: 'Finisher 36%',
+  pricePerKg: 5.00,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7706',
-  stage: 'Finisher 36% — Putih',
-  pricePerKg: 4.96,
-  pricePerBag: 123.89,
-  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
-}, {
-  name: '7707',
-  stage: 'Finisher — Putih',
-  pricePerKg: 4.92,
-  pricePerBag: 123.03,
+  stage: 'Finisher 36%',
+  pricePerKg: 4.90,
   packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }];
 function genFeed(pondId, base) {
@@ -762,39 +608,37 @@ const GROWTH = [];
 const DISEASES = ['EMS/AHPNS', 'WSD (White Spot)', 'WSSV', 'EHP', 'Running Mortality Syndrome'];
 const HEALTH_RECORDS = [];
 const MED_STOCK = [
-  { item:'Hydrated Lime (Kapur)', unit:'kg', qty:0, reorder:50 },
-  { item:'Sodium Bikarbonat', unit:'kg', qty:0, reorder:5 },
-  { item:'Molases', unit:'kg', qty:0, reorder:5 },
-  { item:'Kalsium Karbonat', unit:'kg', qty:0, reorder:5 },
-  { item:'Super Bio (Probiotik)', unit:'kg', qty:0, reorder:2 },
-  { item:'Azomite', unit:'kg', qty:0, reorder:2 },
-  { item:'Klorin', unit:'kg', qty:0, reorder:1 },
+  { item:'Hydrated Lime (Kapur)', unit:'kg', qty:629, reorder:50 },
+  { item:'Sodium Bikarbonat', unit:'kg', qty:15, reorder:5 },
+  { item:'Molases', unit:'kg', qty:11, reorder:5 },
+  { item:'Kalsium Karbonat', unit:'kg', qty:11, reorder:5 },
+  { item:'Super Bio (Probiotik)', unit:'kg', qty:10, reorder:2 },
+  { item:'Azomite', unit:'kg', qty:8, reorder:2 },
+  { item:'Klorin', unit:'kg', qty:4, reorder:1 },
 ];
 
 /* ─── Chemical Usage — rawatan kimia/ubatan per kolam ─── */
 const CHEM_ITEMS = [
-  { id:'chem-1', name:'Hydrated Lime (Kapur)', kategori:'Kimia', unit:'kg', harga:0.60, stok:0, minStok:50,
-    packaging: { beg:{label:'Beg (20kg)', qty:20} } },
-  { id:'chem-2', name:'Sodium Bikarbonat', kategori:'Kimia', unit:'kg', harga:2.20, stok:0, minStok:5,
-    packaging: { beg:{label:'Beg (25kg)', qty:25} } },
-  { id:'chem-3', name:'Molases', kategori:'Probiotik', unit:'kg', harga:1.89, stok:0, minStok:5,
-    packaging: { tong:{label:'Tong (30kg)', qty:30} } },
-  { id:'chem-4', name:'Kalsium Karbonat', kategori:'Kimia', unit:'kg', harga:1.24, stok:0, minStok:5,
-    packaging: { beg:{label:'Beg (25kg)', qty:25} } },
-  { id:'chem-5', name:'Super Bio (Probiotik)', kategori:'Probiotik', unit:'kg', harga:45.00, stok:0, minStok:2,
-    packaging: { beg:{label:'Beg (1kg)', qty:1} } },
-  { id:'chem-6', name:'Azomite', kategori:'Kimia', unit:'kg', harga:4.60, stok:0, minStok:2,
-    packaging: { beg:{label:'Beg (20kg)', qty:20} } },
-  { id:'chem-7', name:'Klorin', kategori:'Kimia', unit:'kg', harga:8.89, stok:0, minStok:1,
-    packaging: { tong:{label:'Tong (45kg)', qty:45} } },
-  { id:'chem-8', name:'EDTA Disodium', kategori:'Kimia', unit:'kg', harga:18.00, stok:0, minStok:2,
+  { id:'chem-1', name:'Hydrated Lime (Kapur)', kategori:'Kimia', unit:'kg', harga:2.50, stok:629, minStok:50,
     packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
-  { id:'chem-9', name:'Probiotik EM4', kategori:'Probiotik', unit:'liter', harga:35.00, stok:0, minStok:1,
-    packaging: { beg:{label:'Botol (1L)', qty:1}, tong:{label:'Tong (20L)', qty:20} } },
-  { id:'chem-10', name:'Vitamin C', kategori:'Ubatan', unit:'kg', harga:38.00, stok:0, minStok:1,
+  { id:'chem-2', name:'Sodium Bikarbonat', kategori:'Kimia', unit:'kg', harga:3.80, stok:15, minStok:5,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-3', name:'Molases', kategori:'Probiotik', unit:'kg', harga:4.00, stok:11, minStok:5,
+    packaging: { tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-4', name:'Kalsium Karbonat', kategori:'Kimia', unit:'kg', harga:2.20, stok:11, minStok:5,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-5', name:'Super Bio (Probiotik)', kategori:'Probiotik', unit:'kg', harga:45.00, stok:10, minStok:2,
     packaging: { beg:{label:'Beg (1kg)', qty:1}, tong:{label:'Tong (5kg)', qty:5} } },
-  { id:'chem-11', name:'Magnesium Chloride', kategori:'Kimia', unit:'kg', harga:1.24, stok:0, minStok:5,
-    packaging: { beg:{label:'Beg (25kg)', qty:25} } },
+  { id:'chem-6', name:'Azomite', kategori:'Kimia', unit:'kg', harga:3.50, stok:8, minStok:2,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-7', name:'Klorin', kategori:'Kimia', unit:'unit', harga:12.00, stok:4, minStok:1,
+    packaging: { beg:{label:'Botol (1 unit)', qty:1}, tong:{label:'Drum (4 unit)', qty:4} } },
+  { id:'chem-8', name:'EDTA Disodium', kategori:'Kimia', unit:'kg', harga:18.00, stok:5, minStok:2,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-9', name:'Probiotik EM4', kategori:'Probiotik', unit:'liter', harga:35.00, stok:3, minStok:1,
+    packaging: { beg:{label:'Botol (1L)', qty:1}, tong:{label:'Tong (20L)', qty:20} } },
+  { id:'chem-10', name:'Vitamin C', kategori:'Ubatan', unit:'kg', harga:38.00, stok:2, minStok:1,
+    packaging: { beg:{label:'Beg (1kg)', qty:1}, tong:{label:'Tong (5kg)', qty:5} } },
 ];
 const CHEM_REASONS = [
   'Kualiti air menurun', 'Penyakit (White Spot)', 'Penyakit (EMS/AHPND)',
@@ -802,6 +646,18 @@ const CHEM_REASONS = [
   'Ammonia tinggi', 'pH tidak stabil', 'Alga berlebihan', 'Lain-lain'
 ];
 const CHEMICAL_USAGE = [
+  { id:'cu-1', date:'2026-06-05', pond:'KOLAM C', chemId:'chem-1', qty:50, unit:'kg',
+    sebab:'pH tidak stabil', catatan:'pH 7.2, tambah kapur', pengusaha:'Fariz',
+    kos:125.00, status:'Selesai' },
+  { id:'cu-2', date:'2026-06-04', pond:'KOLAM C', chemId:'chem-5', qty:1, unit:'kg',
+    sebab:'Rawatan Rutin', catatan:'Probiotik mingguan', pengusaha:'Fariz',
+    kos:45.00, status:'Selesai' },
+  { id:'cu-3', date:'2026-06-03', pond:'KOLAM C', chemId:'chem-3', qty:3, unit:'kg',
+    sebab:'Alga berlebihan', catatan:'Molases untuk kompetisi karbon', pengusaha:'Azlan',
+    kos:12.00, status:'Selesai' },
+  { id:'cu-4', date:'2026-06-07', pond:'KOLAM C', chemId:'chem-2', qty:2, unit:'kg',
+    sebab:'Rawatan Rutin', catatan:'Buffering alkalinity', pengusaha:'Fariz',
+    kos:7.60, status:'Selesai' },
 ];
 const CHEM_PIE_COLORS = ['#22d3ee','#2dd4bf','#34d399','#fbbf24','#f472b6','#a78bfa','#fb923c','#818cf8','#f87171','#94a3b8'];
 
@@ -863,17 +719,17 @@ const STOCK_ITEM_CATEGORIES = [
 const AuthCtx = createContext(null);
 const useAuth = () => useContext(AuthCtx);
 const PERMISSIONS = {
-  admin: {
+  Admin: {
     modules: 'all',
     manageUsers: true,
     edit: true
   },
-  manager: {
+  Manager: {
     modules: 'all',
     manageUsers: false,
     edit: true
   },
-  pekerja: {
+  Pekerja: {
     modules: ['dashboard', 'water', 'feed', 'growth', 'health', 'chemicals', 'stock', 'settings'],
     manageUsers: false,
     edit: 'daily'
@@ -908,27 +764,19 @@ function AuthProvider({
   useEffect(() => {
     localStorage.setItem('upro_users', JSON.stringify(users));
   }, [users]);
-  // Sync users dari Supabase supaya password baru override local
-  useEffect(() => {
-    SB.get('farm_data', { select: 'data', eq: ['id', 'users'], single: true })
-      .then(d => {
-        if (d?.data?.length) {
-          setUsers(d.data);
-          localStorage.setItem('upro_users', JSON.stringify(d.data));
-        }
-      })
-      .catch(() => {});
-  }, []);
   const login = (email, password, remember) => {
     const u = users.find(x => x.email.toLowerCase() === email.toLowerCase().trim() && x.password === password);
     if (!u) return {
       ok: false,
       msg: 'Email atau kata laluan salah.'
     };
-    // active check removed — single admin user only
+    if (!u.active) return {
+      ok: false,
+      msg: 'Akaun tidak aktif. Hubungi admin.'
+    };
     const sess = {
       id: u.id,
-      name: u.name || u.nama,
+      name: u.name,
       email: u.email,
       role: u.role
     };
@@ -968,7 +816,6 @@ function AuthProvider({
       user,
       users,
       setUsers,
-      setUser,
       login,
       register,
       logout
@@ -1034,8 +881,7 @@ const TR = {
     offline: 'Offline — simpan lokal',
     syncing: 'Menyimpan...',
     connecting: 'Menyambung...',
-    lang_saved: 'Bahasa telah disimpan.',
-    signin_google: 'Log Masuk dengan Google'
+    lang_saved: 'Bahasa telah disimpan.'
   },
   en: {
     appName: 'UdangPro',
@@ -1088,8 +934,7 @@ const TR = {
     offline: 'Offline — saving locally',
     syncing: 'Saving...',
     connecting: 'Connecting...',
-    lang_saved: 'Language saved.',
-    signin_google: 'Sign in with Google'
+    lang_saved: 'Language saved.'
   }
 };
 const LangCtx = createContext(null);
@@ -1118,18 +963,14 @@ function LangProvider({
 function AuthPage() {
   const {
     login,
-    register,
-    users,
-    setUsers,
-    setUser
+    register
   } = useAuth();
-  const { t } = useLang();
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'pekerja'
+    role: 'Pekerja'
   });
   const [remember, setRemember] = useState(true);
   const [err, setErr] = useState('');
@@ -1139,34 +980,6 @@ function AuthPage() {
   const [forgotNewPw, setForgotNewPw] = useState('');
   const [forgotStep, setForgotStep] = useState('ask'); // ask | found | done
   const [forgotUser, setForgotUser] = useState(null);
-  // Handle Google Sign-In callback (redirect back from Google)
-  useEffect(() => {
-    if (!supabaseAuth) return;
-    supabaseAuth.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user?.email) return;
-      const email = session.user.email;
-      const name = session.user.user_metadata?.full_name || session.user.email.split('@')[0] || 'Google User';
-      // Find existing user or create new one
-      let u = users.find(x => x.email.toLowerCase() === email.toLowerCase());
-      if (!u) {
-        u = {
-          id: 'g_' + Date.now(),
-          email: email,
-          password: '',
-          nama: name,
-          role: 'admin',
-          active: true,
-          createdAt: todayISO,
-          lastLogin: todayISO
-        };
-        setUsers(us => [...us, u]);
-      }
-      // Log in - set session directly
-      const sess = { id: u.id, name: u.name || u.nama, email: u.email, role: u.role };
-      setUser(sess);
-      localStorage.setItem('upro_session', JSON.stringify(sess));
-    });
-  }, []);
   const set = (k, v) => setForm(f => ({
     ...f,
     [k]: v
@@ -1334,31 +1147,7 @@ function AuthPage() {
   }, /*#__PURE__*/React.createElement(Icon, {
     name: mode === 'signin' ? 'LogIn' : 'UserPlus',
     size: 17
-  }), mode === 'signin' ? 'Log Masuk' : 'Daftar Akaun')), mode === 'signin' && /*#__PURE__*/React.createElement(React.Fragment, null,
-      /*#__PURE__*/React.createElement("div", { className: "relative my-4" },
-        /*#__PURE__*/React.createElement("div", { className: "absolute inset-0 flex items-center" },
-          /*#__PURE__*/React.createElement("div", { className: "w-full border-t border-edge" })
-        ),
-        /*#__PURE__*/React.createElement("div", { className: "relative flex justify-center text-xs" },
-          /*#__PURE__*/React.createElement("span", { className: "bg-panel px-3 text-slate-500" }, t('or') )
-        )
-      ),
-      /*#__PURE__*/React.createElement("button", {
-        type: "button",
-        onClick: signInWithGoogle,
-        className: "w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-edge hover:border-cyan-400/40 transition text-sm font-medium text-slate-300 hover:text-white"
-      },
-        /*#__PURE__*/React.createElement("svg", { width: "18", height: "18", viewBox: "0 0 24 24" },
-          /*#__PURE__*/React.createElement("path", { fill: "#4285F4", d: "M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" }),
-          /*#__PURE__*/React.createElement("path", { fill: "#34A853", d: "M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" }),
-          /*#__PURE__*/React.createElement("path", { fill: "#FBBC05", d: "M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" }),
-          /*#__PURE__*/React.createElement("path", { fill: "#EA4335", d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" }),
-          /*#__PURE__*/React.createElement("path", { fill: "none", d: "M1 1h22v22H1z" })
-        ),
-        t('signin_google')
-      )
-    )));
-  }
+  }), mode === 'signin' ? 'Log Masuk' : 'Daftar Akaun'))));
 }
 
 /* ============================================================
@@ -1391,12 +1180,7 @@ const NAV = [{
 }, {
   id: 'health',
   labelKey: 'nav_health',
-  icon: 'HeartPulse',
-  children: [{
-    id: 'chemicals',
-    labelKey: 'nav_chemicals',
-    icon: 'FlaskConical'
-  }]
+  icon: 'HeartPulse'
 }, {
   id: 'harvest',
   labelKey: 'nav_harvest',
@@ -1406,6 +1190,14 @@ const NAV = [{
   labelKey: 'nav_finance',
   icon: 'Wallet'
 }, {
+  id: 'users',
+  labelKey: 'nav_users',
+  icon: 'Users'
+}, {
+  id: 'reports',
+  labelKey: 'nav_reports',
+  icon: 'FileBarChart'
+}, {
   id: 'stock',
   labelKey: 'nav_stock',
   icon: 'Warehouse'
@@ -1414,17 +1206,13 @@ const NAV = [{
   labelKey: 'nav_report',
   icon: 'FileText'
 }, {
-  id: 'reports',
-  labelKey: 'nav_reports',
-  icon: 'FileBarChart'
-}, {
-  id: 'users',
-  labelKey: 'nav_users',
-  icon: 'Users'
-}, {
   id: 'settings',
   labelKey: 'nav_settings',
   icon: 'Settings'
+}, {
+  id: 'chemicals',
+  labelKey: 'nav_chemicals',
+  icon: 'FlaskConical'
 }];
 const SHRIMP_SVG = 'icon-192.jpg';
 function ShrimpIcon({ size }) { return React.createElement("img", { src: SHRIMP_SVG, className: "shrimp-icon", style: { width: size + "px", height: size + "px", display: "block", backgroundColor: "transparent" }, alt: "" }); }
@@ -1455,10 +1243,7 @@ function Sidebar({
   const {
     t
   } = useLang();
-  const items = NAV.filter(n => canSee(user.role, n.id)).map(n => ({
-    ...n,
-    children: n.children ? n.children.filter(c => canSee(user.role, c.id)) : undefined
-  }));
+  const items = NAV.filter(n => canSee(user.role, n.id));
   return /*#__PURE__*/React.createElement(React.Fragment, null, open && /*#__PURE__*/React.createElement("div", {
     className: "fixed inset-0 bg-black/50 z-30 lg:hidden",
     onClick: () => setOpen(false)
@@ -1474,26 +1259,17 @@ function Sidebar({
     className: "text-[10px] text-cyan-300/70"
   }, t('appTag')))), /*#__PURE__*/React.createElement("nav", {
     className: "flex-1 overflow-y-auto p-3 space-y-1"
-  }, items.map(n => {
-    const isActive = active === n.id || (n.children && n.children.some(c => c.id === active));
-    const isOpen = isActive;
-    return /*#__PURE__*/React.createElement(React.Fragment, {key:n.id},
-      /*#__PURE__*/React.createElement("button", {
-        onClick: () => { setActive(n.id); setOpen(false); },
-        className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active === n.id ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`
-      }, /*#__PURE__*/React.createElement(Icon, {
-        name: n.icon,
-        size: 18
-      }), t(n.labelKey), n.children && /*#__PURE__*/React.createElement(Icon, { name: isOpen ? 'ChevronDown' : 'ChevronRight', size: 14, className: 'ml-auto text-slate-500' })),
-      isOpen && n.children && n.children.map(c =>
-        /*#__PURE__*/React.createElement("button", {
-          key: c.id,
-          onClick: () => { setActive(c.id); setOpen(false); },
-          className: `w-full flex items-center gap-3 pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition ${active === c.id ? 'bg-gradient-to-r from-cyan-500/15 to-teal-500/8 text-cyan-300 border-l-2 border-cyan-400' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300 border-l-2 border-transparent'}`
-        }, /*#__PURE__*/React.createElement(Icon, { name: c.icon, size: 15 }), t(c.labelKey))
-      )
-    );
-  })), /*#__PURE__*/React.createElement("div", {
+  }, items.map(n => /*#__PURE__*/React.createElement("button", {
+    key: n.id,
+    onClick: () => {
+      setActive(n.id);
+      setOpen(false);
+    },
+    className: `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${active === n.id ? 'bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-300 border border-cyan-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'}`
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: n.icon,
+    size: 18
+  }), t(n.labelKey)))), /*#__PURE__*/React.createElement("div", {
     className: "p-3 border-t border-edge"
   }, /*#__PURE__*/React.createElement("div", {
     className: "flex items-center gap-3 px-2 py-2 rounded-xl bg-panel2/60"
@@ -2685,7 +2461,7 @@ function FeedModule() {
     className: "flex justify-between text-xs text-slate-400 mt-1"
   }, /*#__PURE__*/React.createElement("span", null, "Saiz: ", f.stage), /*#__PURE__*/React.createElement("span", {
     className: "text-cyan-300"
-  }, "RM ", f.pricePerBag, "/beg"))))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("h3", {
+  }, "RM ", f.pricePerKg, "/kg"))))))), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("h3", {
     className: "font-bold text-white mb-3 flex items-center gap-2"
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "Warehouse",
@@ -2742,7 +2518,8 @@ function FeedModule() {
               const kg = (feedForm.packQty||0) * 25;
               const kos = kg * (ft?ft.pricePerKg:0);
               return React.createElement(React.Fragment, null,
-                feedForm.packQty+' beg × RM'+(ft?ft.pricePerBag:0)+' = ', React.createElement('strong',{className:'text-emerald-300'},fmtRM(kos))
+                feedForm.packQty+' beg × 25kg = ', React.createElement('strong',{className:'text-white'},kg+' kg'),
+                ' × RM'+(ft?ft.pricePerKg:0)+' = ', React.createElement('strong',{className:'text-emerald-300'},fmtRM(kos))
               );
             })()
           )
@@ -3748,7 +3525,7 @@ function UsersModule() {
       name: '',
       email: '',
       password: '',
-      role: 'pekerja',
+      role: 'Pekerja',
       active: true
     });
     setModal('new');
@@ -3778,7 +3555,7 @@ function UsersModule() {
       alert('Tak boleh padam akaun sendiri');
       return;
     }
-    if (confirm(`Padam ${u.name || u.nama}?`)) setUsers(us => us.filter(x => x.id !== u.id));
+    if (confirm(`Padam ${u.name}?`)) setUsers(us => us.filter(x => x.id !== u.id));
   };
   const cols = [{
     key: 'name',
@@ -3798,7 +3575,7 @@ function UsersModule() {
     key: 'role',
     label: 'Peranan',
     render: r => /*#__PURE__*/React.createElement("span", {
-      className: `px-2 py-0.5 rounded-full text-xs font-bold ${r.role === 'admin' ? 'bg-rose-500/15 text-rose-300' : r.role === 'manager' ? 'bg-violet-500/15 text-violet-300' : 'bg-cyan-500/15 text-cyan-300'}`
+      className: `px-2 py-0.5 rounded-full text-xs font-bold ${r.role === 'Admin' ? 'bg-rose-500/15 text-rose-300' : r.role === 'Manager' ? 'bg-violet-500/15 text-violet-300' : 'bg-cyan-500/15 text-cyan-300'}`
     }, r.role)
   }, {
     key: 'active',
@@ -3863,7 +3640,7 @@ function UsersModule() {
   }), /*#__PURE__*/React.createElement(KpiCard, {
     icon: "ShieldCheck",
     label: "Admin",
-    value: users.filter(u => u.role === 'admin').length,
+    value: users.filter(u => u.role === 'Admin').length,
     tone: "rose"
   }), /*#__PURE__*/React.createElement(KpiCard, {
     icon: "UserCheck",
@@ -4264,7 +4041,7 @@ function FinalReportModule() {
   const [format, setFormat] = useState('pdf');
   const [lang, setLang] = useState('ms');
   const [sections, setSections] = useState({cover:true,exec:true,seed:true,water:true,growth:true,feed:true,health:true,harvest:true,finance:true,kpi:true,review:true});
-  const canExport = user.role === 'admin' || user.role === 'manager';
+  const canExport = user.role === 'Admin' || user.role === 'Manager';
   const today = new Date().toISOString().slice(0,10);
   const rptNum = 'LP' + today.replace(/-/g,'') + '-' + String(Date.now()).slice(-4);
   const pondGrowth = (pid) => (growth||[]).filter(g => g.pondId === pid).sort((a,b) => (a.week||0)-(b.week||0));
@@ -4421,8 +4198,8 @@ function StockModule() {
   const { user } = useAuth();
   const role = user.role;
   const canEdit = PERMISSIONS[role].edit === true;
-  const canManage = role === 'admin' || role === 'manager';
-  const canDelete = role === 'admin';
+  const canManage = role === 'Admin' || role === 'Manager';
+  const canDelete = role === 'Admin';
   const { stockItems, setStockItems, stockMoves, setStockMoves, suppliers, setSuppliers, ponds } = useData();
   const [tab, setTab] = useState('dashboard');
   const [filter, setFilter] = React.useState('all');
@@ -5628,7 +5405,7 @@ function DataProvider({
         eq: ['id', key],
         single: true
       }).then(d => {
-        if (d?.data && Array.isArray(d.data)) {
+        if (d?.data?.length) {
           setV(withIds(d.data));
           localStorage.setItem('upro_' + key, JSON.stringify(d.data));
         } else if (!localStorage.getItem('upro_' + key)) localStorage.setItem('upro_' + key, JSON.stringify(withIds(seed)));
@@ -5871,6 +5648,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.c
     }
   } catch (e) {}
 })();
-</script>
-</body>
-</html>
