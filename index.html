@@ -492,7 +492,9 @@ const SEED_USERS = [{
   lastLogin: daysAgo(0)
 }];
 const SPECIES = ['Udang Vannamei (L. vannamei)', 'Udang Harimau (P. monodon)', 'Udang Putih'];
-const PONDS = [];
+const PONDS = [
+  { id:'KOLAM C', name:'Kolam C', sizeM2:5600, sizeHa:0.56, type:'Tanah', loc:'Blok Utara', gps:'2.4290, 103.8402', status:'Tuaian', stockDate:'2026-03-09', density:107, species:'Udang Vannamei (L. vannamei)', seeded:600000, survival:82.3, harvestEst:daysAhead(0) },
+];
 
 /* Water quality: 30 hari untuk kolam aktif */
 function genWQ(pondId, baseTemp) {
@@ -540,6 +542,30 @@ const FEED_TYPES = [{
   name: 'Finisher (2.5mm)',
   stage: '>25g',
   pricePerKg: 4.50
+}, {
+  name: '5001',
+  stage: 'Starter 40%',
+  pricePerKg: 5.60
+}, {
+  name: '5002',
+  stage: 'Starter 40%',
+  pricePerKg: 5.60
+}, {
+  name: '5003',
+  stage: 'Grower 40%',
+  pricePerKg: 5.70
+}, {
+  name: '7704',
+  stage: 'Finisher 36%',
+  pricePerKg: 5.00
+}, {
+  name: '7705',
+  stage: 'Finisher 36%',
+  pricePerKg: 5.00
+}, {
+  name: '7706',
+  stage: 'Finisher 36%',
+  pricePerKg: 4.90
 }];
 function genFeed(pondId, base) {
   const arr = [];
@@ -555,7 +581,101 @@ function genFeed(pondId, base) {
   }
   return arr;
 }
-const FEED_RECORDS = [];
+const FEED_RECORDS = [
+  { id:"feed-1", date:"2026-03-09", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-2", date:"2026-03-10", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-3", date:"2026-03-11", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-4", date:"2026-03-12", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-5", date:"2026-03-13", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-6", date:"2026-03-14", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-7", date:"2026-03-15", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-8", date:"2026-03-16", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-9", date:"2026-03-17", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-10", date:"2026-03-18", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-11", date:"2026-03-19", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-12", date:"2026-03-20", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-13", date:"2026-03-21", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-14", date:"2026-03-22", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-15", date:"2026-03-23", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-16", date:"2026-03-23", pond:"KOLAM C", feedType:"5002", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-17", date:"2026-03-24", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-18", date:"2026-03-24", pond:"KOLAM C", feedType:"5002", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-19", date:"2026-03-25", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-20", date:"2026-03-25", pond:"KOLAM C", feedType:"5002", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-21", date:"2026-03-26", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-22", date:"2026-03-27", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-23", date:"2026-03-28", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-24", date:"2026-03-29", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-25", date:"2026-03-30", pond:"KOLAM C", feedType:"5002", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-26", date:"2026-03-31", pond:"KOLAM C", feedType:"5002", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-27", date:"2026-04-01", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-28", date:"2026-04-02", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-29", date:"2026-04-03", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-30", date:"2026-04-04", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-31", date:"2026-04-05", pond:"KOLAM C", feedType:"5003", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-32", date:"2026-04-06", pond:"KOLAM C", feedType:"5003", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-33", date:"2026-04-07", pond:"KOLAM C", feedType:"5003", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-34", date:"2026-04-07", pond:"KOLAM C", feedType:"7704", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-35", date:"2026-04-08", pond:"KOLAM C", feedType:"7704", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-36", date:"2026-04-09", pond:"KOLAM C", feedType:"7704", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-37", date:"2026-04-10", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-38", date:"2026-04-11", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-39", date:"2026-04-12", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-40", date:"2026-04-13", pond:"KOLAM C", feedType:"7704", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-41", date:"2026-04-14", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-42", date:"2026-04-15", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-43", date:"2026-04-16", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-44", date:"2026-04-17", pond:"KOLAM C", feedType:"7704", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-45", date:"2026-04-18", pond:"KOLAM C", feedType:"7704", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-46", date:"2026-04-19", pond:"KOLAM C", feedType:"7705", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-47", date:"2026-04-20", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-48", date:"2026-04-21", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-49", date:"2026-04-22", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-50", date:"2026-04-23", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-51", date:"2026-04-24", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-52", date:"2026-04-25", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-53", date:"2026-04-26", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-54", date:"2026-04-27", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-55", date:"2026-04-28", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-56", date:"2026-04-29", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-57", date:"2026-04-30", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-58", date:"2026-05-01", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-59", date:"2026-05-02", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-60", date:"2026-05-03", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-61", date:"2026-05-04", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-62", date:"2026-05-05", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-63", date:"2026-05-06", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-64", date:"2026-05-07", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-65", date:"2026-05-08", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-66", date:"2026-05-09", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-67", date:"2026-05-10", pond:"KOLAM C", feedType:"7705", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-68", date:"2026-05-11", pond:"KOLAM C", feedType:"7705", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-69", date:"2026-05-12", pond:"KOLAM C", feedType:"7706", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-70", date:"2026-05-13", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-71", date:"2026-05-14", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-72", date:"2026-05-15", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-73", date:"2026-05-16", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-74", date:"2026-05-17", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-75", date:"2026-05-18", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-76", date:"2026-05-19", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-77", date:"2026-05-20", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-78", date:"2026-05-21", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-79", date:"2026-05-22", pond:"KOLAM C", feedType:"7706", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-80", date:"2026-05-23", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-81", date:"2026-05-24", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-82", date:"2026-05-25", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-83", date:"2026-05-26", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-84", date:"2026-05-27", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-85", date:"2026-05-28", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-86", date:"2026-05-29", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-87", date:"2026-05-30", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-88", date:"2026-05-31", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-89", date:"2026-06-01", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-90", date:"2026-06-02", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-91", date:"2026-06-03", pond:"KOLAM C", feedType:"7706", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-92", date:"2026-06-04", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-93", date:"2026-06-05", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+];
 const FEED_STOCK = [];
 
 /* Growth sampling — 8 minggu */
@@ -582,7 +702,15 @@ const GROWTH = [];
 /* Health / disease */
 const DISEASES = ['EMS/AHPNS', 'WSD (White Spot)', 'WSSV', 'EHP', 'Running Mortality Syndrome'];
 const HEALTH_RECORDS = [];
-const MED_STOCK = [];
+const MED_STOCK = [
+  { item:'Hydrated Lime (Kapur)', unit:'kg', qty:629, reorder:50 },
+  { item:'Sodium Bikarbonat', unit:'kg', qty:15, reorder:5 },
+  { item:'Molases', unit:'kg', qty:11, reorder:5 },
+  { item:'Kalsium Karbonat', unit:'kg', qty:11, reorder:5 },
+  { item:'Super Bio (Probiotik)', unit:'kg', qty:10, reorder:2 },
+  { item:'Azomite', unit:'kg', qty:8, reorder:2 },
+  { item:'Klorin', unit:'kg', qty:4, reorder:1 },
+];
 
 /* Daily mortality (14 hari) untuk graf */
 function genMort(pondId, base) {
