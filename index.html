@@ -1242,7 +1242,7 @@ function Dashboard({
   const activePonds = ponds.filter(p => p.status === 'Aktif' || p.status === 'Tuaian');
   const totalStock = activePonds.reduce((s, p) => s + Math.round(p.seeded * p.survival / 100), 0);
   const avgSurvival = activePonds.length ? Math.round(activePonds.reduce((s, p) => s + p.survival, 0) / activePonds.length) : 0;
-  const monthIncome = FINANCE[FINANCE.length - 1].income;
+  const monthIncome = FINANCE.length > 0 ? FINANCE[FINANCE.length - 1].income : 0;
 
   // FCR = total feed / biomass gain (anggaran)
   const totalFeedKg = feed.reduce((s, f) => s + (+f.kg || 0), 0);
