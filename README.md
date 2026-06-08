@@ -10,7 +10,7 @@ Sistem pengurusan ladang udang dengan sync cloud. Data disimpan di Supabase dan 
 - Sync automatik ke cloud (Supabase)
 - Offline mode — data kekal guna localStorage
 - PWA — boleh Add to Home Screen kat phone
-- Login: admin@udang.com / admin123
+
 
 ## 🛠 Tech Stack
 - React 18 (single-file, CDN)
