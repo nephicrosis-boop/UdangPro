@@ -509,136 +509,145 @@ const SEED_RECORDS = [];
 const FEED_TYPES = [{
   name: '5001',
   stage: 'Starter 40%',
-  pricePerKg: 5.60
+  pricePerKg: 5.60,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5002',
   stage: 'Starter 40%',
-  pricePerKg: 5.60
+  pricePerKg: 5.60,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '5003',
   stage: 'Grower 40%',
-  pricePerKg: 5.70
+  pricePerKg: 5.70,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7704',
   stage: 'Finisher 36%',
-  pricePerKg: 5.00
+  pricePerKg: 5.00,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7705',
   stage: 'Finisher 36%',
-  pricePerKg: 5.00
+  pricePerKg: 5.00,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }, {
   name: '7706',
   stage: 'Finisher 36%',
-  pricePerKg: 4.90
+  pricePerKg: 4.90,
+  packaging: { beg: { label: 'Beg (25kg)', kg: 25 } }
 }];
 function genFeed(pondId, base) {
+  const bagQty = Math.round(base / 25) || 1;
   const arr = [];
   for (let i = 13; i >= 0; i--) {
     arr.push({
       id: `${pondId}-${i}`,
       date: daysAgo(i),
       pond: pondId,
-      feedType: base > 200 ? 'Finisher (2.5mm)' : base > 120 ? 'Grower (1.5mm)' : 'Starter (0.5mm)',
-      kg: +(base + (Math.random() - 0.3) * 12).toFixed(1),
+      feedType: base > 200 ? '7704' : base > 120 ? '5003' : '5001',
+      packQty: bagQty,
+      kg: bagQty * 25,
+      packaging: 'Beg',
       times: 'Pagi/Tengahari/Petang/Malam'
     });
   }
   return arr;
 }
 const FEED_RECORDS = [
-  { id:"feed-1", date:"2026-03-09", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-2", date:"2026-03-10", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-3", date:"2026-03-11", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-4", date:"2026-03-12", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-5", date:"2026-03-13", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-6", date:"2026-03-14", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-7", date:"2026-03-15", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-8", date:"2026-03-16", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-9", date:"2026-03-17", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-10", date:"2026-03-18", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-11", date:"2026-03-19", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-12", date:"2026-03-20", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-13", date:"2026-03-21", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-14", date:"2026-03-22", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-15", date:"2026-03-23", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-16", date:"2026-03-23", pond:"KOLAM C", feedType:"5002", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-17", date:"2026-03-24", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-18", date:"2026-03-24", pond:"KOLAM C", feedType:"5002", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-19", date:"2026-03-25", pond:"KOLAM C", feedType:"5001", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-20", date:"2026-03-25", pond:"KOLAM C", feedType:"5002", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-21", date:"2026-03-26", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-22", date:"2026-03-27", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-23", date:"2026-03-28", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-24", date:"2026-03-29", pond:"KOLAM C", feedType:"5002", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-25", date:"2026-03-30", pond:"KOLAM C", feedType:"5002", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-26", date:"2026-03-31", pond:"KOLAM C", feedType:"5002", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-27", date:"2026-04-01", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-28", date:"2026-04-02", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-29", date:"2026-04-03", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-30", date:"2026-04-04", pond:"KOLAM C", feedType:"5003", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-31", date:"2026-04-05", pond:"KOLAM C", feedType:"5003", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-32", date:"2026-04-06", pond:"KOLAM C", feedType:"5003", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-33", date:"2026-04-07", pond:"KOLAM C", feedType:"5003", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-34", date:"2026-04-07", pond:"KOLAM C", feedType:"7704", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-35", date:"2026-04-08", pond:"KOLAM C", feedType:"7704", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-36", date:"2026-04-09", pond:"KOLAM C", feedType:"7704", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-37", date:"2026-04-10", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-38", date:"2026-04-11", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-39", date:"2026-04-12", pond:"KOLAM C", feedType:"7704", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-40", date:"2026-04-13", pond:"KOLAM C", feedType:"7704", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-41", date:"2026-04-14", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-42", date:"2026-04-15", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-43", date:"2026-04-16", pond:"KOLAM C", feedType:"7704", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-44", date:"2026-04-17", pond:"KOLAM C", feedType:"7704", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-45", date:"2026-04-18", pond:"KOLAM C", feedType:"7704", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-46", date:"2026-04-19", pond:"KOLAM C", feedType:"7705", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-47", date:"2026-04-20", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-48", date:"2026-04-21", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-49", date:"2026-04-22", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-50", date:"2026-04-23", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-51", date:"2026-04-24", pond:"KOLAM C", feedType:"7705", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-52", date:"2026-04-25", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-53", date:"2026-04-26", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-54", date:"2026-04-27", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-55", date:"2026-04-28", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-56", date:"2026-04-29", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-57", date:"2026-04-30", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-58", date:"2026-05-01", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-59", date:"2026-05-02", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-60", date:"2026-05-03", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-61", date:"2026-05-04", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-62", date:"2026-05-05", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-63", date:"2026-05-06", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-64", date:"2026-05-07", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-65", date:"2026-05-08", pond:"KOLAM C", feedType:"7705", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-66", date:"2026-05-09", pond:"KOLAM C", feedType:"7705", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-67", date:"2026-05-10", pond:"KOLAM C", feedType:"7705", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-68", date:"2026-05-11", pond:"KOLAM C", feedType:"7705", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-69", date:"2026-05-12", pond:"KOLAM C", feedType:"7706", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-70", date:"2026-05-13", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-71", date:"2026-05-14", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-72", date:"2026-05-15", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-73", date:"2026-05-16", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-74", date:"2026-05-17", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-75", date:"2026-05-18", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-76", date:"2026-05-19", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-77", date:"2026-05-20", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-78", date:"2026-05-21", pond:"KOLAM C", feedType:"7706", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-79", date:"2026-05-22", pond:"KOLAM C", feedType:"7706", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-80", date:"2026-05-23", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-81", date:"2026-05-24", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-82", date:"2026-05-25", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-83", date:"2026-05-26", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-84", date:"2026-05-27", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-85", date:"2026-05-28", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-86", date:"2026-05-29", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-87", date:"2026-05-30", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-88", date:"2026-05-31", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-89", date:"2026-06-01", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-90", date:"2026-06-02", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-91", date:"2026-06-03", pond:"KOLAM C", feedType:"7706", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-92", date:"2026-06-04", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
-  { id:"feed-93", date:"2026-06-05", pond:"KOLAM C", feedType:"7706", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-1", date:"2026-03-09", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-2", date:"2026-03-10", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-3", date:"2026-03-11", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-4", date:"2026-03-12", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-5", date:"2026-03-13", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-6", date:"2026-03-14", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-7", date:"2026-03-15", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-8", date:"2026-03-16", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-9", date:"2026-03-17", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-10", date:"2026-03-18", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-11", date:"2026-03-19", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-12", date:"2026-03-20", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-13", date:"2026-03-21", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-14", date:"2026-03-22", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-15", date:"2026-03-23", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-16", date:"2026-03-23", pond:"KOLAM C", feedType:"5002", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-17", date:"2026-03-24", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-18", date:"2026-03-24", pond:"KOLAM C", feedType:"5002", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-19", date:"2026-03-25", pond:"KOLAM C", feedType:"5001", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-20", date:"2026-03-25", pond:"KOLAM C", feedType:"5002", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-21", date:"2026-03-26", pond:"KOLAM C", feedType:"5002", packQty:3, packaging:"Beg", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-22", date:"2026-03-27", pond:"KOLAM C", feedType:"5002", packQty:3, packaging:"Beg", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-23", date:"2026-03-28", pond:"KOLAM C", feedType:"5002", packQty:3, packaging:"Beg", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-24", date:"2026-03-29", pond:"KOLAM C", feedType:"5002", packQty:3, packaging:"Beg", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-25", date:"2026-03-30", pond:"KOLAM C", feedType:"5002", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-26", date:"2026-03-31", pond:"KOLAM C", feedType:"5002", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-27", date:"2026-04-01", pond:"KOLAM C", feedType:"5003", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-28", date:"2026-04-02", pond:"KOLAM C", feedType:"5003", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-29", date:"2026-04-03", pond:"KOLAM C", feedType:"5003", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-30", date:"2026-04-04", pond:"KOLAM C", feedType:"5003", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-31", date:"2026-04-05", pond:"KOLAM C", feedType:"5003", packQty:6, packaging:"Beg", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-32", date:"2026-04-06", pond:"KOLAM C", feedType:"5003", packQty:7, packaging:"Beg", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-33", date:"2026-04-07", pond:"KOLAM C", feedType:"5003", packQty:7, packaging:"Beg", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-34", date:"2026-04-07", pond:"KOLAM C", feedType:"7704", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-35", date:"2026-04-08", pond:"KOLAM C", feedType:"7704", packQty:8, packaging:"Beg", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-36", date:"2026-04-09", pond:"KOLAM C", feedType:"7704", packQty:8, packaging:"Beg", kg:200.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-37", date:"2026-04-10", pond:"KOLAM C", feedType:"7704", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-38", date:"2026-04-11", pond:"KOLAM C", feedType:"7704", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-39", date:"2026-04-12", pond:"KOLAM C", feedType:"7704", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-40", date:"2026-04-13", pond:"KOLAM C", feedType:"7704", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-41", date:"2026-04-14", pond:"KOLAM C", feedType:"7704", packQty:12, packaging:"Beg", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-42", date:"2026-04-15", pond:"KOLAM C", feedType:"7704", packQty:12, packaging:"Beg", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-43", date:"2026-04-16", pond:"KOLAM C", feedType:"7704", packQty:12, packaging:"Beg", kg:300.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-44", date:"2026-04-17", pond:"KOLAM C", feedType:"7704", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-45", date:"2026-04-18", pond:"KOLAM C", feedType:"7704", packQty:6, packaging:"Beg", kg:150.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-46", date:"2026-04-19", pond:"KOLAM C", feedType:"7705", packQty:7, packaging:"Beg", kg:175.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-47", date:"2026-04-20", pond:"KOLAM C", feedType:"7705", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-48", date:"2026-04-21", pond:"KOLAM C", feedType:"7705", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-49", date:"2026-04-22", pond:"KOLAM C", feedType:"7705", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-50", date:"2026-04-23", pond:"KOLAM C", feedType:"7705", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-51", date:"2026-04-24", pond:"KOLAM C", feedType:"7705", packQty:13, packaging:"Beg", kg:325.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-52", date:"2026-04-25", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-53", date:"2026-04-26", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-54", date:"2026-04-27", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-55", date:"2026-04-28", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-56", date:"2026-04-29", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-57", date:"2026-04-30", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-58", date:"2026-05-01", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-59", date:"2026-05-02", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-60", date:"2026-05-03", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-61", date:"2026-05-04", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-62", date:"2026-05-05", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-63", date:"2026-05-06", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-64", date:"2026-05-07", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-65", date:"2026-05-08", pond:"KOLAM C", feedType:"7705", packQty:9, packaging:"Beg", kg:225.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-66", date:"2026-05-09", pond:"KOLAM C", feedType:"7705", packQty:10, packaging:"Beg", kg:250.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-67", date:"2026-05-10", pond:"KOLAM C", feedType:"7705", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-68", date:"2026-05-11", pond:"KOLAM C", feedType:"7705", packQty:5, packaging:"Beg", kg:125.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-69", date:"2026-05-12", pond:"KOLAM C", feedType:"7706", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-70", date:"2026-05-13", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-71", date:"2026-05-14", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-72", date:"2026-05-15", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-73", date:"2026-05-16", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-74", date:"2026-05-17", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-75", date:"2026-05-18", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-76", date:"2026-05-19", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-77", date:"2026-05-20", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-78", date:"2026-05-21", pond:"KOLAM C", feedType:"7706", packQty:4, packaging:"Beg", kg:100.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-79", date:"2026-05-22", pond:"KOLAM C", feedType:"7706", packQty:3, packaging:"Beg", kg:75.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-80", date:"2026-05-23", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-81", date:"2026-05-24", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-82", date:"2026-05-25", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-83", date:"2026-05-26", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-84", date:"2026-05-27", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-85", date:"2026-05-28", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-86", date:"2026-05-29", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-87", date:"2026-05-30", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-88", date:"2026-05-31", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-89", date:"2026-06-01", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-90", date:"2026-06-02", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-91", date:"2026-06-03", pond:"KOLAM C", feedType:"7706", packQty:1, packaging:"Beg", kg:25.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-92", date:"2026-06-04", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
+  { id:"feed-93", date:"2026-06-05", pond:"KOLAM C", feedType:"7706", packQty:2, packaging:"Beg", kg:50.0, times:"Pagi/Tengahari/Petang/Malam" },
 ];
 const FEED_STOCK = [];
 
@@ -678,16 +687,26 @@ const MED_STOCK = [
 
 /* ─── Chemical Usage — rawatan kimia/ubatan per kolam ─── */
 const CHEM_ITEMS = [
-  { id:'chem-1', name:'Hydrated Lime (Kapur)', kategori:'Kimia', unit:'kg', harga:2.50, stok:629, minStok:50 },
-  { id:'chem-2', name:'Sodium Bikarbonat', kategori:'Kimia', unit:'kg', harga:3.80, stok:15, minStok:5 },
-  { id:'chem-3', name:'Molases', kategori:'Probiotik', unit:'kg', harga:4.00, stok:11, minStok:5 },
-  { id:'chem-4', name:'Kalsium Karbonat', kategori:'Kimia', unit:'kg', harga:2.20, stok:11, minStok:5 },
-  { id:'chem-5', name:'Super Bio (Probiotik)', kategori:'Probiotik', unit:'kg', harga:45.00, stok:10, minStok:2 },
-  { id:'chem-6', name:'Azomite', kategori:'Kimia', unit:'kg', harga:3.50, stok:8, minStok:2 },
-  { id:'chem-7', name:'Klorin', kategori:'Kimia', unit:'unit', harga:12.00, stok:4, minStok:1 },
-  { id:'chem-8', name:'EDTA Disodium', kategori:'Kimia', unit:'kg', harga:18.00, stok:5, minStok:2 },
-  { id:'chem-9', name:'Probiotik EM4', kategori:'Probiotik', unit:'liter', harga:35.00, stok:3, minStok:1 },
-  { id:'chem-10', name:'Vitamin C', kategori:'Ubatan', unit:'kg', harga:38.00, stok:2, minStok:1 },
+  { id:'chem-1', name:'Hydrated Lime (Kapur)', kategori:'Kimia', unit:'kg', harga:2.50, stok:629, minStok:50,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-2', name:'Sodium Bikarbonat', kategori:'Kimia', unit:'kg', harga:3.80, stok:15, minStok:5,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-3', name:'Molases', kategori:'Probiotik', unit:'kg', harga:4.00, stok:11, minStok:5,
+    packaging: { tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-4', name:'Kalsium Karbonat', kategori:'Kimia', unit:'kg', harga:2.20, stok:11, minStok:5,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-5', name:'Super Bio (Probiotik)', kategori:'Probiotik', unit:'kg', harga:45.00, stok:10, minStok:2,
+    packaging: { beg:{label:'Beg (1kg)', qty:1}, tong:{label:'Tong (5kg)', qty:5} } },
+  { id:'chem-6', name:'Azomite', kategori:'Kimia', unit:'kg', harga:3.50, stok:8, minStok:2,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-7', name:'Klorin', kategori:'Kimia', unit:'unit', harga:12.00, stok:4, minStok:1,
+    packaging: { beg:{label:'Botol (1 unit)', qty:1}, tong:{label:'Drum (4 unit)', qty:4} } },
+  { id:'chem-8', name:'EDTA Disodium', kategori:'Kimia', unit:'kg', harga:18.00, stok:5, minStok:2,
+    packaging: { beg:{label:'Beg (25kg)', qty:25}, tong:{label:'Tong (20kg)', qty:20} } },
+  { id:'chem-9', name:'Probiotik EM4', kategori:'Probiotik', unit:'liter', harga:35.00, stok:3, minStok:1,
+    packaging: { beg:{label:'Botol (1L)', qty:1}, tong:{label:'Tong (20L)', qty:20} } },
+  { id:'chem-10', name:'Vitamin C', kategori:'Ubatan', unit:'kg', harga:38.00, stok:2, minStok:1,
+    packaging: { beg:{label:'Beg (1kg)', qty:1}, tong:{label:'Tong (5kg)', qty:5} } },
 ];
 const CHEM_REASONS = [
   'Kualiti air menurun', 'Penyakit (White Spot)', 'Penyakit (EMS/AHPND)',
@@ -2260,8 +2279,8 @@ function FeedModule() {
   const [pond, setPond] = useState('Semua');
   const rows = pond === 'Semua' ? FEED : FEED.filter(f => f.pond === pond);
   const totalKg = rows.reduce((s, f) => s + (+f.kg || 0), 0);
-  const feedCostPerKg = 4.8;
-  const totalCost = totalKg * feedCostPerKg;
+  const feedCost = r => { const ft = FEED_TYPES.find(t => t.name === r.feedType); return ft ? r.kg * ft.pricePerKg : 0; };
+  const totalCost = rows.reduce((s, r) => s + feedCost(r), 0);
 
   // FCR per pond
   const fcrData = activePonds.map(p => {
@@ -2292,8 +2311,15 @@ function FeedModule() {
     key: 'feedType',
     label: 'Jenis Feed'
   }, {
+    key: 'packInfo',
+    label: 'Pembungkusan',
+    sortable: false,
+    render: r => /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-300 text-xs"
+    }, r.packQty, " beg (", r.kg, " kg)")
+  }, {
     key: 'kg',
-    label: 'Kuantiti (kg)',
+    label: 'Jumlah (kg)',
     render: r => /*#__PURE__*/React.createElement("b", {
       className: "text-cyan-300"
     }, r.kg)
@@ -2303,8 +2329,27 @@ function FeedModule() {
   }, {
     key: 'cost',
     label: 'Kos (RM)',
-    render: r => fmtRM(r.kg * feedCostPerKg)
-  }];
+    render: r => fmtRM(feedCost(r))
+  }].concat(canEdit ? [{
+    key: '_act',
+    label: '',
+    sortable: false,
+    render: r => /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-1"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => openFeedEdit(r),
+      className: "p-1.5 rounded-lg bg-panel2 hover:bg-cyan-500/20 text-cyan-300"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "Pencil",
+      size: 14
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setFeedDel(r),
+      className: "p-1.5 rounded-lg bg-panel2 hover:bg-rose-500/20 text-rose-300"
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "Trash2",
+      size: 14
+    })))
+  }] : []);
   const stockCols = [{
     key: 'item',
     label: 'Item Feed'
@@ -2331,8 +2376,27 @@ function FeedModule() {
     label: 'Status',
     render: r => /*#__PURE__*/React.createElement(StatusBadge, {
       status: r.bags <= r.reorder ? 'Kritikal' : 'Normal'
-    })
+    }))
   }];
+  /* Custom Feed Form — state & handlers */
+  const [showFeedForm, setShowFeedForm] = useState(false);
+  const [feedForm, setFeedForm] = useState(null);
+  const [feedDel, setFeedDel] = useState(null);
+  const fSet = (k,v) => setFeedForm(f=>({...f,[k]:v}));
+  const openFeedNew = () => {
+    setFeedForm({date:todayISO, pond:'', feedType:'5001', packQty:1, packaging:'Beg', times:'Pagi/Tengahari/Petang/Malam'});
+    setShowFeedForm(true);
+  };
+  const openFeedEdit = r => { setFeedForm({...r}); setShowFeedForm(true); };
+  const saveFeed = () => {
+    if(!feedForm.date||!feedForm.pond||!feedForm.packQty){alert('Sila isi Tarikh, Kolam & Bilangan Beg');return;}
+    const ft = FEED_TYPES.find(t => t.name === feedForm.feedType);
+    const kg = Number(feedForm.packQty) * 25;
+    const nr = {...feedForm, kg, packQty:Number(feedForm.packQty), packaging:'Beg', _id:'n'+Date.now()+'-'+Math.random().toString(36).slice(2,6)};
+    if(feedForm._id) setFeed(rs => rs.map(r => r._id===feedForm._id?nr:r));
+    else setFeed(rs => [nr, ...rs]);
+    setShowFeedForm(false);
+  };
   return /*#__PURE__*/React.createElement("div", {
     className: "space-y-5"
   }, /*#__PURE__*/React.createElement(SectionHeader, {
@@ -2433,40 +2497,25 @@ function FeedModule() {
     className: "grid lg:grid-cols-3 gap-5"
   }, /*#__PURE__*/React.createElement(Card, {
     className: "lg:col-span-2"
-  }, /*#__PURE__*/React.createElement(CrudPanel, {
-    title: "Rekod Feed Harian",
-    icon: "Wheat",
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3 flex-wrap gap-2"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-bold text-white flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "Wheat",
+    size: 16,
+    className: "text-cyan-300"
+  }), "Rekod Feed Harian"), canEdit && /*#__PURE__*/React.createElement("button", {
+    onClick: openFeedNew,
+    className: btnPrimary
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "Plus",
+    size: 15
+  }), "Tambah Rekod")), /*#__PURE__*/React.createElement(DataTable, {
     columns: cols,
     rows: [...rows].reverse(),
-    setRows: setFeed,
-    canEdit: canEdit,
-    fields: [{
-      key: 'date',
-      label: 'Tarikh',
-      type: 'date',
-      required: true,
-      def: todayISO
-    }, {
-      key: 'pond',
-      label: 'Kolam',
-      type: 'select',
-      options: activePonds.map(p => p.id),
-      required: true
-    }, {
-      key: 'feedType',
-      label: 'Jenis Feed',
-      type: 'select',
-      options: FEED_TYPES.map(f => f.name)
-    }, {
-      key: 'kg',
-      label: 'Kuantiti (kg)',
-      type: 'number',
-      required: true
-    }, {
-      key: 'times',
-      label: 'Waktu Beri',
-      def: 'Pagi/Tengahari/Petang/Malam'
-    }]
+    pageSize: 8,
+    searchable: true
   })), /*#__PURE__*/React.createElement(Card, null, /*#__PURE__*/React.createElement("h3", {
     className: "font-bold text-white mb-3"
   }, "Jenis Feed"), /*#__PURE__*/React.createElement("div", {
@@ -2490,7 +2539,90 @@ function FeedModule() {
     columns: stockCols,
     rows: FEED_STOCK,
     searchable: false
-  })));
+  })),
+  /* Feed Form Modal */
+  showFeedForm && /*#__PURE__*/React.createElement("div", {className:"fixed inset-0 z-50 flex items-start justify-center pt-10 lg:pt-16 overflow-y-auto", onClick:()=>setShowFeedForm(false)},
+    /*#__PURE__*/React.createElement("div", {className:"absolute inset-0 bg-black/60 backdrop-blur-sm"}),
+    /*#__PURE__*/React.createElement("div", {onClick:e=>e.stopPropagation(), className:"w-full max-w-lg mx-4 mb-10 bg-panel border border-edge rounded-2xl shadow-2xl fadeUp"},
+      /*#__PURE__*/React.createElement("div", {className:"flex items-center justify-between p-4 border-b border-edge"},
+        /*#__PURE__*/React.createElement("h2", {className:"text-sm font-bold text-white flex items-center gap-2"},
+          /*#__PURE__*/React.createElement(Icon,{name:"Wheat",size:14}), feedForm._id?'Edit Rekod Feed':'Rekod Feed Baru'),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setShowFeedForm(false), className:"p-1 rounded-lg hover:bg-white/10 text-slate-400"}, '✕')
+      ),
+      /*#__PURE__*/React.createElement("div", {className:"p-4 space-y-3"},
+        /* Date + Pond */
+        /*#__PURE__*/React.createElement("div", {className:"grid grid-cols-2 gap-3"},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", {className:"block text-[11px] font-medium text-slate-400 mb-1"}, '📅 Tarikh *'),
+            /*#__PURE__*/React.createElement("input", {type:"date", value:feedForm.date, onChange:e=>fSet('date',e.target.value), className:"w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white"})
+          ),
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", {className:"block text-[11px] font-medium text-slate-400 mb-1"}, '🏊 Kolam *'),
+            /*#__PURE__*/React.createElement("select", {value:feedForm.pond, onChange:e=>fSet('pond',e.target.value), className:"w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white"},
+              /*#__PURE__*/React.createElement("option", {value:""}, '— Pilih —'),
+              activePonds.map(p => /*#__PURE__*/React.createElement("option", {key:p.id, value:p.id}, p.id))
+            )
+          )
+        ),
+        /* Feed Type + Pack Qty */
+        /*#__PURE__*/React.createElement("div", {className:"grid grid-cols-2 gap-3"},
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", {className:"block text-[11px] font-medium text-slate-400 mb-1"}, '🧪 Jenis Feed *'),
+            /*#__PURE__*/React.createElement("select", {value:feedForm.feedType, onChange:e=>fSet('feedType',e.target.value), className:"w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white"},
+              FEED_TYPES.map(ft => /*#__PURE__*/React.createElement("option", {key:ft.name, value:ft.name}, ft.name+' — RM'+ft.pricePerKg+'/kg'))
+            )
+          ),
+          /*#__PURE__*/React.createElement("div", null,
+            /*#__PURE__*/React.createElement("label", {className:"block text-[11px] font-medium text-slate-400 mb-1"}, '📦 Bilangan Beg *'),
+            /*#__PURE__*/React.createElement("input", {type:"number", min:1, step:1, value:feedForm.packQty, onChange:e=>fSet('packQty',Math.max(1,parseInt(e.target.value)||1)), className:"w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white"})
+          )
+        ),
+        /* Auto-calc info */
+        /*#__PURE__*/React.createElement("div", {className:"bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3 text-xs"},
+          /*#__PURE__*/React.createElement("p", {className:"text-cyan-400 font-semibold mb-1"}, '💰 Info Kos'),
+          /*#__PURE__*/React.createElement("p", {className:"text-slate-300"},
+            (()=>{
+              const ft = FEED_TYPES.find(t=>t.name===feedForm.feedType);
+              const kg = (feedForm.packQty||0) * 25;
+              const kos = kg * (ft?ft.pricePerKg:0);
+              return React.createElement(React.Fragment, null,
+                feedForm.packQty+' beg × 25kg = ', React.createElement('strong',{className:'text-white'},kg+' kg'),
+                ' × RM'+(ft?ft.pricePerKg:0)+' = ', React.createElement('strong',{className:'text-emerald-300'},fmtRM(kos))
+              );
+            })()
+          )
+        ),
+        /* Times */
+        /*#__PURE__*/React.createElement("div", null,
+          /*#__PURE__*/React.createElement("label", {className:"block text-[11px] font-medium text-slate-400 mb-1"}, '⏰ Waktu Beri'),
+          /*#__PURE__*/React.createElement("input", {type:"text", value:feedForm.times, onChange:e=>fSet('times',e.target.value), className:"w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white"})
+        )
+      ),
+      /* Footer */
+      /*#__PURE__*/React.createElement("div", {className:"flex justify-end gap-2 p-4 border-t border-edge"},
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setShowFeedForm(false), className:"px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition"}, 'Batal'),
+        /*#__PURE__*/React.createElement("button", {onClick:saveFeed, disabled:!feedForm.date||!feedForm.pond||!feedForm.packQty,
+          className:"px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-ink hover:shadow-glow transition disabled:opacity-40"},
+          /*#__PURE__*/React.createElement(Icon,{name:"Save",size:14}), ' Simpan')
+      )
+    )
+  ),
+  /* Delete confirmation */
+  feedDel && /*#__PURE__*/React.createElement("div", {className:"fixed inset-0 z-50 flex items-center justify-center"},
+    /*#__PURE__*/React.createElement("div", {className:"absolute inset-0 bg-black/60 backdrop-blur-sm", onClick:()=>setFeedDel(null)}),
+    /*#__PURE__*/React.createElement("div", {className:"relative bg-panel border border-edge rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl"},
+      /*#__PURE__*/React.createElement("div", {className:"flex items-center gap-3 mb-4"},
+        /*#__PURE__*/React.createElement("div", {className:"p-2 bg-rose-500/20 rounded-lg"}, React.createElement(Icon,{name:"Trash2",size:18,className:"text-rose-400"})),
+        /*#__PURE__*/React.createElement("h3", {className:"text-sm font-bold text-white"}, 'Padam Rekod Feed?')
+      ),
+      /*#__PURE__*/React.createElement("p", {className:"text-slate-400 text-xs mb-5"}, 'Rekod feed ini akan dipadam secara kekal. Tindakan ini tidak boleh dibuat asal.'),
+      /*#__PURE__*/React.createElement("div", {className:"flex gap-3"},
+        /*#__PURE__*/React.createElement("button", {onClick:()=>setFeedDel(null), className:"flex-1 px-4 py-2.5 bg-panel2 hover:bg-edge text-slate-300 rounded-xl text-xs transition-all"}, 'Batal'),
+        /*#__PURE__*/React.createElement("button", {onClick:()=>{setFeed(rs=>rs.filter(x=>x._id!==feedDel._id)); setFeedDel(null);}, className:"flex-1 px-4 py-2.5 bg-rose-500/20 border border-rose-500/30 text-rose-400 hover:bg-rose-500/30 rounded-xl text-xs font-semibold transition-all"}, 'Ya, Padam')
+      )
+    )
+  )
+);
 }
 
 /* ============================================================
@@ -4826,7 +4958,7 @@ function ChemicalModule() {
   const [delConfirm, setDelConfirm] = useState(null);
   const [form, setForm] = useState({}); const [showForm, setShowForm] = useState(false); const [formStep, setFormStep] = useState(1);
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const openNew = () => { setForm({date:todayISO,pond:'',chemId:'',qty:'',unit:'kg',sebab:'',catatan:'',pengusaha:'',kos:'',status:'Dijadual'}); setFormStep(1); setShowForm(true); };
+  const openNew = () => { setForm({date:todayISO,pond:'',chemId:'',qty:'',packType:'',packQty:'',unit:'kg',sebab:'',catatan:'',pengusaha:'',kos:'',status:'Dijadual'}); setFormStep(1); setShowForm(true); };
   const openEdit = (r) => { setForm({...r}); setFormStep(1); setShowForm(true); };
   const lowStock = chemItems.filter(i => i.stok <= i.minStok);
   const cats = [...new Set(chemItems.map(i => i.kategori))];
@@ -4941,7 +5073,7 @@ function ChemicalModule() {
                   React.createElement('div', null, ci ? ci.name : r.chemId),
                   React.createElement('span', {className:'text-[10px] px-1.5 py-0.5 rounded-full '+(ci&&ci.kategori==='Kimia'?'bg-teal-500/20 text-teal-400':'bg-purple-500/20 text-purple-400')}, ci?ci.kategori:'—')
                 ),
-                React.createElement('td', {className:'px-3 py-2.5'}, r.qty+' '+r.unit),
+                React.createElement('td', {className:'px-3 py-2.5'}, r.qty+' '+r.unit+(r.packType?' ('+r.packQty+' '+r.packType+')':'')),
                 React.createElement('td', {className:'px-3 py-2.5 font-semibold text-cyan-300'}, fmtRM(r.kos)),
                 React.createElement('td', {className:'px-3 py-2.5 max-w-[120px]'}, React.createElement('span', {className:'truncate block text-xs text-slate-400', title:r.sebab}, r.sebab)),
                 React.createElement('td', {className:'px-3 py-2.5'},
@@ -5072,7 +5204,7 @@ function ChemicalModule() {
             ['📅 Tarikh', r.date],
             ['🏊 Kolam', r.pond],
             ['🧪 Bahan', ci?ci.name+' ('+ci.kategori+')':r.chemId],
-            ['📦 Kuantiti', r.qty+' '+r.unit],
+            ['📦 Kuantiti', r.qty+' '+r.unit+(r.packType?' ('+r.packQty+' '+r.packType+')':'')],
             ['💰 Kos', fmtRM(r.kos)],
             ['⚠️ Sebab', r.sebab||'—'],
             ['📝 Catatan', r.catatan||'—'],
@@ -5115,15 +5247,22 @@ function ChemicalModule() {
             ),
             React.createElement('div', {key:'d2'},
               React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '🧪 Bahan Kimia *'),
-              React.createElement('select', {value:form.chemId, onChange:e=>{ const ci=chemItems.find(i=>i.id===e.target.value); set('chemId',e.target.value); set('unit',ci?ci.unit:'kg'); if(ci && form.qty) set('kos',(Number(form.qty)*ci.harga).toFixed(2)); }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+              React.createElement('select', {value:form.chemId, onChange:e=>{ const ci=chemItems.find(i=>i.id===e.target.value); set('chemId',e.target.value); set('unit',ci?ci.unit:'kg'); set('packType',''); set('packQty',''); set('qty',''); set('kos',''); }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
                 React.createElement('option', {value:''}, '— Pilih —'),
                 chemItems.map(i => React.createElement('option', {key:i.id, value:i.id}, '['+i.kategori+'] '+i.name+' — Stok: '+i.stok+' '+i.unit))
               )
             ),
+            form.chemId && ciFind(form.chemId)?.packaging && React.createElement('div', {key:'d2a'},
+              React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📦 Pembungkusan'),
+              React.createElement('select', {value:form.packType, onChange:e=>{ const p=e.target.value; set('packType',p); const ci=ciFind(form.chemId); if(ci && ci.packaging && ci.packaging[p]){ const pq=ci.packaging[p].qty; const pk=form.packQty||1; set('qty',pk*pq); set('kos',(pk*pq*ci.harga).toFixed(2)); } }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'},
+                React.createElement('option', {value:''}, '— Pilih —'),
+                Object.entries(ciFind(form.chemId)?.packaging||{}).map(([k,v]) => React.createElement('option', {key:k, value:k}, v.label))
+              )
+            ),
             React.createElement('div', {key:'d3', className:'grid grid-cols-3 gap-3'},
               React.createElement('div', {className:'col-span-2'},
-                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, '📦 Kuantiti *'),
-                React.createElement('input', {type:'number', step:'any', value:form.qty, onChange:e=>{ const q=+e.target.value; const ci=chemItems.find(i=>i.id===form.chemId); set('qty',q); if(ci && q) set('kos',(q*ci.harga).toFixed(2)); }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
+                React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, form.packType ? '📦 Bil. '+ciFind(form.chemId)?.packaging?.[form.packType]?.label.replace(/\(.*\)/,'').trim()||'Unit' : '📦 Kuantiti *'),
+                React.createElement('input', {type:'number', step:'any', value:form.packQty||form.qty, onChange:e=>{ const v=+e.target.value; set(form.packType?'packQty':'qty',v); const ci=ciFind(form.chemId); if(ci){ const fq=form.packType ? v*(ci.packaging?.[form.packType]?.qty||1) : v; set('qty',fq); if(fq) set('kos',(fq*ci.harga).toFixed(2)); } }, className:'w-full bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs text-white'})
               ),
               React.createElement('div', null,
                 React.createElement('label', {className:'block text-[11px] font-medium text-slate-400 mb-1'}, 'Unit'),
@@ -5132,8 +5271,7 @@ function ChemicalModule() {
             ),
             (form.qty && form.chemId) && React.createElement('div', {key:'d4', className:'bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3 text-xs'},
               React.createElement('p', {className:'text-cyan-400 font-semibold mb-1'}, '💰 Info Kos'),
-              React.createElement('p', {className:'text-slate-300'}, 'Auto: '+(form.qty||0)+' × RM'+(ciFind(form.chemId)?.harga||0)+' = ',
-                React.createElement('strong', {className:'text-white'}, fmtRM((form.qty||0)*(ciFind(form.chemId)?.harga||0))))
+              (()=>{ const ci=ciFind(form.chemId); const hg=ci?ci.harga:0; const pkQty=form.packType&&form.packQty?form.packQty+'×'+(ci?.packaging?.[form.packType]?.qty||1)+'=':''; return React.createElement('p', {className:'text-slate-300'}, pkQty+form.qty+' × RM'+hg+' = ', React.createElement('strong',{className:'text-white'},fmtRM(form.qty*hg))); })()
             )
           ] : [
             React.createElement('div', {key:'s1'},
