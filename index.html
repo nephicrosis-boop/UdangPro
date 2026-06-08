@@ -492,97 +492,7 @@ const SEED_USERS = [{
   lastLogin: daysAgo(0)
 }];
 const SPECIES = ['Udang Vannamei (L. vannamei)', 'Udang Harimau (P. monodon)', 'Udang Putih'];
-const PONDS = [{
-  id: 'KOLAM C',
-  name: 'Kolam C',
-  sizeM2: 5000,
-  sizeHa: 0.50,
-  type: 'Tanah',
-  loc: 'Blok Utara',
-  gps: '2.4312, 103.8390',
-  status: 'Aktif',
-  stockDate: daysAgo(62),
-  density: 100,
-  species: 'Udang Vannamei (L. vannamei)',
-  seeded: 500000,
-  survival: 88,
-  harvestEst: daysAhead(28)
-}, {
-  id: 'KOLAM B',
-  name: 'Kolam B',
-  sizeM2: 4000,
-  sizeHa: 0.40,
-  type: 'Plastik',
-  loc: 'Blok Utara',
-  gps: '2.4318, 103.8395',
-  status: 'Aktif',
-  stockDate: daysAgo(45),
-  density: 100,
-  species: 'Udang Vannamei (L. vannamei)',
-  seeded: 400000,
-  survival: 91,
-  harvestEst: daysAhead(45)
-}, {
-  id: 'KOLAM 4',
-  name: 'Kolam 4',
-  sizeM2: 6000,
-  sizeHa: 0.60,
-  type: 'Tanah',
-  loc: 'Blok Selatan',
-  gps: '2.4290, 103.8402',
-  status: 'Tuaian',
-  stockDate: daysAgo(98),
-  density: 90,
-  species: 'Udang Vannamei (L. vannamei)',
-  seeded: 540000,
-  survival: 82,
-  harvestEst: daysAhead(3)
-}, {
-  id: 'KOLAM 2',
-  name: 'Kolam 2',
-  sizeM2: 3000,
-  sizeHa: 0.30,
-  type: 'Beton',
-  loc: 'Blok Selatan',
-  gps: '2.4285, 103.8410',
-  status: 'Persediaan',
-  stockDate: daysAhead(7),
-  density: 30,
-  species: 'Udang Harimau (P. monodon)',
-  seeded: 90000,
-  survival: 0,
-  harvestEst: daysAhead(120)
-}, {
-  id: 'KOLAM A',
-  name: 'Kolam A',
-  sizeM2: 4500,
-  sizeHa: 0.45,
-  type: 'Tanah',
-  loc: 'Blok Timur',
-  gps: '2.4301, 103.8380',
-  status: 'Kosong',
-  stockDate: null,
-  density: 0,
-  species: '-',
-  seeded: 0,
-  survival: 0,
-  harvestEst: null
-}, {
-  id: 'KOLAM D',
-  name: 'Kolam D',
-  sizeM2: 5500,
-  sizeHa: 0.55,
-  type: 'Plastik',
-  loc: 'Blok Timur',
-  gps: '2.4307, 103.8375',
-  status: 'Penyelenggaraan',
-  stockDate: null,
-  density: 0,
-  species: '-',
-  seeded: 0,
-  survival: 0,
-  harvestEst: null
-}];
+const PONDS = [];
 
 /* Water quality: 30 hari untuk kolam aktif */
 function genWQ(pondId, baseTemp) {
@@ -605,21 +515,7 @@ function genWQ(pondId, baseTemp) {
   }
   return arr;
 }
-let WATER_QUALITY = [...genWQ('KOLAM C', 29.5), ...genWQ('KOLAM B', 30.1), ...genWQ('KOLAM 4', 31.2)];
-// satu bacaan kritikal sebagai contoh alert
-WATER_QUALITY.push({
-  date: todayISO,
-  pond: 'KOLAM 4',
-  time: 'Petang',
-  ph: 9.1,
-  do: 3.4,
-  temp: 33.4,
-  salinity: 26.5,
-  transparency: 18,
-  ammonia: 0.18,
-  nitrite: 0.12,
-  alkalinity: 95
-});
+let WATER_QUALITY = [];
 const SAFE_RANGE = {
   ph: [7.5, 8.5],
   do: [4, 99],
@@ -629,51 +525,7 @@ const SAFE_RANGE = {
 };
 
 /* Benih / PL */
-const SEED_RECORDS = [{
-  id: 1,
-  date: daysAgo(62),
-  pond: 'KOLAM C',
-  species: 'Udang Vannamei (L. vannamei)',
-  plSize: 'PL12',
-  qty: 500000,
-  supplier: 'Hatchery Sri Mersing',
-  price: 0.045,
-  pcr: 'Negatif (Clean)',
-  surv7: 96
-}, {
-  id: 2,
-  date: daysAgo(45),
-  pond: 'KOLAM B',
-  species: 'Udang Vannamei (L. vannamei)',
-  plSize: 'PL10',
-  qty: 400000,
-  supplier: 'CP Hatchery JB',
-  price: 0.048,
-  pcr: 'Negatif (Clean)',
-  surv7: 94
-}, {
-  id: 3,
-  date: daysAgo(98),
-  pond: 'KOLAM 4',
-  species: 'Udang Vannamei (L. vannamei)',
-  plSize: 'PL12',
-  qty: 540000,
-  supplier: 'Hatchery Sri Mersing',
-  price: 0.043,
-  pcr: 'Negatif (Clean)',
-  surv7: 90
-}, {
-  id: 4,
-  date: daysAhead(7),
-  pond: 'KOLAM 2',
-  species: 'Udang Harimau (P. monodon)',
-  plSize: 'PL15',
-  qty: 90000,
-  supplier: 'Blue Archipelago',
-  price: 0.080,
-  pcr: 'Pending',
-  surv7: 0
-}];
+const SEED_RECORDS = [];
 
 /* Feed records — 14 hari, kolam aktif */
 const FEED_TYPES = [{
@@ -703,50 +555,8 @@ function genFeed(pondId, base) {
   }
   return arr;
 }
-const FEED_RECORDS = [...genFeed('KOLAM C', 180), ...genFeed('KOLAM B', 95), ...genFeed('KOLAM 4', 240)];
-const FEED_STOCK = [{
-  id: 1,
-  item: 'Feed 5001 (Starter)',
-  bags: 18,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 5.20
-}, {
-  id: 2,
-  item: 'Feed 5002 (Starter)',
-  bags: 12,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 5.10
-}, {
-  id: 3,
-  item: 'Feed 5003 (Grower)',
-  bags: 8,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 4.80
-}, {
-  id: 4,
-  item: 'Feed 7704 (Grower)',
-  bags: 22,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 4.75
-}, {
-  id: 5,
-  item: 'Feed 7705 (Finisher)',
-  bags: 5,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 4.55
-}, {
-  id: 6,
-  item: 'Feed 7706 (Finisher)',
-  bags: 30,
-  kgPerBag: 25,
-  reorder: 10,
-  pricePerKg: 4.50
-}];
+const FEED_RECORDS = [];
+const FEED_STOCK = [];
 
 /* Growth sampling — 8 minggu */
 function genGrowth(pondId, startW, adg) {
@@ -767,72 +577,12 @@ function genGrowth(pondId, startW, adg) {
   }
   return arr;
 }
-const GROWTH = [...genGrowth('KOLAM C', 1.2, 0.28), ...genGrowth('KOLAM B', 1.0, 0.25), ...genGrowth('KOLAM 4', 1.5, 0.30)];
+const GROWTH = [];
 
 /* Health / disease */
 const DISEASES = ['EMS/AHPNS', 'WSD (White Spot)', 'WSSV', 'EHP', 'Running Mortality Syndrome'];
-const HEALTH_RECORDS = [{
-  id: 1,
-  date: daysAgo(12),
-  pond: 'KOLAM 4',
-  issue: 'EHP',
-  mortality: 3200,
-  treatment: 'Probiotik + mineral, kurang feeding',
-  dose: 'Probiotik 5L/ha',
-  vet: 'Dr. Lim (Vet Aqua)',
-  status: 'Terkawal'
-}, {
-  id: 2,
-  date: daysAgo(5),
-  pond: 'KOLAM C',
-  issue: 'Running Mortality Syndrome',
-  mortality: 1800,
-  treatment: 'Tukar air 20%, Vitamin C',
-  dose: 'Vit C 3g/kg feed',
-  vet: '-',
-  status: 'Pemantauan'
-}, {
-  id: 3,
-  date: daysAgo(2),
-  pond: 'KOLAM B',
-  issue: '-',
-  mortality: 450,
-  treatment: 'Normal mortality',
-  dose: '-',
-  vet: '-',
-  status: 'Normal'
-}];
-const MED_STOCK = [{
-  id: 1,
-  item: 'Probiotik (Super MS)',
-  unit: 'Liter',
-  qty: 45,
-  reorder: 20
-}, {
-  id: 2,
-  item: 'Vitamin C',
-  unit: 'kg',
-  qty: 8,
-  reorder: 5
-}, {
-  id: 3,
-  item: 'Mineral Mix',
-  unit: 'kg',
-  qty: 30,
-  reorder: 15
-}, {
-  id: 4,
-  item: 'Hydrated Lime',
-  unit: 'kg',
-  qty: 120,
-  reorder: 50
-}, {
-  id: 5,
-  item: 'Chlorine',
-  unit: 'kg',
-  qty: 3,
-  reorder: 10
-}];
+const HEALTH_RECORDS = [];
+const MED_STOCK = [];
 
 /* Daily mortality (14 hari) untuk graf */
 function genMort(pondId, base) {
@@ -844,37 +594,14 @@ function genMort(pondId, base) {
   });
   return a;
 }
-const MORTALITY = [...genMort('KOLAM C', 400), ...genMort('KOLAM B', 300), ...genMort('KOLAM 4', 900)];
+const MORTALITY = [];
 
 /* Harvest */
-const HARVESTS = [{
-  id: 1,
-  date: daysAgo(20),
-  pond: 'KOLAM 4',
-  type: 'Partial',
-  kg: 1850,
-  count: 55,
-  grade: 'A',
-  buyer: 'Kilang Mersing Seafood',
-  pricePerKg: 24.5,
-  transport: 'Lori Sejuk Beku'
-}, {
-  id: 2,
-  date: daysAgo(75),
-  pond: 'KOLAM B',
-  type: 'Full',
-  kg: 4200,
-  count: 48,
-  grade: 'A',
-  buyer: 'Pasar Borong JB',
-  pricePerKg: 26.0,
-  transport: 'Lori Sendiri'
-}];
+const HARVESTS = [];
 
 /* Financial — 6 bulan */
 const MONTHS = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun'];
-const FINANCE = MONTHS.map((m, i) => {
-  const income = [0, 0, 0, 45325, 0, 109200][i] + (i === 5 ? 0 : Math.round(Math.random() * 8000));
+const FINANCE = [];
   const seed = [22500, 0, 0, 0, 18900, 0][i];
   const feed = [8500, 12300, 15600, 18200, 21400, 19800][i];
   const elec = [2200, 2400, 2600, 2800, 3100, 2900][i];
@@ -895,46 +622,8 @@ const FINANCE = MONTHS.map((m, i) => {
     profit: income - cost
   };
 });
-const COST_BREAKDOWN = [{
-  name: 'Benih',
-  value: FINANCE.reduce((s, f) => s + f.seed, 0)
-}, {
-  name: 'Feed',
-  value: FINANCE.reduce((s, f) => s + f.feed, 0)
-}, {
-  name: 'Elektrik',
-  value: FINANCE.reduce((s, f) => s + f.elec, 0)
-}, {
-  name: 'Buruh',
-  value: FINANCE.reduce((s, f) => s + f.labor, 0)
-}, {
-  name: 'Ubatan',
-  value: FINANCE.reduce((s, f) => s + f.med, 0)
-}, {
-  name: 'Lain-lain',
-  value: FINANCE.reduce((s, f) => s + f.other, 0)
-}];
-const ACTIVITY_LOG = [{
-  id: 1,
-  user: 'Encik Nepho',
-  action: 'Log masuk sistem',
-  time: daysAgo(0) + ' 08:12'
-}, {
-  id: 2,
-  user: 'Pekerja Bulat',
-  action: 'Update rekod feed KOLAM C',
-  time: daysAgo(0) + ' 09:30'
-}, {
-  id: 3,
-  user: 'Manager Azlan',
-  action: 'Lihat laporan kewangan',
-  time: daysAgo(1) + ' 14:05'
-}, {
-  id: 4,
-  user: 'Pekerja Bulat',
-  action: 'Rekod kualiti air KOLAM B',
-  time: daysAgo(1) + ' 07:45'
-}];
+const COST_BREAKDOWN = [];
+const ACTIVITY_LOG = [];
 const PIE_COLORS = ['#22d3ee', '#2dd4bf', '#34d399', '#fbbf24', '#f472b6', '#a78bfa'];
 const fmtRM = n => 'RM ' + (n || 0).toLocaleString('en-MY', {
   minimumFractionDigits: 0,
@@ -945,55 +634,9 @@ const fmtNum = n => (n || 0).toLocaleString('en-MY');
 /* ============================================================
    STOCK SEED DATA
    ============================================================ */
-const STOCK_ITEMS = [
-  // Benih
-  { id:'stk001', name:'PL Vannamei', category:'Benih', subCategory:'Udang Putih', brand:'CP Hatchery', qty:50000, unit:'ekor', minStock:10000, price:35, supplier:'CP Feedmill', location:'Gudang B', expiry:'2026-12-31', notes:'Harga per 1000 ekor, SPF Vannamei' },
-  // Feed
-  { id:'stk002', name:'CP Prima S1', category:'Feed', subCategory:'Starter', brand:'CP Feedmill', qty:150, unit:'beg', minStock:30, price:85, supplier:'CP Feedmill', location:'Gudang A', expiry:'2026-09-15', notes:'30kg/beg - Starter 1mm' },
-  { id:'stk003', name:'Grobest Grower', category:'Feed', subCategory:'Grower', brand:'Grobest', qty:120, unit:'beg', minStock:30, price:78, supplier:'Grobest', location:'Gudang A', expiry:'2026-08-20', notes:'30kg/beg - Grower 2mm' },
-  { id:'stk004', name:'SyAqua Finisher', category:'Feed', subCategory:'Finisher', brand:'SyAqua', qty:60, unit:'beg', minStock:20, price:74, supplier:'SyAqua', location:'Gudang A', expiry:'2026-10-01', notes:'30kg/beg - Finisher 4mm' },
-  // Ubatan
-  { id:'stk005', name:'Antibiotik Oksitetrasiklin', category:'Ubatan', subCategory:'Antibiotik', brand:'VetPharma', qty:8, unit:'botol', minStock:3, price:120, supplier:'BioGuard Sdn Bhd', location:'Peti Sejuk', expiry:'2026-11-30', notes:'500g/botol - Antibiotik spektrum luas' },
-  { id:'stk006', name:'Probiotik Super MS', category:'Ubatan', subCategory:'Probiotik', brand:'BioGuard', qty:12, unit:'botol', minStock:5, price:55, supplier:'BioGuard Sdn Bhd', location:'Peti Sejuk', expiry:'2026-07-15', notes:'1L/botol - Campuran probiotik' },
-  { id:'stk007', name:'Vitamin C Stress Guard', category:'Ubatan', subCategory:'Vitamin', brand:'AquaHealth', qty:15, unit:'kg', minStock:5, price:45, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'2027-01-20', notes:'Serbuk - Campuran dalam makanan' },
-  // Kimia
-  { id:'stk008', name:'Kapur Dolomite', category:'Kimia', subCategory:'Pengapuran', brand:'Kimia', qty:25, unit:'beg', minStock:10, price:20, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'', notes:'25kg/beg - Dolomit' },
-  { id:'stk009', name:'Zeolite', category:'Kimia', subCategory:'Penyerap', brand:'Kimia', qty:15, unit:'beg', minStock:5, price:22, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'', notes:'25kg/beg - Penyerap ammonia' },
-  { id:'stk010', name:'Klorin Kalsium', category:'Kimia', subCategory:'Disinfektan', brand:'Kimia', qty:8, unit:'botol', minStock:3, price:25, supplier:'Pertanian Mersing', location:'Gudang B', expiry:'2026-08-05', notes:'4L/botol - Pembasmian kuman' },
-  // Peralatan
-  { id:'stk011', name:'Aerator Kincir 1HP', category:'Peralatan', subCategory:'Aerasi', brand:'Tsunami', qty:4, unit:'unit', minStock:1, price:850, supplier:'Pertanian Mersing', location:'Gudang A', expiry:'', notes:'Servis setiap 3 bulan' },
-  { id:'stk012', name:'Jaring Sampling', category:'Peralatan', subCategory:'Alat Sampling', brand:'Lokal', qty:5, unit:'unit', minStock:2, price:45, supplier:'Pertanian Mersing', location:'Gudang A', expiry:'', notes:'Saiz 1m x 1.5m - Jaring halus' }
-];
-const STOCK_MOVEMENTS = [
-  { id:'mv001', date:daysAgo(30), itemId:'stk001', type:'in', qty:50000, supplier:'CP Hatchery', by:'Manager Azlan', reason:'Pesanan PL baru', invoice:'INV-CP-001' },
-  { id:'mv002', date:daysAgo(28), itemId:'stk002', type:'in', qty:100, supplier:'CP Feedmill', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-CP-002' },
-  { id:'mv003', date:daysAgo(25), itemId:'stk003', type:'in', qty:80, supplier:'Grobest', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-GB-001' },
-  { id:'mv004', date:daysAgo(22), itemId:'stk004', type:'in', qty:50, supplier:'SyAqua', by:'Manager Azlan', reason:'Pesanan stok baru', invoice:'INV-SA-001' },
-  { id:'mv005', date:daysAgo(20), itemId:'stk005', type:'in', qty:10, supplier:'BioGuard Sdn Bhd', by:'Manager Azlan', reason:'Pesanan ubatan', invoice:'INV-BG-001' },
-  { id:'mv006', date:daysAgo(18), itemId:'stk006', type:'in', qty:15, supplier:'BioGuard Sdn Bhd', by:'Manager Azlan', reason:'Pesanan probiotik', invoice:'INV-BG-002' },
-  { id:'mv007', date:daysAgo(15), itemId:'stk008', type:'in', qty:20, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan kimia', invoice:'INV-PM-001' },
-  { id:'mv008', date:daysAgo(14), itemId:'stk009', type:'in', qty:15, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan zeolite', invoice:'INV-PM-002' },
-  { id:'mv009', date:daysAgo(12), itemId:'stk001', type:'out', qty:10000, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Tebar benih Kolam C' },
-  { id:'mv010', date:daysAgo(10), itemId:'stk002', type:'out', qty:20, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penggunaan harian - Starter' },
-  { id:'mv011', date:daysAgo(8), itemId:'stk003', type:'out', qty:15, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Penggunaan harian - Grower' },
-  { id:'mv012', date:daysAgo(7), itemId:'stk006', type:'out', qty:2, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Rawatan probiotik' },
-  { id:'mv013', date:daysAgo(6), itemId:'stk008', type:'out', qty:5, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Pengapuran kolam' },
-  { id:'mv014', date:daysAgo(5), itemId:'stk009', type:'out', qty:3, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penyerap ammonia' },
-  { id:'mv015', date:daysAgo(4), itemId:'stk007', type:'in', qty:15, supplier:'Pertanian Mersing', by:'Manager Azlan', reason:'Pesanan vitamin C', invoice:'INV-PM-003' },
-  { id:'mv016', date:daysAgo(3), itemId:'stk001', type:'out', qty:8000, pond:'KOLAM B', by:'Pekerja Bulat', reason:'Tebar benih Kolam B' },
-  { id:'mv017', date:daysAgo(2), itemId:'stk010', type:'out', qty:2, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Sterilisasi air kolam' },
-  { id:'mv018', date:daysAgo(1), itemId:'stk003', type:'out', qty:10, pond:'KOLAM 4', by:'Pekerja Bulat', reason:'Penggunaan harian' },
-  { id:'mv019', date:daysAgo(0), itemId:'stk002', type:'out', qty:15, pond:'KOLAM C', by:'Pekerja Bulat', reason:'Penggunaan harian - Starter' },
-  { id:'mv020', date:daysAgo(0), itemId:'stk011', type:'out', qty:1, pond:'—', by:'Manager Azlan', reason:'Servis berkala - hantar servis' }
-];
-const SUPPLIERS = [
-  { id:'sup001', name:'CP Feedmill (M) Sdn Bhd', category:'Feed', contact:'Encik Lim', phone:'019-7654321', email:'lim@cpfeed.my', address:'Lot 123, Kawasan Perindustrian Pasir Gudang, Johor', rating:5, terms:'30 hari' },
-  { id:'sup002', name:'Grobest Feedmill Sdn Bhd', category:'Feed', contact:'Puan Sarah', phone:'012-3456789', email:'sarah@grobest.my', address:'No 45, Jalan Industri 3, Klang, Selangor', rating:4, terms:'30 hari' },
-  { id:'sup003', name:'SyAqua Sdn Bhd', category:'Feed', contact:'Encik Tan', phone:'017-2345678', email:'tan@syaqua.my', address:'Lot 88, Kawasan Perindustrian Senai, Johor', rating:4, terms:'60 hari' },
-  { id:'sup004', name:'Cargill Feed Sdn Bhd', category:'Feed', contact:'Puan Lee', phone:'016-8765432', email:'lee@cargill.my', address:'No 12, Jalan Pelabuhan, Pelabuhan Tanjung Pelepas, Johor', rating:5, terms:'45 hari' },
-  { id:'sup005', name:'Pertanian Mersing Sdn Bhd', category:'Kimia', contact:'Encik Ahmad', phone:'013-5551234', email:'ahmad@tanimersing.my', address:'No 7, Jalan Utama, Bandar Mersing, Johor', rating:3, terms:'Tunai' },
-  { id:'sup006', name:'BioGuard Sdn Bhd', category:'Ubatan', contact:'Dr Kumaresan', phone:'014-5678901', email:'drk@bioguard.my', address:'No 25, Jalan Teknologi, Taman Sains, Shah Alam, Selangor', rating:5, terms:'30 hari' }
-];
+const STOCK_ITEMS = [];
+const STOCK_MOVEMENTS = [];
+const SUPPLIERS = [];
 const STOCK_ITEM_CATEGORIES = [
   { id:'PL', label:'Benih Udang (PL)', icon:'Fish' },
   { id:'Feed', label:'Makanan Udang', icon:'Wheat' },
