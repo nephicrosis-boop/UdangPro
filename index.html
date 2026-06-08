@@ -895,7 +895,7 @@ function AuthProvider({
       ok: false,
       msg: 'Email atau kata laluan salah.'
     };
-    if (!u.active) return {
+    if (u.active === false) return {
       ok: false,
       msg: 'Akaun tidak aktif. Hubungi admin.'
     };
