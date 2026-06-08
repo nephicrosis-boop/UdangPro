@@ -676,6 +676,40 @@ const MED_STOCK = [
   { item:'Klorin', unit:'kg', qty:4, reorder:1 },
 ];
 
+/* ─── Chemical Usage — rawatan kimia/ubatan per kolam ─── */
+const CHEM_ITEMS = [
+  { id:'chem-1', name:'Hydrated Lime (Kapur)', kategori:'Kimia', unit:'kg', harga:2.50, stok:629, minStok:50 },
+  { id:'chem-2', name:'Sodium Bikarbonat', kategori:'Kimia', unit:'kg', harga:3.80, stok:15, minStok:5 },
+  { id:'chem-3', name:'Molases', kategori:'Probiotik', unit:'kg', harga:4.00, stok:11, minStok:5 },
+  { id:'chem-4', name:'Kalsium Karbonat', kategori:'Kimia', unit:'kg', harga:2.20, stok:11, minStok:5 },
+  { id:'chem-5', name:'Super Bio (Probiotik)', kategori:'Probiotik', unit:'kg', harga:45.00, stok:10, minStok:2 },
+  { id:'chem-6', name:'Azomite', kategori:'Kimia', unit:'kg', harga:3.50, stok:8, minStok:2 },
+  { id:'chem-7', name:'Klorin', kategori:'Kimia', unit:'unit', harga:12.00, stok:4, minStok:1 },
+  { id:'chem-8', name:'EDTA Disodium', kategori:'Kimia', unit:'kg', harga:18.00, stok:5, minStok:2 },
+  { id:'chem-9', name:'Probiotik EM4', kategori:'Probiotik', unit:'liter', harga:35.00, stok:3, minStok:1 },
+  { id:'chem-10', name:'Vitamin C', kategori:'Ubatan', unit:'kg', harga:38.00, stok:2, minStok:1 },
+];
+const CHEM_REASONS = [
+  'Kualiti air menurun', 'Penyakit (White Spot)', 'Penyakit (EMS/AHPND)',
+  'Rawatan Rutin', 'Persediaan kolam', 'Pencegahan',
+  'Ammonia tinggi', 'pH tidak stabil', 'Alga berlebihan', 'Lain-lain'
+];
+const CHEMICAL_USAGE = [
+  { id:'cu-1', date:'2026-06-05', pond:'KOLAM C', chemId:'chem-1', qty:50, unit:'kg',
+    sebab:'pH tidak stabil', catatan:'pH 7.2, tambah kapur', pengusaha:'Fariz',
+    kos:125.00, status:'Selesai' },
+  { id:'cu-2', date:'2026-06-04', pond:'KOLAM C', chemId:'chem-5', qty:1, unit:'kg',
+    sebab:'Rawatan Rutin', catatan:'Probiotik mingguan', pengusaha:'Fariz',
+    kos:45.00, status:'Selesai' },
+  { id:'cu-3', date:'2026-06-03', pond:'KOLAM C', chemId:'chem-3', qty:3, unit:'kg',
+    sebab:'Alga berlebihan', catatan:'Molases untuk kompetisi karbon', pengusaha:'Azlan',
+    kos:12.00, status:'Selesai' },
+  { id:'cu-4', date:'2026-06-07', pond:'KOLAM C', chemId:'chem-2', qty:2, unit:'kg',
+    sebab:'Rawatan Rutin', catatan:'Buffering alkalinity', pengusaha:'Fariz',
+    kos:7.60, status:'Selesai' },
+];
+const CHEM_PIE_COLORS = ['#22d3ee','#2dd4bf','#34d399','#fbbf24','#f472b6','#a78bfa','#fb923c','#818cf8','#f87171','#94a3b8'];
+
 /* Daily mortality (14 hari) untuk graf */
 function genMort(pondId, base) {
   const a = [];
@@ -732,7 +766,7 @@ const PERMISSIONS = {
     edit: true
   },
   Pekerja: {
-    modules: ['dashboard', 'water', 'feed', 'growth', 'health', 'stock', 'settings'],
+    modules: ['dashboard', 'water', 'feed', 'growth', 'health', 'chemicals', 'stock', 'settings'],
     manageUsers: false,
     edit: 'daily'
   }
@@ -847,6 +881,7 @@ const TR = {
     nav_reports: 'Laporan & Analitik',
     nav_stock: 'Stok & Inventori',
     nav_report: 'Laporan Akhir',
+    nav_chemicals: 'Penggunaan Kimia',
     nav_settings: 'Tetapan',
     /* Settings */
     lang_label: 'Bahasa',
@@ -901,6 +936,7 @@ const TR = {
     nav_reports: 'Reports & Analytics',
     nav_stock: 'Stock & Inventory',
     nav_report: 'Final Report',
+    nav_chemicals: 'Chemical Usage',
     nav_settings: 'Settings',
     lang_label: 'Language',
     lang_ms: 'Bahasa Melayu',
@@ -1209,6 +1245,10 @@ const NAV = [{
   id: 'settings',
   labelKey: 'nav_settings',
   icon: 'Settings'
+}, {
+  id: 'chemicals',
+  labelKey: 'nav_chemicals',
+  icon: 'FlaskConical'
 }];
 const SHRIMP_SVG = 'icon-192.jpg';
 function ShrimpIcon({ size }) { return React.createElement("img", { src: SHRIMP_SVG, className: "shrimp-icon", style: { width: size + "px", height: size + "px", display: "block", backgroundColor: "transparent" }, alt: "" }); }
@@ -4754,6 +4794,139 @@ function StockModule() {
 }
 
 /* ============================================================
+   PENGGUNAAN KIMIA & UBATAN (Chemical Usage per Pond)
+   ============================================================ */
+function ChemicalModule() {
+  const { chemUsage, setChemUsage, chemItems, ponds } = useData();
+  const { user } = useAuth();
+  const { t } = useLang();
+  const canEdit = PERMISSIONS[user.role].edit === true || PERMISSIONS[user.role].edit === 'daily';
+  const activePonds = ponds.filter(p => p.status === 'Aktif' || p.status === 'Tuaian');
+  const [pond, setPond] = useState('Semua');
+  const [catFilter, setCatFilter] = useState('all');
+  const filtered = pond === 'Semua' ? chemUsage : chemUsage.filter(c => c.pond === pond);
+  const catFiltered = catFilter === 'all' ? filtered : filtered.filter(c => {
+    const item = chemItems.find(i => i.id === c.chemId);
+    return item && item.kategori === catFilter;
+  });
+  const totalKos = catFiltered.reduce((s, c) => s + (c.kos || 0), 0);
+  const totalQty = catFiltered.reduce((s, c) => s + (c.qty || 0), 0);
+  // Daily usage chart
+  const daily = {};
+  catFiltered.forEach(c => { daily[c.date] = (daily[c.date] || 0) + (c.qty || 0); });
+  const dailyChart = Object.entries(daily).sort().slice(-7).map(([d, q]) => ({ date: d.slice(5), kg: q }));
+  // Per-chemical pie
+  const chemPie = {};
+  catFiltered.forEach(c => { const nm = chemItems.find(i => i.id === c.chemId); const k = nm ? nm.name : c.chemId; chemPie[k] = (chemPie[k] || 0) + (c.qty || 0); });
+  const pieData = Object.entries(chemPie).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n, q], i) => ({ name: n.split(' ')[0], qty: q, fill: CHEM_PIE_COLORS[i] }));
+  // Cost trend last 7
+  const costDaily = {};
+  catFiltered.forEach(c => { costDaily[c.date] = (costDaily[c.date] || 0) + (c.kos || 0); });
+  const costChart = Object.entries(costDaily).sort().slice(-7).map(([d, k]) => ({ date: d.slice(5), kos: +k.toFixed(0) }));
+  // inventory alerts
+  const lowStock = chemItems.filter(i => i.stok <= i.minStok);
+  const cats = [...new Set(chemItems.map(i => i.kategori))];
+  const chemOpts = chemItems.map(i => ({ value: i.id, label: i.name + ' (' + i.unit + ')' }));
+  const fmtRM = n => 'RM ' + (n || 0).toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const fmtNum = n => (n || 0).toLocaleString('en-MY');
+  const RC = window.Recharts || {};
+  const { ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend } = RC;
+  const cols = [
+    { key:'date', label:'Tarikh' },
+    { key:'pond', label:'Kolam' },
+    { key:'chem', label:'Bahan Kimia', render: r => { const ci = chemItems.find(i => i.id === r.chemId); return /*#__PURE__*/React.createElement("span", { className:"text-cyan-300" }, ci ? ci.name : r.chemId); } },
+    { key:'qty', label:'Kuantiti', render: r => r.qty + ' ' + r.unit },
+    { key:'sebab', label:'Sebab' },
+    { key:'kos', label:'Kos (RM)', render: r => fmtRM(r.kos) },
+    { key:'status', label:'Status', render: r => /*#__PURE__*/React.createElement("span", { className: r.status === 'Selesai' ? 'text-emerald-400' : 'text-amber-400' }, r.status) }
+  ];
+  const fields = [
+    { key:'date', label:'Tarikh', type:'date', required:true, def:todayISO },
+    { key:'pond', label:'Kolam', type:'select', options:activePonds.map(p => p.id), required:true },
+    { key:'chemId', label:'Bahan Kimia', type:'select', options:chemOpts, required:true },
+    { key:'qty', label:'Kuantiti', type:'number', required:true },
+    { key:'unit', label:'Unit', type:'select', options:['kg','liter','botol','paket'] },
+    { key:'sebab', label:'Sebab Rawatan', type:'select', options:CHEM_REASONS },
+    { key:'catatan', label:'Catatan' },
+    { key:'pengusaha', label:'Pengusaha' },
+    { key:'kos', label:'Kos (RM)', type:'number' },
+    { key:'status', label:'Status', type:'select', options:['Selesai','Dalam Proses','Menunggu'] }
+  ];
+  return /*#__PURE__*/React.createElement("div", { className:"space-y-5" },
+    /*#__PURE__*/React.createElement(SectionHeader, { icon:"FlaskConical", title:"Penggunaan Kimia & Ubatan", desc:"Rekod rawatan, kos & stok kimia per kolam" }),
+    /* KPI row */
+    /*#__PURE__*/React.createElement("div", { className:"grid grid-cols-2 lg:grid-cols-4 gap-4" },
+      /*#__PURE__*/React.createElement(KpiCard, { icon:"Beaker", label:"Jumlah Gunaan", value:fmtNum(totalQty)+' kg/L', tone:"accent" }),
+      /*#__PURE__*/React.createElement(KpiCard, { icon:"DollarSign", label:"Jumlah Kos", value:fmtRM(totalKos), tone:"violet" }),
+      /*#__PURE__*/React.createElement(KpiCard, { icon:"Package", label:"Bahan Kimia", value:chemItems.length, tone:"green" }),
+      /*#__PURE__*/React.createElement(KpiCard, { icon:"AlertTriangle", label:"Stok Rendah", value:lowStock.length, tone:"rose" })
+    ),
+    /* Charts row */
+    /*#__PURE__*/React.createElement("div", { className:"grid lg:grid-cols-2 gap-5" },
+      /*#__PURE__*/React.createElement(Card, null,
+        /*#__PURE__*/React.createElement("h3", { className:"font-bold text-white mb-3" }, "Penggunaan Harian (7 hari)"),
+        /*#__PURE__*/React.createElement(ResponsiveContainer, { width:"100%", height:200 },
+          /*#__PURE__*/React.createElement(BarChart, { data:dailyChart },
+            /*#__PURE__*/React.createElement(CartesianGrid, { strokeDasharray:"3 3", stroke:"#1c2740" }),
+            /*#__PURE__*/React.createElement(XAxis, { dataKey:"date", stroke:"#64748b", fontSize:11 }),
+            /*#__PURE__*/React.createElement(YAxis, { stroke:"#64748b", fontSize:11 }),
+            /*#__PURE__*/React.createElement(Tooltip, { contentStyle:{ background:'#0d1424', border:'1px solid #1c2740', borderRadius:12 } }),
+            /*#__PURE__*/React.createElement(Bar, { dataKey:"kg", fill:"#22d3ee", radius:[5,5,0,0] })
+          )
+        )
+      ),
+      /*#__PURE__*/React.createElement(Card, null,
+        /*#__PURE__*/React.createElement("h3", { className:"font-bold text-white mb-3" }, "Bahan Paling Banyak Diguna"),
+        pieData.length > 0 ?
+        /*#__PURE__*/React.createElement(ResponsiveContainer, { width:"100%", height:200 },
+          /*#__PURE__*/React.createElement(PieChart, null,
+            /*#__PURE__*/React.createElement(Pie, { data:pieData, dataKey:"qty", nameKey:"name", cx:"50%", cy:"50%", outerRadius:70, label:function(e){return e.name} },
+              pieData.map((e,i) => /*#__PURE__*/React.createElement(Cell, { key:i, fill:e.fill }))
+            ),
+            /*#__PURE__*/React.createElement(Tooltip, { contentStyle:{ background:'#0d1424', border:'1px solid #1c2740', borderRadius:12 } })
+          )
+        ) :
+        /*#__PURE__*/React.createElement("p", { className:"text-slate-500 text-xs text-center py-8" }, "Tiada data")
+      )
+    ),
+    /* Filter bar */
+    /*#__PURE__*/React.createElement("div", { className:"flex flex-wrap gap-3 items-center" },
+      /*#__PURE__*/React.createElement("select", { className:"bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs", value:pond, onChange:e=>setPond(e.target.value) },
+        /*#__PURE__*/React.createElement("option", { value:"Semua" }, "Semua Kolam"),
+        activePonds.map(p => /*#__PURE__*/React.createElement("option", { key:p.id, value:p.id }, p.id))
+      ),
+      /*#__PURE__*/React.createElement("select", { className:"bg-panel2 border border-edge rounded-lg px-3 py-2 text-xs", value:catFilter, onChange:e=>setCatFilter(e.target.value) },
+        /*#__PURE__*/React.createElement("option", { value:"all" }, "Semua Kategori"),
+        cats.map(c => /*#__PURE__*/React.createElement("option", { key:c, value:c }, c))
+      ),
+      /*#__PURE__*/React.createElement("span", { className:"text-xs text-slate-500" }, catFiltered.length, " rekod")
+    ),
+    /* CrudPanel for usage records */
+    /*#__PURE__*/React.createElement(CrudPanel, {
+      title:"Rekod Penggunaan Kimia",
+      icon:"FlaskConical",
+      columns:cols,
+      rows:[...catFiltered].reverse(),
+      setRows:setChemUsage,
+      canEdit:canEdit,
+      fields:fields
+    }),
+    /* Low stock inventory card */
+    lowStock.length > 0 && /*#__PURE__*/React.createElement(Card, null,
+      /*#__PURE__*/React.createElement("h3", { className:"font-bold text-rose-300 flex items-center gap-2 mb-3" },
+        /*#__PURE__*/React.createElement(Icon, { name:"AlertTriangle", size:16 }), "Stok Kimia Rendah / Perlu Perhatian"
+      ),
+      /*#__PURE__*/React.createElement("div", { className:"grid grid-cols-2 md:grid-cols-4 gap-3" },
+        lowStock.map(i => /*#__PURE__*/React.createElement("div", { key:i.id, className:"p-3 rounded-xl bg-panel2/60 border border-edge" },
+          /*#__PURE__*/React.createElement("div", { className:"font-semibold text-white text-xs" }, i.name),
+          /*#__PURE__*/React.createElement("div", { className:"text-rose-400 text-xs mt-1" }, "Stok: ", i.stok, " ", i.unit, " (min: ", i.minStok, ")")
+        ))
+      )
+    )
+  );
+}
+
+/* ============================================================
    MAIN APP SHELL + ROUTING
    ============================================================ */
 function MainApp() {
@@ -4806,6 +4979,8 @@ function MainApp() {
         return /*#__PURE__*/React.createElement(ReportsModule, null);
       case 'stock':
         return /*#__PURE__*/React.createElement(StockModule, null);
+      case 'chemicals':
+        return /*#__PURE__*/React.createElement(ChemicalModule, null);
       case 'report':
         return /*#__PURE__*/React.createElement(FinalReportModule, null);
       case 'settings':
@@ -4934,9 +5109,10 @@ function DataProvider({
   const [harvest, setHarvest] = mk('harvest', HARVESTS);
   const [stockItems, setStockItems] = mk('stockitems', STOCK_ITEMS);
   const [stockMoves, setStockMoves] = mk('stockmoves', STOCK_MOVEMENTS);
-  const [suppliers, setSuppliers] = mk('suppliers', SUPPLIERS);
+  const [chemUsage, setChemUsage] = mk('chemusage', CHEMICAL_USAGE);
+  const [chemItems, setChemItems] = mk('chemitems', CHEM_ITEMS);
   const reset = () => {
-    ['ponds', 'water', 'seed', 'feed', 'feedstock', 'growth', 'health', 'medstock', 'harvest', 'stockitems', 'stockmoves', 'suppliers'].forEach(k => {
+    ['ponds', 'water', 'seed', 'feed', 'feedstock', 'growth', 'health', 'medstock', 'harvest', 'stockitems', 'stockmoves', 'suppliers', 'chemusage', 'chemitems'].forEach(k => {
       localStorage.removeItem('upro_' + k);
       if (sbOnline) SB.del('farm_data', 'id', k).catch(() => {});
     });
@@ -4970,6 +5146,10 @@ function DataProvider({
       setStockMoves,
       suppliers,
       setSuppliers,
+      chemUsage,
+      setChemUsage,
+      chemItems,
+      setChemItems,
       reset
     }
   }, children));
