@@ -602,26 +602,6 @@ const HARVESTS = [];
 /* Financial — 6 bulan */
 const MONTHS = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun'];
 const FINANCE = [];
-  const seed = [22500, 0, 0, 0, 18900, 0][i];
-  const feed = [8500, 12300, 15600, 18200, 21400, 19800][i];
-  const elec = [2200, 2400, 2600, 2800, 3100, 2900][i];
-  const labor = [6000, 6000, 6000, 6500, 6500, 6500][i];
-  const med = [1200, 800, 1500, 2200, 1800, 1600][i];
-  const other = [1500, 900, 1100, 1300, 1700, 1400][i];
-  const cost = seed + feed + elec + labor + med + other;
-  return {
-    month: m,
-    income,
-    seed,
-    feed,
-    elec,
-    labor,
-    med,
-    other,
-    cost,
-    profit: income - cost
-  };
-});
 const COST_BREAKDOWN = [];
 const ACTIVITY_LOG = [];
 const PIE_COLORS = ['#22d3ee', '#2dd4bf', '#34d399', '#fbbf24', '#f472b6', '#a78bfa'];
